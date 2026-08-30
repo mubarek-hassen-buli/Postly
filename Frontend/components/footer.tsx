@@ -22,7 +22,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Col 1: Brand */}
-          <div className="md:col-span-2 flex flex-col items-start">
+          <div className="flex flex-col items-start">
             <Link href="/" className="flex items-center gap-2.5 mb-4">
               <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center shadow-xs">
                 <Send className="w-4 h-4 -translate-x-0.5 translate-y-0.5" />
@@ -53,34 +53,63 @@ export function Footer() {
             </h4>
             <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
               <li>
-                <Link href="#features" className="hover:text-foreground transition-colors">
+                <Link href="/#features" className="hover:text-foreground transition-colors">
                   Features & Capabilities
                 </Link>
               </li>
               <li>
-                <Link href="#sandbox" className="hover:text-foreground transition-colors">
+                <Link href="/#sandbox" className="hover:text-foreground transition-colors">
                   Live Telegram Sandbox
                 </Link>
               </li>
               <li>
-                <Link href="#comparison" className="hover:text-foreground transition-colors">
+                <Link href="/#comparison" className="hover:text-foreground transition-colors">
                   MTProto vs Bots
                 </Link>
               </li>
               <li>
-                <Link href="#security" className="hover:text-foreground transition-colors">
+                <Link href="/#security" className="hover:text-foreground transition-colors">
                   Security Architecture
                 </Link>
               </li>
               <li>
-                <Link href="#faq" className="hover:text-foreground transition-colors">
+                <Link href="/#faq" className="hover:text-foreground transition-colors">
                   Frequently Asked Questions
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Tech Stack */}
+          {/* Col 3: Legal & Privacy */}
+          <div>
+            <h4 className="font-heading font-semibold text-sm text-foreground mb-4">
+              Legal & Support
+            </h4>
+            <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
+              <li>
+                <Link href="/privacy" className="hover:text-foreground transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-foreground transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-foreground transition-colors">
+                  Contact & Support Desk
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy#deletion" className="hover:text-foreground transition-colors">
+                  Data Erasure & Deletion
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Tech Stack */}
           <div>
             <h4 className="font-heading font-semibold text-sm text-foreground mb-4">
               Open Architecture
@@ -98,8 +127,11 @@ export function Footer() {
 
         {/* Bottom Copyright */}
         <div className="pt-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <div>
-            © {new Date().getFullYear()} Postly. All rights reserved. Licensed under MIT.
+          <div className="flex flex-wrap items-center gap-4">
+            <span>© {new Date().getFullYear()} Postly. All rights reserved.</span>
+            <Link href="/privacy" className="hover:underline">Privacy</Link>
+            <Link href="/terms" className="hover:underline">Terms</Link>
+            <Link href="/contact" className="hover:underline">Support</Link>
           </div>
           <div className="flex items-center gap-1">
             <span>Built with precision for Telegram Power Admins.</span>
