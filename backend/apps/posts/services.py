@@ -1,0 +1,277 @@
+import logging
+from typing import Any, Dict, List, Optional
+from django.db import transaction
+from django.utils import timezone
+from telethon.errors import (
+    ChannelPrivateError,
+    ChatAdminRequiredError,
+    ChatWriteForbiddenError,
+    FloodWaitError,
+    MediaEmptyError,
+    MediaInvalidError,
+    UserBannedInChannelError,
+)
+from telethon.tl.types import InputPeerChannel
+
+from apps.accounts.models import TelegramSession
+from apps.telegram_engine.client import run_async, telethon_client_context
+from apps.telegram_engine.services import TelegramServiceError
+from .models import Post, PostChannelTarget, PostMediaAttachment
+
+logger = logging.getLogger(__name__)
+
+
+class TelegramPublishingService:
+    """
+    Core broadcasting engine for Postly.
+    Dispatches composed rich posts and media attachments to target Telegram channels
+    via MTProto with per-channel error isolation and atomic state transitions.
+    """
+
+    @classmethod
+    def publish_post(cls, post_id: str) -> Dict[str, Any]:
+        """
+        Main entrypoint for publishing a post (invoked synchronously or via Celery worker).
+        Safely acquires optimistic lock, transitions status to PUBLISHING, and broadcasts.
+        """
+        # Step 1: Atomic state transition & validation
+        with transaction.atomic():
+            try:
+                post = Post.objects.select_for_update(nowait=False).get(id=post_id)
+            except Post.DoesNotExist:
+                logger.error(f"Cannot publish post {post_id}: Post does not exist.")
+                return {'status': 'ERROR', 'message': 'Post not found'}
+
+            # Prevent double-publishing race conditions
+            if post.status in [Post.PostStatus.PUBLISHED, Post.PostStatus.PUBLISHING]:
+                logger.warning(f"Post {post_id} is already {post.status}. Skipping dispatch.")
+                return {'status': 'SKIPPED', 'message': f'Post already {post.status}'}
+
+            post.status = Post.PostStatus.PUBLISHING
+            post.save(update_fields=['status', 'updated_at'])
+
+        # Step 2: Fetch targets and session
+        targets: List[PostChannelTarget] = list(post.targets.select_related('channel').all())
+        if not targets:
+            with transaction.atomic():
+                post.status = Post.PostStatus.FAILED
+                post.error_summary = "No target channels selected for this post."
+                post.save(update_fields=['status', 'error_summary', 'updated_at'])
+            return {'status': 'FAILED', 'message': 'No target channels'}
+
+        user = post.user
+        try:
+            telegram_session = user.telegram_session
+        except TelegramSession.DoesNotExist:
+            with transaction.atomic():
+                post.status = Post.PostStatus.FAILED
+                post.error_summary = "User has no connected Telegram session."
+                post.save(update_fields=['status', 'error_summary', 'updated_at'])
+            return {'status': 'FAILED', 'message': 'No Telegram session'}
+
+        if not telegram_session.is_authenticated or not telegram_session.encrypted_session_string:
+            with transaction.atomic():
+                post.status = Post.PostStatus.FAILED
+                post.error_summary = "Telegram session is unauthenticated or revoked."
+                post.save(update_fields=['status', 'error_summary', 'updated_at'])
+            return {'status': 'FAILED', 'message': 'Telegram session not authenticated'}
+
+        # Step 3: Run MTProto async broadcast
+        try:
+            media_items = list(post.media_attachments.all().order_by('order', 'created_at'))
+            dispatch_results = run_async(
+                cls._async_dispatch_to_channels(
+                    session_encrypted=telegram_session.encrypted_session_string,
+                    post=post,
+                    targets=targets,
+                    media_items=media_items
+                )
+            )
+        except Exception as exc:
+            logger.exception(f"Exception during Telegram broadcast for post {post.id}: {str(exc)}")
+            with transaction.atomic():
+                post.status = Post.PostStatus.FAILED
+                post.error_summary = str(exc)
+                post.save(update_fields=['status', 'error_summary', 'updated_at'])
+            return {'status': 'FAILED', 'message': str(exc)}
+
+        # Step 4: Finalize database records based on results
+        now = timezone.now()
+        success_count = 0
+        failed_count = 0
+        error_messages = []
+
+        with transaction.atomic():
+            for target in targets:
+                res = dispatch_results.get(str(target.id), {'status': 'FAILED', 'error': 'Unknown error'})
+                if res['status'] == 'SUCCESS':
+                    target.status = PostChannelTarget.TargetStatus.SUCCESS
+                    target.telegram_message_id = res.get('message_id')
+                    target.sent_at = now
+                    target.error_message = None
+                    success_count += 1
+                else:
+                    target.status = PostChannelTarget.TargetStatus.FAILED
+                    target.error_message = res.get('error', 'Dispatch failed')
+                    failed_count += 1
+                    error_messages.append(f"[{target.channel.title}]: {target.error_message}")
+                target.save(update_fields=['status', 'telegram_message_id', 'sent_at', 'error_message', 'updated_at'])
+
+            if success_count > 0:
+                post.status = Post.PostStatus.PUBLISHED
+                post.published_at = now
+                post.error_summary = "; ".join(error_messages) if error_messages else None
+            else:
+                post.status = Post.PostStatus.FAILED
+            post.save(update_fields=['status', 'published_at', 'error_summary', 'updated_at'])
+
+        # Step 5: Dispatch push notification alert to user
+        try:
+            from apps.notifications.services import ExpoPushService
+            if post.status == Post.PostStatus.PUBLISHED:
+                title = "Post Published!"
+                body = f"Your post was successfully broadcast to {success_count} channel(s)."
+                event_type = "POST_PUBLISHED"
+            else:
+                title = "Post Publishing Failed"
+                body = f"Failed to publish post: {post.error_summary or 'Dispatch failed.'}"
+                event_type = "POST_FAILED"
+
+            ExpoPushService.send_notification_to_user(
+                user=post.user,
+                title=title,
+                body=body,
+                event_type=event_type,
+                data={'post_id': str(post.id), 'status': post.status}
+            )
+        except Exception as push_exc:
+            logger.warning(f"Failed to dispatch push notification for post {post.id}: {str(push_exc)}")
+
+        return {
+            'post_id': str(post.id),
+            'status': post.status,
+            'success_count': success_count,
+            'failed_count': failed_count,
+            'errors': error_messages
+        }
+
+    @classmethod
+    async def _async_dispatch_to_channels(
+        cls,
+        session_encrypted: str,
+        post: Post,
+        targets: List[PostChannelTarget],
+        media_items: List[PostMediaAttachment]
+    ) -> Dict[str, Dict[str, Any]]:
+        results: Dict[str, Dict[str, Any]] = {}
+
+        parse_mode = None
+        if post.formatting_mode == Post.FormattingMode.HTML:
+            parse_mode = 'html'
+        elif post.formatting_mode == Post.FormattingMode.MARKDOWN:
+            parse_mode = 'md'
+
+        async with telethon_client_context(
+            session_string=session_encrypted,
+            is_encrypted=True
+        ) as client:
+            if not await client.is_user_authorized():
+                for target in targets:
+                    results[str(target.id)] = {'status': 'FAILED', 'error': 'Telegram session is unauthorized'}
+                return results
+
+            # Dispatch sequentially to each target channel
+            for target in targets:
+                channel = target.channel
+                target_key = str(target.id)
+
+                try:
+                    # Construct InputPeerChannel
+                    if channel.access_hash:
+                        peer = InputPeerChannel(channel.telegram_channel_id, channel.access_hash)
+                    elif channel.username:
+                        peer = channel.username
+                    else:
+                        peer = channel.telegram_channel_id
+
+                    sent_msg = None
+
+                    # Branch: Media message vs Pure text message
+                    if media_items:
+                        if len(media_items) == 1:
+                            # Single media file with caption
+                            single_media = media_items[0]
+                            sent_msg = await client.send_file(
+                                peer,
+                                file=single_media.media_url,
+                                caption=post.text_content or None,
+                                parse_mode=parse_mode,
+                                silent=post.silent
+                            )
+                        else:
+                            # Multiple media files as an album/group
+                            media_files = [m.media_url for m in media_items]
+                            sent_msgs = await client.send_file(
+                                peer,
+                                file=media_files,
+                                caption=post.text_content or None,
+                                parse_mode=parse_mode,
+                                silent=post.silent
+                            )
+                            sent_msg = sent_msgs[0] if isinstance(sent_msgs, list) else sent_msgs
+                    else:
+                        # Pure text message
+                        sent_msg = await client.send_message(
+                            peer,
+                            message=post.text_content,
+                            parse_mode=parse_mode,
+                            silent=post.silent,
+                            link_preview=not post.disable_web_page_preview
+                        )
+
+                    msg_id = getattr(sent_msg, 'id', None)
+
+                    # Handle message pinning if requested
+                    if post.pin_message and sent_msg is not None:
+                        try:
+                            await client.pin_message(
+                                peer,
+                                message=sent_msg,
+                                notify=not post.silent
+                            )
+                        except Exception as pin_exc:
+                            logger.warning(f"Could not pin message in channel {channel.title}: {str(pin_exc)}")
+
+                    results[target_key] = {
+                        'status': 'SUCCESS',
+                        'message_id': msg_id
+                    }
+
+                except (ChatAdminRequiredError, ChatWriteForbiddenError, UserBannedInChannelError) as exc:
+                    results[target_key] = {
+                        'status': 'FAILED',
+                        'error': f'Permission denied: Account lacks write/admin rights in this channel ({str(exc)})'
+                    }
+                except ChannelPrivateError as exc:
+                    results[target_key] = {
+                        'status': 'FAILED',
+                        'error': 'Channel is private or account was removed from the channel.'
+                    }
+                except (MediaEmptyError, MediaInvalidError) as exc:
+                    results[target_key] = {
+                        'status': 'FAILED',
+                        'error': f'Invalid media file: {str(exc)}'
+                    }
+                except FloodWaitError as exc:
+                    results[target_key] = {
+                        'status': 'FAILED',
+                        'error': f'Telegram flood wait limit reached ({exc.seconds}s).'
+                    }
+                except Exception as exc:
+                    logger.exception(f"Error publishing post {post.id} to channel {channel.title}: {str(exc)}")
+                    results[target_key] = {
+                        'status': 'FAILED',
+                        'error': str(exc)
+                    }
+
+        return results

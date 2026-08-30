@@ -1,0 +1,85 @@
+# Postly Root .gitignore
+
+# Documentation
+doc/
+docs/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.mobileprovision
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node.js & React Native / Expo
+node_modules/
+.expo/
+.expo-shared/
+web-build/
+expo-env.d.ts
+.kotlin/
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.log*
+*.tsbuildinfo
+/ios
+/android
+
+# Database & Celery
+*.sqlite3
+db.sqlite3
+db.sqlite3-journal
+celerybeat-schedule
+celerybeat.pid
+
+# Logs & Media
+*.log
+logs/
+staticfiles/
+media/
+
+# IDE & Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS Generated
+.DS_Store
+Thumbs.db
