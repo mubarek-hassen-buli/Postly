@@ -1,19 +1,28 @@
-import { Button } from "@/components/ui/button"
+import React from "react"
+import { Navbar } from "@/components/navbar"
+import { HeroSection } from "@/components/hero-section"
+import { FeaturesBento } from "@/components/features-bento"
+import { ComposerSandbox } from "@/components/composer-sandbox"
+import { ComparisonMatrix } from "@/components/comparison-matrix"
+import { SecuritySection } from "@/components/security-section"
+import { FaqSection } from "@/components/faq-section"
+import { CtaSection } from "@/components/cta-section"
+import { Footer } from "@/components/footer"
 
-export default function Page() {
+export default function LandingPage() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      <Navbar />
+      <main className="flex-1">
+        <HeroSection />
+        <FeaturesBento />
+        <ComposerSandbox />
+        <ComparisonMatrix />
+        <SecuritySection />
+        <FaqSection />
+        <CtaSection />
+      </main>
+      <Footer />
     </div>
   )
 }
