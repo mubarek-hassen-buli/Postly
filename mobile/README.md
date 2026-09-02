@@ -24,7 +24,7 @@
 
 The **Postly Mobile App** provides an intuitive, high-performance, dark-mode-first interface for managing, composing, scheduling, and broadcasting messages to Telegram channels and supergroups.
 
-Built with **React Native** and **Expo SDK 53**, the application delivers a smooth 60fps native feel with haptic feedback, live Telegram preview bubbles, rich text formatting, and resilient offline-friendly server state management.
+Built with **React Native** and **Expo SDK 57**, the application delivers a smooth 60fps native feel with haptic feedback, live Telegram preview bubbles, rich text formatting, and resilient offline-friendly server state management.
 
 ---
 
@@ -198,4 +198,4 @@ pnpm install --force
 ## 📱 Supported Platforms
 - **Android**: 8.0+ (API 26+)
 - **iOS**: 15.0+
-- **Expo Go**: Fully compatible with Expo SDK 53
+- **Expo Go**: Fully compatible with Expo SDK 57

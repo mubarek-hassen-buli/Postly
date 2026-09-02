@@ -2,7 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
-import { Send, Heart } from "lucide-react"
+import { Send } from "lucide-react"
 
 function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -32,7 +32,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mb-6">
-              The direct MTProto Telegram channel management and automated broadcasting platform for community admins and creators.
+              The multi-platform content creation, scheduling, and publishing platform for Telegram, LinkedIn, and Instagram.
             </p>
             <div className="flex items-center gap-3">
               <Link
@@ -59,12 +59,12 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/#sandbox" className="hover:text-foreground transition-colors">
-                  Live Telegram Sandbox
+                  Live Multi-Platform Sandbox
                 </Link>
               </li>
               <li>
                 <Link href="/#comparison" className="hover:text-foreground transition-colors">
-                  MTProto vs Bots
+                  Why Postly
                 </Link>
               </li>
               <li>
@@ -115,12 +115,12 @@ export function Footer() {
               Open Architecture
             </h4>
             <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground font-mono text-xs">
-              <li>React Native & Expo SDK 53</li>
+              <li>React Native & Expo SDK 57</li>
               <li>Django 5.x REST Framework</li>
               <li>Telethon MTProto Client</li>
+              <li>LinkedIn OAuth 2.0 API</li>
               <li>Celery & Redis Workers</li>
               <li>PostgreSQL & NeonDB</li>
-              <li>AES-256 Fernet Crypto</li>
             </ul>
           </div>
         </div>
@@ -134,7 +134,7 @@ export function Footer() {
             <Link href="/contact" className="hover:underline">Support</Link>
           </div>
           <div className="flex items-center gap-1">
-            <span>Built with precision for Telegram Power Admins.</span>
+            <span>Built for Creators, Power Admins, and Social Teams.</span>
           </div>
         </div>
       </div>

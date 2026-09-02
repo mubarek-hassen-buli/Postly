@@ -30,15 +30,15 @@ export function CtaSection() {
             <div className="lg:col-span-8 flex flex-col items-start">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-700 bg-slate-900/80 text-xs font-medium text-sky-400 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Open-Source Telegram Channel Manager</span>
+                <span>Multi-Platform Social Media Scheduler</span>
               </div>
 
               <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 leading-tight">
-                Start Broadcasting Smarter with Postly Today
+                Create Once. Publish Everywhere with Postly.
               </h2>
 
               <p className="text-slate-300 text-base sm:text-lg max-w-xl mb-8 leading-relaxed">
-                Connect your Telegram account in 30 seconds. Enjoy native MTProto broadcasting, atomic scheduling, and live WYSIWYG previews.
+                Connect your Telegram, LinkedIn, and Instagram accounts in minutes. Enjoy multi-channel scheduling, rich media albums, and live WYSIWYG previews.
               </p>
 
               {/* Action Buttons */}
@@ -70,10 +70,10 @@ export function CtaSection() {
                   <QrCode className="w-8 h-8" />
                 </div>
                 <div className="font-heading font-bold text-base text-white mb-1">
-                  Expo Go & Native App
+                  Cross-Platform App
                 </div>
                 <p className="text-xs text-slate-400 mb-4">
-                  Scan to run immediately on your physical phone with live LAN sync.
+                  Built with React Native & Expo SDK 57 for iOS, Android, and Web.
                 </p>
                 <div className="w-full py-2 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-300">
                   postly://expo-dev

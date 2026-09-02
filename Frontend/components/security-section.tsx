@@ -1,36 +1,36 @@
 "use client"
 
 import React from "react"
-import { ShieldCheck, Lock, Key, Server, Cpu, Database, CheckCircle2 } from "lucide-react"
+import { ShieldCheck, Lock, Key, Server, Database, CheckCircle2 } from "lucide-react"
 
 const SECURITY_PILLARS = [
   {
     icon: Lock,
     title: "AES-256 Fernet Session Encryption",
     description:
-      "All Telegram MTProto session strings are encrypted using Fernet (AES-256 in CBC mode with HMAC-SHA256 authentication) before storing in the database.",
+      "Telegram MTProto session strings and stored platform credentials are encrypted at rest using AES-256 in CBC mode with HMAC-SHA256 signatures before database persistence.",
     tech: "Fernet Crypto Engine",
   },
   {
     icon: Key,
-    title: "Hardware-Backed Device Keystore",
+    title: "Hardware-Backed Device Keystores",
     description:
-      "Mobile client auth tokens are stored strictly in hardware-isolated iOS Keychain and Android Keystore via Expo SecureStore.",
+      "Authentication tokens on iOS and Android devices are stored exclusively in hardware-isolated iOS Keychain and Android Keystore via Expo SecureStore.",
     tech: "iOS Keychain / Keystore",
   },
   {
     icon: Server,
-    title: "Token-Based Knox Auth & Instant Revocation",
+    title: "OAuth 2.0 & Knox Token Authentication",
     description:
-      "Cryptographically signed Knox tokens ensure every single API request is authenticated, with instant global revocation upon session logout.",
-    tech: "DRF Knox Architecture",
+      "Official OAuth 2.0 flows for LinkedIn and Instagram with cryptographically signed Knox session tokens ensuring all API routes require strict authentication.",
+    tech: "OAuth 2.0 & DRF Knox",
   },
   {
     icon: Database,
-    title: "Optimistic Concurrency Control (OCC)",
+    title: "Optimistic Concurrency & Safe Workers",
     description:
-      "Broadcast jobs use atomic database row locks (`select_for_update`) to prevent race conditions or duplicate post broadcasts.",
-    tech: "PostgreSQL Isolation",
+      "Atomic database row locking and Celery worker synchronization prevent race conditions, duplicate dispatches, or stale post updates.",
+    tech: "PostgreSQL Concurrency",
   },
 ]
 
@@ -42,13 +42,13 @@ export function SecuritySection() {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-secondary/50 text-xs font-medium text-muted-foreground mb-4">
             <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-            <span>Bank-Grade Privacy & Security</span>
+            <span>Privacy-First Architecture</span>
           </div>
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-            Zero-Trust Architectural Security
+            Built with Strict Security Standards
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Your Telegram credentials, session strings, and broadcast channels are guarded with end-to-end cryptographic standards.
+            Your connected social credentials, OAuth tokens, and publishing queues are protected with end-to-end encryption standards.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export function SecuritySection() {
 
                 <div className="mt-8 pt-4 border-t border-border/60 flex items-center text-xs font-medium text-emerald-500">
                   <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                  <span>Enforced Globally</span>
+                  <span>Enforced Across All Services</span>
                 </div>
               </div>
             )

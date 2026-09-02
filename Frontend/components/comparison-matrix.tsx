@@ -1,44 +1,38 @@
 "use client"
 
 import React from "react"
-import { Check, X, Shield, Zap, Sparkles } from "lucide-react"
+import { Check, X, Sparkles } from "lucide-react"
 
 const COMPARISON_ROWS = [
   {
-    feature: "Telegram Authentication",
-    postly: "Direct MTProto Phone Sign-in with 2FA",
-    bot: "Manual BotFather setup & token pasting",
-    postlyAdvantage: true,
+    capability: "Multi-Platform Publishing",
+    postly: "Publish to Telegram, LinkedIn & Instagram simultaneously",
+    traditional: "Switching between 3+ separate apps and copy-pasting manually",
   },
   {
-    feature: "Channel Admin Permissions",
-    postly: "Auto-synced from your real account rights",
-    bot: "Must manually add & promote bot to each channel",
-    postlyAdvantage: true,
+    capability: "Background Scheduling & Queues",
+    postly: "Automated Celery + Redis background workers with drift recovery",
+    traditional: "Manual phone reminders or unreliable local push triggers",
   },
   {
-    feature: "File Size Upload Limits",
-    postly: "Up to 2.0 GB via native Telegram MTProto",
-    bot: "Strict 50 MB Bot API file size cap",
-    postlyAdvantage: true,
+    capability: "Live WYSIWYG Mockup Previews",
+    postly: "Interactive previews for Telegram bubbles, LinkedIn & Instagram",
+    traditional: "Blind publishing with unpredictable layout & tag glitches",
   },
   {
-    feature: "Live WYSIWYG Message Preview",
-    postly: "Interactive Telegram message bubble preview",
-    bot: "Blind sending or awkward private preview chats",
-    postlyAdvantage: true,
+    capability: "Telegram MTProto Integration",
+    postly: "Direct client connection with native 2FA and admin permission sync",
+    traditional: "Manual BotFather setup with strict 50 MB Bot API limits",
   },
   {
-    feature: "Scheduled Broadcast Reconciliation",
-    postly: "Celery Beat drift recovery & auto-reconnect",
-    bot: "Lost jobs on server restart or webhook errors",
-    postlyAdvantage: true,
+    capability: "LinkedIn OAuth 2.0 Integration",
+    postly: "Official personal profile & organization company page publishing",
+    traditional: "Manual web logins or fragile browser automations",
   },
   {
-    feature: "Security & Encryption",
-    postly: "AES-256 Fernet session encryption at rest",
-    bot: "Plaintext bot tokens easily leaked in logs",
-    postlyAdvantage: true,
+    capability: "Credential & Token Security",
+    postly: "AES-256 Fernet encryption at rest & mobile Hardware Keystores",
+    traditional: "Unencrypted plaintext API tokens stored in config files",
   },
 ]
 
@@ -50,13 +44,13 @@ export function ComparisonMatrix() {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-secondary/50 text-xs font-medium text-muted-foreground mb-4">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>Direct Protocol Advantage</span>
+            <span>Workflow Comparison</span>
           </div>
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-            Why Native MTProto Beats Traditional Bots
+            Why Use Postly for Multi-Channel Publishing
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Traditional bot managers are constrained by Telegram&apos;s restrictive Bot API. Postly connects via official MTProto clients for total control.
+            Eliminate repetitive copy-pasting and token headaches. Manage your Telegram channels, LinkedIn pages, and Instagram feeds from one place.
           </p>
         </div>
 
@@ -72,11 +66,11 @@ export function ComparisonMatrix() {
                   <th className="py-5 px-6 font-heading font-bold text-sm text-primary bg-primary/5 w-1/3">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                      Postly (Direct MTProto)
+                      Postly Unified Platform
                     </div>
                   </th>
                   <th className="py-5 px-6 font-heading font-semibold text-sm text-muted-foreground w-1/3">
-                    Traditional Telegram Bots
+                    Manual Fragmented Publishing
                   </th>
                 </tr>
               </thead>
@@ -84,7 +78,7 @@ export function ComparisonMatrix() {
                 {COMPARISON_ROWS.map((row, idx) => (
                   <tr key={idx} className="hover:bg-secondary/20 transition-colors">
                     <td className="py-4.5 px-6 font-medium text-foreground">
-                      {row.feature}
+                      {row.capability}
                     </td>
                     <td className="py-4.5 px-6 bg-primary/5 font-medium text-foreground">
                       <div className="flex items-center gap-2 text-foreground">
@@ -99,7 +93,7 @@ export function ComparisonMatrix() {
                         <div className="w-5 h-5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                           <X className="w-3.5 h-3.5" />
                         </div>
-                        <span>{row.bot}</span>
+                        <span>{row.traditional}</span>
                       </div>
                     </td>
                   </tr>

@@ -61,7 +61,7 @@ Unlike traditional Telegram tools that require creating and adding bot bots to c
 
 ```mermaid
 flowchart TD
-    subgraph MobileApp ["Mobile Client (React Native / Expo SDK 53)"]
+    subgraph MobileApp ["Mobile Client (React Native / Expo SDK 57)"]
         UI["UI Screens & Composer"]
         State["Zustand + TanStack Query"]
         Secure["Expo SecureStore (Tokens)"]

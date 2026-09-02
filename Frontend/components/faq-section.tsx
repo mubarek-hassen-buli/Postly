@@ -5,34 +5,34 @@ import { ChevronDown, HelpCircle, Sparkles } from "lucide-react"
 
 const FAQS = [
   {
-    question: "Do I need to create a Telegram bot to use Postly?",
+    question: "Which social and messaging platforms does Postly support?",
     answer:
-      "No! Postly uses official Telegram MTProto client APIs (via Telethon) directly. You simply log in with your Telegram phone number, verify the login code, and Postly automatically discovers all the broadcast channels and supergroups where you have posting permissions.",
+      "Postly currently supports broadcasting and scheduled publishing across Telegram (channels & supergroups via direct MTProto), LinkedIn (personal member profiles and organization Company Pages via official OAuth 2.0), and Instagram (feed media via Meta APIs).",
   },
   {
-    question: "Is my Telegram session and account credentials secure?",
+    question: "How does the LinkedIn publishing integration work?",
     answer:
-      "Absolutely. Your MTProto session string is encrypted at rest using AES-256 Fernet encryption before being stored in the database. Decryption only occurs ephemerally during active broadcast dispatches. On the mobile device, auth tokens are isolated inside hardware-backed iOS Keychain and Android Keystore.",
+      "Postly connects to LinkedIn via standard LinkedIn OAuth 2.0. Once you authorize Postly, you can compose and schedule rich text posts, articles, and media directly to your LinkedIn personal feed or authorized company pages without needing to open LinkedIn manually.",
   },
   {
-    question: "Can I broadcast to multiple channels and supergroups simultaneously?",
+    question: "Do I need to create a Telegram bot to connect Telegram?",
     answer:
-      "Yes! You can select any number of your managed channels with a single tap. Postly dispatches to all target channels concurrently with per-channel error isolation, meaning an issue in one channel will never block delivery to the others.",
+      "No! Postly uses official Telegram MTProto client APIs directly. You sign in with your phone number and 2FA password, and Postly automatically discovers all broadcast channels and supergroups where you have posting permissions.",
   },
   {
-    question: "How does scheduled broadcasting work if my phone is offline?",
+    question: "What happens when I disconnect an account or request data deletion?",
     answer:
-      "Once you schedule a post, the broadcast job is securely managed by our backend Celery + Redis worker queue. Even if your phone is turned off, the post will broadcast at the exact scheduled UTC timestamp. Our periodic Celery Beat scheduler continuously reconciles overdue tasks to prevent missed posts.",
+      "When you disconnect an account (like LinkedIn or Telegram) or delete your Postly account, Postly immediately and permanently deletes the stored OAuth access/refresh tokens, session strings, and platform mappings from its database.",
   },
   {
-    question: "What rich formatting options are supported?",
+    question: "How does scheduled publishing work if my phone or computer is offline?",
     answer:
-      "Postly supports full HTML formatting (<b>bold</b>, <i>italic</i>, <code>code</code>, <s>strike</s>, <tg-spoiler>spoiler</tg-spoiler>, <a href='...'>links</a>) as well as Markdown mode. You can preview the exact rendered Telegram message bubble in real time before sending.",
+      "Once you schedule a post, the dispatch job is queued in our backend Celery + Redis worker infrastructure. Even if your device is turned off, the post will broadcast at your chosen UTC timestamp. Periodic Celery Beat workers continuously reconcile and verify scheduled tasks.",
   },
   {
-    question: "Can I upload media albums, photos, and videos?",
+    question: "Is Postly in active development?",
     answer:
-      "Yes! You can attach up to 10 photos or videos per post. Postly handles direct uploads to Cloudinary and dispatches them as native grouped Telegram media albums with custom captions.",
+      "Yes! Postly is currently in active development (v1.0 Beta). We are continuously adding multi-network features, enhanced media carousels, and advanced scheduling analytics.",
   },
 ]
 
@@ -56,7 +56,7 @@ export function FaqSection() {
             Frequently Asked Questions
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Everything you need to know about Postly, Telegram MTProto client permissions, and scheduling.
+            Everything you need to know about Postly, multi-platform integrations, LinkedIn OAuth, and Telegram broadcasting.
           </p>
         </div>
 

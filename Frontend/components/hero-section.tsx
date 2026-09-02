@@ -6,16 +6,16 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Star,
+  Code2,
   Clock,
   Radio,
-  Users,
+  Share2,
   Zap,
   CheckCircle2,
   Pin,
   Send,
   Bell,
-  Image as ImageIcon,
+  Layers,
   Sparkle,
 } from "lucide-react"
 
@@ -42,18 +42,17 @@ export function HeroSection() {
           {/* Pill Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-secondary/50 backdrop-blur-sm text-xs font-medium text-muted-foreground mb-6 shadow-2xs transition-all hover:border-primary/40">
             <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
-            <span>Available on iOS & Android · Direct MTProto</span>
+            <span>Multi-Platform Publishing · Currently in Active Development</span>
           </div>
 
           {/* Main Hero Headline */}
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.15] mb-6">
-            Manage Your Telegram Channels in Seconds, Not Hours
+            Create Once. Publish Everywhere.
           </h1>
 
           {/* Subtitle */}
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl font-normal leading-relaxed mb-8">
-            Stop juggling multiple bot tokens and switching accounts just to broadcast.
-            Connect directly, auto-sync channels, compose rich media posts, and schedule with atomic precision.
+            Postly helps you create, schedule, and publish content across Telegram, LinkedIn, and Instagram from one unified dashboard.
           </p>
 
           {/* Prominent CTA Pill Button */}
@@ -62,8 +61,15 @@ export function HeroSection() {
               href="#sandbox"
               className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-foreground text-background font-semibold text-sm uppercase tracking-wider shadow-lg hover:shadow-xl hover:opacity-95 transition-all duration-300 active:scale-95 ring-8 ring-foreground/5 cursor-pointer"
             >
-              <span>Get Started</span>
+              <span>Try Live Sandbox</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+              href="#features"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-secondary/60 border border-border text-foreground font-semibold text-sm uppercase tracking-wider hover:bg-secondary transition-all"
+            >
+              <span>Explore Features</span>
             </Link>
           </div>
         </div>
@@ -75,7 +81,7 @@ export function HeroSection() {
 
           {/* Left Floating Badges with Connectors (Desktop) */}
           <div className="hidden lg:flex flex-col gap-12 absolute left-0 top-12 z-20 w-64">
-            {/* Badge 1: MTProto Security */}
+            {/* Badge 1: Security & Protocol */}
             <div className="relative group">
               <div className="bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-2xl p-3.5 flex items-center gap-3 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
                 <div className="w-9 h-9 rounded-xl bg-foreground text-background flex items-center justify-center shrink-0 shadow-xs">
@@ -83,39 +89,39 @@ export function HeroSection() {
                 </div>
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-wider text-foreground">
-                    &quot;Direct MTProto&quot;
+                    &quot;Direct MTProto & OAuth&quot;
                   </div>
-                  <div className="text-[11px] text-muted-foreground">Native Session Encryption</div>
+                  <div className="text-[11px] text-muted-foreground">Encrypted Token Storage</div>
                 </div>
               </div>
               {/* Connector Dotted Line */}
               <div className="absolute right-0 top-1/2 w-16 translate-x-full border-b border-dashed border-muted-foreground/40 pointer-events-none" />
             </div>
 
-            {/* Badge 2: User Rating */}
+            {/* Badge 2: Development Status */}
             <div className="relative ml-8 group">
               <div className="bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-2xl p-3.5 flex items-center gap-3 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
                 <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
-                  <Star className="w-5 h-5 fill-current" />
+                  <Code2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-foreground">4.9 / 5.0</div>
-                  <div className="text-[11px] text-muted-foreground">Active Channel Admins</div>
+                  <div className="text-sm font-bold text-foreground">v1.0 Beta</div>
+                  <div className="text-[11px] text-muted-foreground">In Active Development</div>
                 </div>
               </div>
               {/* Connector Dotted Line */}
               <div className="absolute right-0 top-1/2 w-12 translate-x-full border-b border-dashed border-muted-foreground/40 pointer-events-none" />
             </div>
 
-            {/* Badge 3: Reliable Uptime */}
+            {/* Badge 3: Celery Queue */}
             <div className="relative group">
               <div className="bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-2xl p-3.5 flex items-center gap-3 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
                 <div className="w-9 h-9 rounded-xl bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20 flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-foreground">99.99%</div>
-                  <div className="text-[11px] text-muted-foreground">Broadcast Uptime</div>
+                  <div className="text-sm font-bold text-foreground">Celery + Redis</div>
+                  <div className="text-[11px] text-muted-foreground">Automated Task Scheduler</div>
                 </div>
               </div>
               {/* Connector Dotted Line */}
@@ -125,7 +131,7 @@ export function HeroSection() {
 
           {/* Right Floating Badges with Connectors (Desktop) */}
           <div className="hidden lg:flex flex-col gap-12 absolute right-0 top-12 z-20 w-64 items-end">
-            {/* Badge 4: Seamless Sync */}
+            {/* Badge 4: Multi-Platform Sync */}
             <div className="relative group w-full">
               <div className="bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-2xl p-3.5 flex items-center gap-3 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
                 <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
@@ -133,39 +139,39 @@ export function HeroSection() {
                 </div>
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-wider text-foreground">
-                    &quot;10+ Channels&quot;
+                    &quot;Multi-Network&quot;
                   </div>
-                  <div className="text-[11px] text-muted-foreground">Seamlessly Synchronized</div>
+                  <div className="text-[11px] text-muted-foreground">Telegram, LinkedIn, IG</div>
                 </div>
               </div>
               {/* Connector Dotted Line */}
               <div className="absolute left-0 top-1/2 w-16 -translate-x-full border-b border-dashed border-muted-foreground/40 pointer-events-none" />
             </div>
 
-            {/* Badge 5: Subscribers Reached */}
+            {/* Badge 5: Profiles & Pages */}
             <div className="relative mr-8 group w-[calc(100%-2rem)]">
               <div className="bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-2xl p-3.5 flex items-center gap-3 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                  <Users className="w-5 h-5" />
+                  <Share2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-foreground">500k+</div>
-                  <div className="text-[11px] text-muted-foreground">Subscribers Reached</div>
+                  <div className="text-sm font-bold text-foreground">Profiles & Pages</div>
+                  <div className="text-[11px] text-muted-foreground">Channels, Groups & Orgs</div>
                 </div>
               </div>
               {/* Connector Dotted Line */}
               <div className="absolute left-0 top-1/2 w-12 -translate-x-full border-b border-dashed border-muted-foreground/40 pointer-events-none" />
             </div>
 
-            {/* Badge 6: Speed Scheduling */}
+            {/* Badge 6: Live Preview */}
             <div className="relative group w-full">
               <div className="bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-2xl p-3.5 flex items-center gap-3 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-                  <Zap className="w-5 h-5" />
+                  <Layers className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-foreground">10x Faster</div>
-                  <div className="text-[11px] text-muted-foreground">Scheduling & Analytics</div>
+                  <div className="text-sm font-bold text-foreground">WYSIWYG Preview</div>
+                  <div className="text-[11px] text-muted-foreground">Live Cross-Network Mockup</div>
                 </div>
               </div>
               {/* Connector Dotted Line */}
@@ -196,14 +202,14 @@ export function HeroSection() {
               <div className="flex-1 p-4 flex flex-col justify-between overflow-hidden">
                 {/* App Header */}
                 <div>
-                  <div className="flex items-center justify-between mt-3 mb-4">
+                  <div className="flex items-center justify-between mt-3 mb-3">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                        MH
+                        PO
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-white">Hi, Admin 👋</div>
-                        <div className="text-[10px] text-slate-400">Sherlock Network</div>
+                        <div className="text-xs font-semibold text-white">Hi, Creator 👋</div>
+                        <div className="text-[10px] text-slate-400">Unified Publishing Hub</div>
                       </div>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-300 relative">
@@ -213,76 +219,80 @@ export function HeroSection() {
                   </div>
 
                   {/* Broadcast Overview Card */}
-                  <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3.5 mb-3.5 shadow-xs">
+                  <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3 mb-3 shadow-xs">
                     <div className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">
-                      Active Broadcast Engine
+                      Connected Channels & Pages
                     </div>
                     <div className="flex items-baseline justify-between">
-                      <div className="text-xl font-bold text-white tracking-tight">18 Channels</div>
+                      <div className="text-lg font-bold text-white tracking-tight">3 Platforms</div>
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                         ● Synced
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-slate-700/60">
+                    <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-slate-700/60 text-center">
                       <div>
-                        <div className="text-[9px] text-slate-400">Total Posts</div>
-                        <div className="text-xs font-bold text-slate-200">1,248 Delivered</div>
+                        <div className="text-[9px] text-slate-400">Telegram</div>
+                        <div className="text-[11px] font-bold text-sky-400">Channels</div>
                       </div>
                       <div>
-                        <div className="text-[9px] text-slate-400">Avg. Delivery</div>
-                        <div className="text-xs font-bold text-sky-400">&lt; 350 ms</div>
+                        <div className="text-[9px] text-slate-400">LinkedIn</div>
+                        <div className="text-[11px] font-bold text-blue-400">Profiles</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-slate-400">Instagram</div>
+                        <div className="text-[11px] font-bold text-pink-400">Feeds</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Channel Destination Selector Pills */}
-                  <div className="mb-3">
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                      Selected Channels (3)
+                  <div className="mb-2.5">
+                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                      Selected Targets
                     </div>
                     <div className="flex gap-1.5 flex-wrap">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-sky-500/20 border border-sky-500/30 text-[10px] font-medium text-sky-300">
-                        <CheckCircle2 className="w-3 h-3 text-sky-400" /> Sherlock
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500/20 border border-sky-500/30 text-[10px] font-medium text-sky-300">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-sky-400" /> Telegram
                       </span>
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-sky-500/20 border border-sky-500/30 text-[10px] font-medium text-sky-300">
-                        <CheckCircle2 className="w-3 h-3 text-sky-400" /> The Foundry
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-[10px] font-medium text-blue-300">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-blue-400" /> LinkedIn
                       </span>
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-sky-500/20 border border-sky-500/30 text-[10px] font-medium text-sky-300">
-                        <CheckCircle2 className="w-3 h-3 text-sky-400" /> DDU ICT Club
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-pink-500/20 border border-pink-500/30 text-[10px] font-medium text-pink-300">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-pink-400" /> Instagram
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Simulated Telegram Message Bubble */}
+                {/* Simulated Message Bubble */}
                 <div className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-700/80 rounded-2xl p-3 shadow-md">
                   {/* Pinned Bar */}
-                  <div className="flex items-center gap-1.5 text-[10px] text-sky-400 font-semibold mb-2 pb-1.5 border-b border-slate-700/60">
+                  <div className="flex items-center gap-1.5 text-[10px] text-sky-400 font-semibold mb-1.5 pb-1 border-b border-slate-700/60">
                     <Pin className="w-3 h-3" />
-                    <span>Pinned Announcement</span>
+                    <span>Cross-Platform Announcement</span>
                   </div>
 
                   {/* Message Body */}
                   <div className="text-xs text-slate-200 leading-relaxed font-sans">
-                    <span className="font-bold text-sky-300">🚀 Postly v1.0 is live!</span>
-                    <p className="mt-1 text-[11px] text-slate-300">
-                      Multi-channel MTProto broadcasting with scheduled automation and rich HTML tags.
+                    <span className="font-bold text-white">🚀 Create once, publish everywhere!</span>
+                    <p className="mt-0.5 text-[11px] text-slate-300">
+                      Unified scheduling across Telegram, LinkedIn, and Instagram.
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between mt-2.5 pt-1.5 text-[9px] text-slate-400">
+                  <div className="flex items-center justify-between mt-2 pt-1 text-[9px] text-slate-400">
                     <span className="flex items-center gap-1 text-emerald-400">
-                      <CheckCircle2 className="w-2.5 h-2.5" /> 18/18 Delivered
+                      <CheckCircle2 className="w-2.5 h-2.5" /> Ready to Dispatch
                     </span>
-                    <span>12:45 PM · 12.4k views</span>
+                    <span>12:45 PM UTC</span>
                   </div>
                 </div>
 
                 {/* Bottom Action Button in App */}
-                <div className="mt-3">
-                  <div className="w-full py-2 rounded-xl bg-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/20">
-                    <Send className="w-3.5 h-3.5" /> Broadcast Now
+                <div className="mt-2.5">
+                  <div className="w-full py-2 rounded-xl bg-foreground text-background font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md">
+                    <Send className="w-3.5 h-3.5" /> Publish to All Targets
                   </div>
                 </div>
               </div>

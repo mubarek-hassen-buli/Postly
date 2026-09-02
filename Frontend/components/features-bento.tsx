@@ -9,58 +9,53 @@ import {
   Images,
   Activity,
   CheckCircle2,
-  ShieldCheck,
-  Zap,
+  Share2,
+  Layers,
+  Sparkles,
 } from "lucide-react"
 
 const FEATURES = [
   {
-    icon: KeyRound,
-    title: "Direct MTProto Client Sign-In",
-    description:
-      "Authenticate directly using your Telegram phone number with 2FA Cloud password support. No bot creation, token management, or third-party intermediaries required.",
-    badge: "Native Protocol",
-    gradient: "from-blue-500/10 to-indigo-500/10",
-  },
-  {
     icon: Radio,
-    title: "Instant Multi-Channel Discovery",
+    title: "Telegram MTProto Broadcasting",
     description:
-      "Postly introspects your Telegram dialogs to automatically discover and verify administrative and posting rights across broadcast channels and supergroups.",
-    badge: "Auto-Sync",
-    gradient: "from-sky-500/10 to-cyan-500/10",
+      "Direct Telegram client connection with 2FA support. Auto-detects admin rights across broadcast channels and supergroups without bot intermediaries.",
+    badge: "Telegram MTProto",
   },
   {
-    icon: FileCode2,
-    title: "Rich Formatting & Live Preview",
+    icon: Share2,
+    title: "LinkedIn Profiles & Company Pages",
     description:
-      "Compose rich announcements with HTML and Markdown modes. Apply spoilers, code blocks, bold, italics, hyperlinks, and pinned headers with real-time Telegram preview.",
-    badge: "WYSIWYG Mockup",
-    gradient: "from-purple-500/10 to-pink-500/10",
-  },
-  {
-    icon: CalendarClock,
-    title: "Resilient Celery + Redis Scheduling",
-    description:
-      "Schedule campaigns with atomic optimistic concurrency control. Built-in periodic beat reconciliation recovers any overdue posts if servers restart.",
-    badge: "Zero-Drift",
-    gradient: "from-amber-500/10 to-orange-500/10",
+      "Official LinkedIn OAuth 2.0 authorization. Schedule rich articles, updates, and media directly to personal profiles and organization company pages.",
+    badge: "LinkedIn OAuth 2.0",
   },
   {
     icon: Images,
-    title: "Multi-Media Photo & Video Albums",
+    title: "Instagram Media Scheduling",
     description:
-      "Attach up to 10 photos and videos with automatic album grouping, Cloudinary cloud storage optimization, and customized caption formatting.",
-    badge: "10x Media Uploads",
-    gradient: "from-emerald-500/10 to-teal-500/10",
+      "Publish high-quality visual content, single images, video updates, and carousels directly to your connected Instagram creator and business accounts.",
+    badge: "Instagram Graph API",
   },
   {
-    icon: Activity,
-    title: "Per-Channel Activity & Delivery Logs",
+    icon: CalendarClock,
+    title: "Celery + Redis Task Scheduler",
     description:
-      "Isolated channel dispatch ensures a single failed channel never blocks the rest. Track Telegram message IDs, timestamp receipts, and live status updates.",
-    badge: "Fault-Tolerant",
-    gradient: "from-rose-500/10 to-red-500/10",
+      "Background worker queues ensure scheduled posts broadcast at the exact target UTC timestamp with built-in periodic drift reconciliation.",
+    badge: "Automated Queue",
+  },
+  {
+    icon: FileCode2,
+    title: "WYSIWYG Multi-Platform Preview",
+    description:
+      "Live preview simulator renders the exact visual appearance of Telegram chat bubbles, LinkedIn post cards, and Instagram captions before dispatch.",
+    badge: "Live Simulator",
+  },
+  {
+    icon: Layers,
+    title: "Unified Media & Cloud Storage",
+    description:
+      "Attach photos, graphics, and video media to your posts with automated Cloudinary cloud storage optimization and cross-platform formatting.",
+    badge: "Media Pipeline",
   },
 ]
 
@@ -71,14 +66,14 @@ export function FeaturesBento() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-secondary/50 text-xs font-medium text-muted-foreground mb-4">
-            <Zap className="w-3.5 h-3.5 text-primary" />
-            <span>Built for Power Admins & Communities</span>
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span>Multi-Channel Architecture</span>
           </div>
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-            Engineered for Flawless Telegram Broadcasting
+            Built for Modern Multi-Platform Publishing
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Everything you need to orchestrate high-impact Telegram announcements, manage unlimited channels, and automate your workflow.
+            Everything you need to orchestrate high-impact announcements, manage cross-network destinations, and automate scheduled broadcasting.
           </p>
         </div>
 
@@ -111,10 +106,10 @@ export function FeaturesBento() {
                   </p>
                 </div>
 
-                {/* Bottom subtle bar indicator */}
+                {/* Bottom status bar */}
                 <div className="mt-8 pt-4 border-t border-border/60 flex items-center text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
-                  <span>Production Ready</span>
+                  <span>Integrated API Workflow</span>
                 </div>
               </div>
             )
