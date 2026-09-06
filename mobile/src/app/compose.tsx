@@ -18,6 +18,7 @@ import {
   Eye,
   Pin,
   Send,
+  Share2,
   Sparkles,
   X,
 } from 'lucide-react-native';
@@ -27,6 +28,7 @@ import { format } from 'date-fns';
 import { useChannels } from '../hooks/useChannels';
 import { ChannelItem } from '../services/channels/channelService';
 import { useCreatePost } from '../hooks/usePosts';
+import { useLinkedInStatus, usePublishLinkedInPost } from '../hooks/useLinkedIn';
 import { FormattingToolbar, FormattingMode } from '../components/composer/FormattingToolbar';
 import { ChannelSelectorPills } from '../components/composer/ChannelSelectorPills';
 import { MediaPickerSection, LocalMediaAttachment } from '../components/composer/MediaPickerSection';
@@ -51,6 +53,7 @@ export default function ComposeModalScreen() {
   const [pinMessage, setPinMessage] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<LocalMediaAttachment[]>([]);
+  const [postToLinkedIn, setPostToLinkedIn] = useState(false);
 
   // Modals
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
@@ -65,6 +68,9 @@ export default function ComposeModalScreen() {
     : [];
 
   const createPostMutation = useCreatePost();
+  const { data: linkedinData } = useLinkedInStatus();
+  const publishLinkedInMutation = usePublishLinkedInPost();
+  const isSubmitting = createPostMutation.isPending || publishLinkedInMutation.isPending;
 
   // Pre-select channels that have `is_selected_by_user === true`
   useEffect(() => {
@@ -76,7 +82,7 @@ export default function ComposeModalScreen() {
     }
   }, [channels]);
 
-  const maxChars = attachments.length > 0 ? MAX_CAPTION_LENGTH : MAX_TEXT_LENGTH;
+  const maxChars = postToLinkedIn ? 3000 : (attachments.length > 0 ? MAX_CAPTION_LENGTH : MAX_TEXT_LENGTH);
   const isOverLimit = content.length > maxChars;
 
   const handleToggleChannel = (id: string) => {
@@ -95,8 +101,8 @@ export default function ComposeModalScreen() {
       return;
     }
 
-    if (selectedChannelIds.length === 0) {
-      Alert.alert('No Channels Selected', 'Please select at least one destination channel.');
+    if (selectedChannelIds.length === 0 && !postToLinkedIn) {
+      Alert.alert('No Destination Selected', 'Please select at least one Telegram channel or enable LinkedIn posting.');
       return;
     }
 
@@ -114,26 +120,40 @@ export default function ComposeModalScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     try {
-      const mediaPayload = attachments
-        .filter((a) => a.media_url)
-        .map((a, index) => ({
-          media_url: a.media_url!,
-          media_type: a.media_type,
-          file_size: a.file_size,
-          order: index,
-        }));
+      const dispatchPromises: Promise<any>[] = [];
 
-      await createPostMutation.mutateAsync({
-        text_content: content.trim(),
-        content: content.trim(),
-        target_channel_ids: selectedChannelIds,
-        channel_ids: selectedChannelIds,
-        formatting_mode: formattingMode,
-        pin_message: pinMessage,
-        scheduled_for: scheduledFor,
-        publish_now: !scheduledFor,
-        media_attachments: mediaPayload,
-      });
+      // 1. Dispatch directly to LinkedIn if enabled
+      if (postToLinkedIn && content.trim()) {
+        dispatchPromises.push(publishLinkedInMutation.mutateAsync(content.trim()));
+      }
+
+      // 2. Dispatch to Telegram if target channels are selected
+      if (selectedChannelIds.length > 0) {
+        const mediaPayload = attachments
+          .filter((a) => a.media_url)
+          .map((a, index) => ({
+            media_url: a.media_url!,
+            media_type: a.media_type,
+            file_size: a.file_size,
+            order: index,
+          }));
+
+        dispatchPromises.push(
+          createPostMutation.mutateAsync({
+            text_content: content.trim(),
+            content: content.trim(),
+            target_channel_ids: selectedChannelIds,
+            channel_ids: selectedChannelIds,
+            formatting_mode: formattingMode,
+            pin_message: pinMessage,
+            scheduled_for: scheduledFor,
+            publish_now: !scheduledFor,
+            media_attachments: mediaPayload,
+          })
+        );
+      }
+
+      await Promise.all(dispatchPromises);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.back();
@@ -172,7 +192,7 @@ export default function ComposeModalScreen() {
           <Button
             title={scheduledFor ? 'Schedule' : 'Publish'}
             onPress={handleSubmit}
-            loading={createPostMutation.isPending}
+            loading={isSubmitting}
             size="sm"
             leftIcon={
               scheduledFor ? (
@@ -198,6 +218,32 @@ export default function ComposeModalScreen() {
             onSelectAll={() => setSelectedChannelIds(channels.map((ch) => ch.id))}
             onClearAll={() => setSelectedChannelIds([])}
           />
+
+          {/* LinkedIn Cross-Posting Destination */}
+          {linkedinData?.is_connected && (
+            <Card style={styles.linkedinTargetCard}>
+              <View style={styles.linkedinTargetLeft}>
+                <View style={styles.linkedinBadgeIcon}>
+                  <Share2 size={16} color="#FFFFFF" />
+                </View>
+                <View style={styles.linkedinTargetText}>
+                  <Text style={styles.linkedinTargetTitle}>Post to LinkedIn</Text>
+                  <Text style={styles.linkedinTargetSubtitle}>
+                    {linkedinData.account?.name || 'Personal Feed'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={postToLinkedIn}
+                onValueChange={(val) => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setPostToLinkedIn(val);
+                }}
+                trackColor={{ false: colors.border.medium, true: '#0A66C2' }}
+                thumbColor="#FFFFFF"
+              />
+            </Card>
+          )}
 
           {/* Formatting Toolbar */}
           <FormattingToolbar
@@ -417,5 +463,43 @@ const styles = StyleSheet.create({
   optionActionText: {
     ...typography.presets.subheadMedium,
     color: colors.primary.DEFAULT,
+  },
+  linkedinTargetCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    backgroundColor: colors.background.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+  },
+  linkedinTargetLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  linkedinBadgeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#0A66C2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  linkedinTargetText: {
+    flex: 1,
+  },
+  linkedinTargetTitle: {
+    ...typography.presets.subheadMedium,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  linkedinTargetSubtitle: {
+    ...typography.presets.caption,
+    color: colors.text.secondary,
+    marginTop: 1,
   },
 });

@@ -73,8 +73,9 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const data = error.response?.data as { error?: ApiErrorContract; message?: string; detail?: string } | undefined;
 
-    // Handle session expiration
-    if (status === 401) {
+    // Handle core Postly Knox session expiration (do not wipe for external integration errors)
+    const isIntegrationRoute = error.config?.url?.includes('/integrations/');
+    if (status === 401 && !isIntegrationRoute) {
       await tokenStorage.clearAll();
     }
 

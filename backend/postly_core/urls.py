@@ -15,10 +15,14 @@ urlpatterns = [
     # Core System & Health check endpoints
     path('api/v1/', include('apps.common.urls')),
 
-    # Feature domain APIs (to be wired in subsequent phases)
+    # Feature domain APIs
     path('api/v1/auth/', include('apps.accounts.urls')),
     path('api/v1/channels/', include('apps.channels.urls')),
     path('api/v1/posts/', include('apps.posts.urls')),
     path('api/v1/media/', include('apps.media.urls')),
     path('api/v1/notifications/', include('apps.notifications.urls')),
+
+    # Platform Integrations (OAuth callbacks & APIs)
+    path('api/integrations/', include('apps.integrations.urls')),
+    path('api/v1/integrations/', include('apps.integrations.urls')),
 ]

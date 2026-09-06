@@ -80,6 +80,7 @@ LOCAL_APPS = [
     'apps.common',
     'apps.accounts',
     'apps.telegram_engine',
+    'apps.integrations',
     'apps.channels',
     'apps.posts',
     'apps.media',
@@ -120,6 +121,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'postly_core.wsgi.application'
 ASGI_APPLICATION = 'postly_core.asgi.application'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -275,6 +279,16 @@ CACHES = {
 TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '0'))
 TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '')
 TELEGRAM_SESSION_ENCRYPTION_KEY = os.getenv('TELEGRAM_SESSION_ENCRYPTION_KEY', '')
+
+# ==============================================================================
+# LinkedIn OAuth 2.0 & Publishing Settings (Production / Dev Tunnel)
+# ==============================================================================
+LINKEDIN_CLIENT_ID = os.getenv('LINKEDIN_CLIENT_ID', '')
+LINKEDIN_CLIENT_SECRET = os.getenv('LINKEDIN_CLIENT_SECRET', '')
+LINKEDIN_REDIRECT_URI = os.getenv(
+    'LINKEDIN_REDIRECT_URI',
+    'http://localhost:8000/api/integrations/linkedin/callback/'
+)
 
 # ==============================================================================
 # Cloudinary Media Storage Settings

@@ -11,7 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
   ChevronRight,
+  Link2,
   LogOut,
+  Share2,
   Shield,
   Unlink,
   User as UserIcon,
@@ -20,6 +22,11 @@ import * as Haptics from 'expo-haptics';
 
 import { useAuthStore } from '../../store/useAuthStore';
 import { authService } from '../../services/auth/authService';
+import {
+  useConnectLinkedIn,
+  useDisconnectLinkedIn,
+  useLinkedInStatus,
+} from '../../hooks/useLinkedIn';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -29,6 +36,49 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [disconnecting, setDisconnecting] = useState(false);
+
+  // LinkedIn Integration Hooks
+  const { data: linkedinData, isLoading: linkedinLoading } = useLinkedInStatus();
+  const connectLinkedInMutation = useConnectLinkedIn();
+  const disconnectLinkedInMutation = useDisconnectLinkedIn();
+
+  const handleConnectLinkedIn = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    try {
+      const res = await connectLinkedInMutation.mutateAsync();
+      if (res.success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        Alert.alert('LinkedIn Connected', res.message || 'Your LinkedIn account has been connected.');
+      } else if (res.message && !res.message.includes('cancelled')) {
+        Alert.alert('Connection Incomplete', res.message);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to connect LinkedIn.');
+    }
+  };
+
+  const handleDisconnectLinkedIn = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    Alert.alert(
+      'Disconnect LinkedIn',
+      'Are you sure you want to disconnect your LinkedIn account? You will no longer be able to publish posts to your LinkedIn feed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await disconnectLinkedInMutation.mutateAsync();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to disconnect LinkedIn.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleDisconnect = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
@@ -120,6 +170,65 @@ export default function SettingsScreen() {
             </Text>
             <ChevronRight size={16} color={colors.text.muted} />
           </TouchableOpacity>
+        </Card>
+
+        {/* LinkedIn Integration Section */}
+        <Text style={styles.sectionTitle}>LinkedIn Integration</Text>
+        <Card style={styles.settingsGroup}>
+          <View style={styles.sessionRow}>
+            <View style={styles.platformBadge}>
+              <Share2 size={16} color="#FFFFFF" />
+            </View>
+            <View style={styles.sessionDetails}>
+              <Text style={styles.sessionTitle}>
+                {linkedinData?.is_connected
+                  ? linkedinData.account?.name || 'LinkedIn Account'
+                  : 'LinkedIn Personal Feed'}
+              </Text>
+              <Text
+                style={[
+                  styles.sessionStatus,
+                  {
+                    color: linkedinData?.is_connected
+                      ? colors.status.success
+                      : colors.text.muted,
+                  },
+                ]}
+              >
+                {linkedinData?.is_connected
+                  ? `Connected • ${linkedinData.account?.email || 'Ready to post'}`
+                  : 'Not connected'}
+              </Text>
+            </View>
+          </View>
+
+          {linkedinData?.is_connected ? (
+            <TouchableOpacity
+              onPress={handleDisconnectLinkedIn}
+              disabled={disconnectLinkedInMutation.isPending}
+              style={styles.actionRow}
+            >
+              <Unlink size={18} color={colors.status.warning} style={styles.actionIcon} />
+              <Text style={[styles.actionText, { color: colors.status.warning }]}>
+                {disconnectLinkedInMutation.isPending
+                  ? 'Disconnecting...'
+                  : 'Disconnect LinkedIn Account'}
+              </Text>
+              <ChevronRight size={16} color={colors.text.muted} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleConnectLinkedIn}
+              disabled={connectLinkedInMutation.isPending || linkedinLoading}
+              style={styles.actionRow}
+            >
+              <Link2 size={18} color={colors.primary.DEFAULT} style={styles.actionIcon} />
+              <Text style={[styles.actionText, { color: colors.primary.DEFAULT }]}>
+                {connectLinkedInMutation.isPending ? 'Connecting...' : 'Connect LinkedIn Account'}
+              </Text>
+              <ChevronRight size={16} color={colors.text.muted} />
+            </TouchableOpacity>
+          )}
         </Card>
 
         {/* Account Actions */}
@@ -221,6 +330,15 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.subtle,
+  },
+  platformBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#0A66C2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
   },
   sessionIcon: {
     marginRight: spacing.md,
