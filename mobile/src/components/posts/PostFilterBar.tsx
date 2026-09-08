@@ -30,18 +30,48 @@ export type PostStatusFilter =
   | 'PUBLISHED'
   | 'FAILED';
 
-export interface PostFilterBarProps {
-  activeStatus: PostStatusFilter;
-  onStatusChange: (status: PostStatusFilter) => void;
+export interface DashboardSearchBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  placeholder?: string;
 }
 
-export const PostFilterBar: React.FC<PostFilterBarProps> = ({
-  activeStatus,
-  onStatusChange,
+export const DashboardSearchBar: React.FC<DashboardSearchBarProps> = ({
   searchQuery,
   onSearchChange,
+  placeholder = 'Search broadcast content or channels...',
+}) => {
+  return (
+    <View style={styles.searchWrapper}>
+      <Input
+        placeholder={placeholder}
+        value={searchQuery}
+        onChangeText={onSearchChange}
+        leftIcon={<Search size={18} color={colors.text.muted} />}
+        rightIcon={
+          searchQuery ? (
+            <TouchableOpacity
+              onPress={() => onSearchChange('')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <X size={16} color={colors.text.muted} />
+            </TouchableOpacity>
+          ) : undefined
+        }
+        containerStyle={styles.searchInputContainer}
+      />
+    </View>
+  );
+};
+
+export interface PostFilterTabsProps {
+  activeStatus: PostStatusFilter;
+  onStatusChange: (status: PostStatusFilter) => void;
+}
+
+export const PostFilterTabs: React.FC<PostFilterTabsProps> = ({
+  activeStatus,
+  onStatusChange,
 }) => {
   const handleTabPress = (status: PostStatusFilter) => {
     Haptics.selectionAsync().catch(() => {});
@@ -122,27 +152,7 @@ export const PostFilterBar: React.FC<PostFilterBarProps> = ({
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Search Input */}
-      <Input
-        placeholder="Search broadcast content or channels..."
-        value={searchQuery}
-        onChangeText={onSearchChange}
-        leftIcon={<Search size={18} color={colors.text.muted} />}
-        rightIcon={
-          searchQuery ? (
-            <TouchableOpacity
-              onPress={() => onSearchChange('')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <X size={16} color={colors.text.muted} />
-            </TouchableOpacity>
-          ) : undefined
-        }
-        containerStyle={styles.searchContainer}
-      />
-
-      {/* Horizontal Pill Selector */}
+    <View style={styles.tabsContainer}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -170,18 +180,53 @@ export const PostFilterBar: React.FC<PostFilterBarProps> = ({
   );
 };
 
+export interface PostFilterBarProps {
+  activeStatus: PostStatusFilter;
+  onStatusChange: (status: PostStatusFilter) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+}
+
+export const PostFilterBar: React.FC<PostFilterBarProps> = ({
+  activeStatus,
+  onStatusChange,
+  searchQuery,
+  onSearchChange,
+}) => {
+  return (
+    <View style={styles.container}>
+      <DashboardSearchBar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+      />
+      <PostFilterTabs
+        activeStatus={activeStatus}
+        onStatusChange={onStatusChange}
+      />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,
     paddingBottom: spacing.sm,
   },
-  searchContainer: {
-    marginBottom: spacing.sm,
+  searchWrapper: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xs,
+  },
+  searchInputContainer: {
+    marginBottom: 0,
+  },
+  tabsContainer: {
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
   },
   tabsRow: {
     flexDirection: 'row',
     gap: spacing.xs + 3,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 2,
   },
   tab: {

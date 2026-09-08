@@ -11,6 +11,7 @@ export function usePosts(params?: PostQueryParams) {
   return useQuery({
     queryKey: [...POSTS_QUERY_KEY, params],
     queryFn: () => postService.getPosts(params),
+    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -29,6 +30,7 @@ export function useCreatePost() {
     mutationFn: (payload: CreatePostPayload) => postService.createPost(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 }
@@ -40,6 +42,7 @@ export function usePublishPostNow() {
     mutationFn: (postId: string) => postService.publishPostNow(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 }
@@ -51,6 +54,7 @@ export function useCancelScheduledPost() {
     mutationFn: (postId: string) => postService.cancelScheduledPost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 }
@@ -62,6 +66,7 @@ export function useDeletePost() {
     mutationFn: (postId: string) => postService.deletePost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 }

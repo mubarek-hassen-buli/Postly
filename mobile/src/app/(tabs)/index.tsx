@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { FileText, Plus } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   usePosts,
   usePublishPostNow,
@@ -23,7 +24,11 @@ import { PostItem } from '../../services/posts/postService';
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { AnalyticsSection } from '../../components/analytics/AnalyticsSection';
 import { PostCard } from '../../components/posts/PostCard';
-import { PostFilterBar, PostStatusFilter } from '../../components/posts/PostFilterBar';
+import {
+  DashboardSearchBar,
+  PostFilterTabs,
+  PostStatusFilter,
+} from '../../components/posts/PostFilterBar';
 import { PostDetailModal } from '../../components/posts/PostDetailModal';
 import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal';
 import { Button } from '../../components/ui/Button';
@@ -34,12 +39,14 @@ import { borderRadius, spacing } from '../../theme/spacing';
 
 export default function PostsScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
 
   const [activeStatus, setActiveStatus] = useState<PostStatusFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPostForDetail, setSelectedPostForDetail] = useState<PostItem | null>(null);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Backend Query Status filter mapping
   const apiStatusFilter = useMemo(() => {
@@ -78,7 +85,16 @@ export default function PostsScreen() {
   }, [allPosts, activeStatus]);
 
   const handleRefresh = async () => {
-    await refetchPosts();
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchPosts(),
+        queryClient.invalidateQueries({ queryKey: ['analytics'] }),
+        useAuthStore.getState().checkAuthStatus(),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handlePublishNow = async (postId: string) => {
@@ -162,25 +178,29 @@ export default function PostsScreen() {
   const renderDashboardHeader = () => {
     return (
       <View style={styles.dashboardHeaderWrap}>
-        {/* 1. Hero Greeting & Actions */}
+        {/* 1. Hero Greeting & Avatar (Header has no '+ New' button) */}
         <DashboardHeader
           userName={user?.first_name || user?.username || 'Creator'}
           avatarUrl={user?.avatar_url}
           onOpenNotifications={() => setNotificationsVisible(true)}
         />
 
-        {/* 2. Decoupled Analytics Section (Metrics Grid + Gifted Stacked Bar + Donut + Area Charts) */}
-        <AnalyticsSection />
-
-        {/* 3. Platform & Status Filter Pills */}
-        <PostFilterBar
-          activeStatus={activeStatus}
-          onStatusChange={setActiveStatus}
+        {/* 2. ONLY Search Bar directly above the analytics cards */}
+        <DashboardSearchBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
 
-        {/* 4. Section Header for Broadcast Feed */}
+        {/* 3. Decoupled Analytics Section (KPI Cards + Charts) */}
+        <AnalyticsSection />
+
+        {/* 4. Category / Platform Filter Pills directly above the post feed */}
+        <PostFilterTabs
+          activeStatus={activeStatus}
+          onStatusChange={setActiveStatus}
+        />
+
+        {/* 5. Section Header for Broadcast Feed */}
         <View style={styles.feedHeaderRow}>
           <Text style={styles.feedSectionTitle}>Recent & Scheduled</Text>
           <View style={styles.countBadge}>
@@ -212,7 +232,7 @@ export default function PostsScreen() {
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
-            refreshing={isPostsRefetching}
+            refreshing={isRefreshing || isPostsRefetching}
             onRefresh={handleRefresh}
             tintColor={colors.primary.DEFAULT}
             colors={[colors.primary.DEFAULT]}

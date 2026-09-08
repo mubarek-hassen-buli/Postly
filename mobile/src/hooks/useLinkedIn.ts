@@ -44,6 +44,7 @@ export function usePublishLinkedInPost() {
     mutationFn: (text: string) => linkedinService.publishPost(text),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 }

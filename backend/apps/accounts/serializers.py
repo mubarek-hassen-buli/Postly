@@ -92,6 +92,7 @@ class TelegramSessionSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for authenticated user profile with connected Telegram session."""
     telegram_session = TelegramSessionSerializer(read_only=True)
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -113,3 +114,15 @@ class UserSerializer(serializers.ModelSerializer):
             'telegram_session',
             'created_at',
         ]
+
+    def get_avatar_url(self, obj: User):
+        if obj.avatar_url:
+            return obj.avatar_url
+        if obj.username:
+            return f"https://t.me/i/userpic/320/{obj.username}.jpg"
+        # Check connected LinkedIn account fallback
+        linkedin_account = getattr(obj, 'linkedin_account', None)
+        if linkedin_account and linkedin_account.picture_url:
+            return linkedin_account.picture_url
+        return None
+

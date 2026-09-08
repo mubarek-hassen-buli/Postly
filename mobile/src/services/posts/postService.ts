@@ -25,6 +25,7 @@ export interface PostMediaAttachmentItem {
 export interface PostItem {
   id: string;
   content: string;
+  text_content?: string;
   status: 'DRAFT' | 'SCHEDULED' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED' | 'CANCELLED';
   formatting_mode: 'HTML' | 'MARKDOWN' | 'PLAIN';
   pin_message: boolean;

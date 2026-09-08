@@ -47,25 +47,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ initialPerio
     { key: 'all', label: 'All' },
   ];
 
-  if (isLoading && !data) {
-    return (
-      <View style={styles.loadingWrapper}>
-        <ActivityIndicator size="small" color={colors.primary.DEFAULT} />
-        <Text style={styles.loadingText}>Loading analytics...</Text>
-      </View>
-    );
-  }
 
-  if (isError && !data) {
-    return (
-      <View style={styles.errorWrapper}>
-        <Text style={styles.errorText}>Analytics unavailable</Text>
-        <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   const summary = data?.summary || {
     total_broadcasts: 0,
@@ -91,7 +73,16 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ initialPerio
     <View style={styles.container}>
       {/* Header: Title & Timeframe Selector Pills */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeading}>Performance & Reach</Text>
+        <View style={styles.titleWithLoader}>
+          <Text style={styles.sectionHeading}>Performance & Reach</Text>
+          {isLoading && (
+            <ActivityIndicator
+              size="small"
+              color={colors.primary.DEFAULT}
+              style={styles.headerSpinner}
+            />
+          )}
+        </View>
 
         <View style={styles.periodPillsWrap}>
           {periodTabs.map((tab) => {
@@ -199,6 +190,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: -0.3,
   },
+  titleWithLoader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  headerSpinner: {
+    marginLeft: 4,
+  },
   periodPillsWrap: {
     flexDirection: 'row',
     backgroundColor: colors.background.surface,
@@ -231,36 +230,5 @@ const styles = StyleSheet.create({
   metricsRow: {
     flexDirection: 'row',
     gap: spacing.sm + 2,
-  },
-  loadingWrapper: {
-    paddingVertical: spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    ...typography.presets.caption,
-    color: colors.text.secondary,
-    marginTop: spacing.xs,
-  },
-  errorWrapper: {
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    ...typography.presets.caption,
-    color: colors.status.error,
-    marginBottom: spacing.xs,
-  },
-  retryButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 4,
-    backgroundColor: colors.background.surface,
-    borderRadius: borderRadius.sm,
-  },
-  retryButtonText: {
-    ...typography.presets.caption,
-    color: colors.primary.DEFAULT,
-    fontWeight: '700',
   },
 });

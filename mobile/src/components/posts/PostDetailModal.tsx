@@ -91,7 +91,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
             {/* Post Content */}
             <Card style={styles.contentCard}>
-              <Text style={styles.contentText}>{post.content || '(No text content)'}</Text>
+              <Text style={styles.contentText}>{post.content || post.text_content || '(No text content)'}</Text>
             </Card>
 
             {/* Media Gallery */}

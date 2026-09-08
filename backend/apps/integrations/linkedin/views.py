@@ -3,11 +3,13 @@ import logging
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.posts.models import Post
 from ..models import LinkedInAccount
 from .oauth import LinkedInOAuthError, LinkedInOAuthService
 from .publishing import LinkedInPublishingError, LinkedInPublishingService
@@ -316,6 +318,13 @@ class LinkedInPublishView(APIView):
             result = LinkedInPublishingService.publish_text_post(
                 user=request.user,
                 text_content=text_content
+            )
+            # Record published post in Post model so it appears in recent posts and analytics
+            Post.objects.create(
+                user=request.user,
+                text_content=text_content,
+                status=Post.PostStatus.PUBLISHED,
+                published_at=timezone.now()
             )
             response_serializer = LinkedInPublishResponseSerializer(result)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)

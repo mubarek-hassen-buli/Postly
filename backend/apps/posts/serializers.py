@@ -46,8 +46,11 @@ class PostChannelTargetSerializer(serializers.ModelSerializer):
 
 class PostListSerializer(serializers.ModelSerializer):
     """Compact serializer for feed lists and overview dashboard."""
+    content = serializers.CharField(source='text_content', read_only=True)
     targets_count = serializers.IntegerField(source='targets.count', read_only=True)
     media_count = serializers.IntegerField(source='media_attachments.count', read_only=True)
+    media_attachments = PostMediaAttachmentSerializer(many=True, read_only=True)
+    targets = PostChannelTargetSerializer(many=True, read_only=True)
     target_channels = serializers.SerializerMethodField()
 
     class Meta:
@@ -55,6 +58,7 @@ class PostListSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'text_content',
+            'content',
             'formatting_mode',
             'silent',
             'disable_web_page_preview',
@@ -64,6 +68,8 @@ class PostListSerializer(serializers.ModelSerializer):
             'published_at',
             'targets_count',
             'media_count',
+            'media_attachments',
+            'targets',
             'target_channels',
             'error_summary',
             'created_at',

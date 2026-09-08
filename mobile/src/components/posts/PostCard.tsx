@@ -63,7 +63,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       .trim();
   };
 
-  const cleanText = getCleanPreviewText(post.content) || (mediaAttachments.length > 0 ? 'Media broadcast' : 'Draft broadcast');
+  const cleanText = getCleanPreviewText(post.text_content || post.content) || (mediaAttachments.length > 0 ? 'Media broadcast' : 'Draft broadcast');
   const titleSnippet = cleanText.split('\n')[0].slice(0, 48) + (cleanText.length > 48 ? '...' : '');
 
   // Determine platform identity & destination subtitle
@@ -253,8 +253,8 @@ export const PostCard: React.FC<PostCardProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Body Content Preview (if multi-line) */}
-      {cleanText.length > 50 && (
+      {/* Body Content Preview (if multi-line or longer than single title) */}
+      {(cleanText.length > titleSnippet.length || cleanText.includes('\n')) && (
         <Text style={styles.bodyPreview} numberOfLines={2}>
           {cleanText}
         </Text>

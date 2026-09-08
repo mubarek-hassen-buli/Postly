@@ -3,12 +3,8 @@ import {
   Image,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { Plus } from 'lucide-react-native';
 
 import { NotificationBellButton } from '../notifications/NotificationBellButton';
 import { colors } from '../../theme/colors';
@@ -26,8 +22,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   avatarUrl,
   onOpenNotifications,
 }) => {
-  const router = useRouter();
-
   const displayName = userName?.trim() || 'Creator';
   const userInitials = displayName
     .split(' ')
@@ -36,11 +30,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     .slice(0, 2)
     .join('')
     .toUpperCase() || 'P';
-
-  const handleNewBroadcast = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    router.push('/compose');
-  };
 
   return (
     <View style={styles.container}>
@@ -55,19 +44,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </View>
       </View>
 
-      {/* Right Actions: Notification Bell, New Button, Avatar */}
+      {/* Right Actions: Notification Bell, Avatar */}
       <View style={styles.rightActions}>
         <NotificationBellButton onPress={onOpenNotifications} />
-
-        <TouchableOpacity
-          onPress={handleNewBroadcast}
-          style={styles.newButton}
-          activeOpacity={0.85}
-          accessibilityLabel="Compose new broadcast"
-        >
-          <Plus size={16} color="#FFFFFF" strokeWidth={2.5} style={styles.plusIcon} />
-          <Text style={styles.newButtonText}>New</Text>
-        </TouchableOpacity>
 
         {/* User Avatar Circle */}
         <View style={styles.avatarContainer}>
@@ -124,28 +103,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm + 2,
-  },
-  newButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary.DEFAULT,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 3,
-    borderRadius: borderRadius.round,
-    shadowColor: colors.primary.DEFAULT,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  plusIcon: {
-    marginRight: 4,
-  },
-  newButtonText: {
-    ...typography.presets.caption,
-    color: '#FFFFFF',
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
   avatarContainer: {
     width: 38,
