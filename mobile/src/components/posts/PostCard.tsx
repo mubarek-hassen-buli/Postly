@@ -1,7 +1,9 @@
 import React from 'react';
 import {
+  ActionSheetIOS,
   Alert,
   Image,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -14,22 +16,24 @@ import {
   AlertCircle,
   Calendar,
   CheckCircle,
+  CheckCircle2,
   Clock,
   FileText,
   Image as ImageIcon,
   MoreVertical,
+  Paperclip,
   Pin,
   Send,
+  Share2,
   Trash2,
   XCircle,
   Zap,
 } from 'lucide-react-native';
 
 import { PostItem } from '../../services/posts/postService';
-import { Card } from '../ui/Card';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, shadows, spacing } from '../../theme/spacing';
+import { borderRadius, spacing } from '../../theme/spacing';
 
 export interface PostCardProps {
   post: PostItem;
@@ -46,6 +50,33 @@ export const PostCard: React.FC<PostCardProps> = ({
   onCancelSchedule,
   onDelete,
 }) => {
+  const mediaAttachments = post.media_attachments || [];
+  const targets = post.targets || [];
+
+  const getCleanPreviewText = (text?: string | null): string => {
+    if (!text) return '';
+    return text
+      .replace(/<[^>]+>/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/`/g, '')
+      .trim();
+  };
+
+  const cleanText = getCleanPreviewText(post.content) || (mediaAttachments.length > 0 ? 'Media broadcast' : 'Draft broadcast');
+  const titleSnippet = cleanText.split('\n')[0].slice(0, 48) + (cleanText.length > 48 ? '...' : '');
+
+  // Determine platform identity & destination subtitle
+  const isLinkedIn = targets.length === 0 && post.status === 'PUBLISHED';
+  const hasMultipleTargets = targets.length > 1;
+
+  const destinationLabel = hasMultipleTargets
+    ? `Telegram (${targets.length} channels)`
+    : targets.length === 1
+    ? targets[0]?.channel?.title || 'Telegram Channel'
+    : 'Social Broadcast';
+
+  // Status configuration
   const getStatusBadge = () => {
     switch (post.status) {
       case 'PUBLISHED':
@@ -53,46 +84,47 @@ export const PostCard: React.FC<PostCardProps> = ({
           label: 'Published',
           bg: colors.status.successBg,
           text: colors.status.success,
-          icon: <CheckCircle size={12} color={colors.status.success} />,
+          icon: <CheckCircle2 size={11} color={colors.status.success} strokeWidth={2.5} />,
         };
       case 'SCHEDULED':
         return {
           label: 'Scheduled',
           bg: colors.status.warningBg,
           text: colors.status.warning,
-          icon: <Clock size={12} color={colors.status.warning} />,
+          icon: <Clock size={11} color={colors.status.warning} strokeWidth={2.5} />,
         };
       case 'FAILED':
         return {
           label: 'Failed',
           bg: colors.status.errorBg,
           text: colors.status.error,
-          icon: <AlertCircle size={12} color={colors.status.error} />,
+          icon: <AlertCircle size={11} color={colors.status.error} strokeWidth={2.5} />,
         };
       case 'PUBLISHING':
         return {
-          label: 'Publishing...',
+          label: 'Sending...',
           bg: colors.primary.subtle,
           text: colors.primary.DEFAULT,
-          icon: <Send size={12} color={colors.primary.DEFAULT} />,
+          icon: <Send size={11} color={colors.primary.DEFAULT} strokeWidth={2.5} />,
         };
       default:
         return {
           label: 'Draft',
           bg: colors.background.elevated,
           text: colors.text.muted,
-          icon: <FileText size={12} color={colors.text.muted} />,
+          icon: <FileText size={11} color={colors.text.muted} strokeWidth={2.5} />,
         };
     }
   };
 
   const statusBadge = getStatusBadge();
 
+  // Action handlers
   const handlePublishNow = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     Alert.alert(
       'Publish Now',
-      'Are you sure you want to broadcast this scheduled post immediately?',
+      'Broadcast this scheduled post immediately to all target channels?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -108,7 +140,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     Alert.alert(
       'Cancel Schedule',
-      'This will cancel the scheduled broadcast and return the post to Draft status.',
+      'Return this scheduled broadcast to draft status?',
       [
         { text: 'Keep Scheduled', style: 'cancel' },
         {
@@ -124,7 +156,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     Alert.alert(
       'Delete Post',
-      'Are you sure you want to delete this post from your history?',
+      'Are you sure you want to delete this broadcast?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -136,373 +168,347 @@ export const PostCard: React.FC<PostCardProps> = ({
     );
   };
 
-  const getCleanPreviewText = (text?: string | null): string => {
-    if (!text) return '';
-    return text
-      .replace(/<[^>]+>/g, '')
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
-      .replace(/`/g, '')
-      .trim();
+  // 3-dot context menu
+  const handleOpenActionMenu = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+
+    const options: string[] = ['View Details'];
+    const actions: Array<() => void> = [() => onPress(post)];
+
+    if (post.status === 'SCHEDULED') {
+      options.push('Publish Now');
+      actions.push(handlePublishNow);
+      options.push('Cancel Schedule');
+      actions.push(handleCancelSchedule);
+    } else if (post.status === 'FAILED' && onPublishNow) {
+      options.push('Retry Broadcast');
+      actions.push(() => onPublishNow(post.id));
+    }
+
+    options.push('Delete');
+    actions.push(handleDelete);
+    options.push('Cancel');
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: options.length - 1,
+          destructiveButtonIndex: options.indexOf('Delete'),
+          title: 'Broadcast Actions',
+        },
+        (buttonIndex) => {
+          if (buttonIndex < actions.length) {
+            actions[buttonIndex]();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        'Broadcast Actions',
+        titleSnippet,
+        options.map((opt, idx) => ({
+          text: opt,
+          style: opt === 'Delete' ? 'destructive' : opt === 'Cancel' ? 'cancel' : 'default',
+          onPress: idx < actions.length ? actions[idx] : undefined,
+        }))
+      );
+    }
   };
 
-  const mediaAttachments = post.media_attachments || [];
-  const targets = post.targets || [];
-
   return (
-    <Card style={styles.card}>
-      <Pressable onPress={() => onPress(post)} style={styles.cardHeader}>
-        {/* Status Pill */}
-        <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg }]}>
-          {statusBadge.icon}
-          <Text style={[styles.statusText, { color: statusBadge.text }]}>
-            {statusBadge.label}
+    <Pressable
+      onPress={() => onPress(post)}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    >
+      {/* Top Main Row: Platform Icon + Content Snippet + 3-Dot Action Button */}
+      <View style={styles.topRow}>
+        {/* Platform Avatar Icon Circle */}
+        <View style={styles.platformAvatar}>
+          {isLinkedIn ? (
+            <Share2 size={16} color="#0A66C2" strokeWidth={2.5} />
+          ) : (
+            <Send size={16} color="#2AABEE" strokeWidth={2.5} style={styles.airplaneIcon} />
+          )}
+        </View>
+
+        {/* Center: Title Snippet & Destination */}
+        <View style={styles.contentColumn}>
+          <Text style={styles.postTitle} numberOfLines={1}>
+            {titleSnippet}
+          </Text>
+          <Text style={styles.destinationText} numberOfLines={1}>
+            {destinationLabel}
           </Text>
         </View>
 
-        {/* Pin Badge */}
-        {post.pin_message && (
-          <View style={styles.pinBadge}>
-            <Pin size={12} color={colors.primary.DEFAULT} />
-            <Text style={styles.pinText}>Pinned</Text>
-          </View>
-        )}
+        {/* Right: 3-Dot Menu Button */}
+        <TouchableOpacity
+          onPress={handleOpenActionMenu}
+          style={styles.moreButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityLabel="Broadcast options"
+        >
+          <MoreVertical size={16} color={colors.text.secondary} />
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.headerSpacer} />
+      {/* Body Content Preview (if multi-line) */}
+      {cleanText.length > 50 && (
+        <Text style={styles.bodyPreview} numberOfLines={2}>
+          {cleanText}
+        </Text>
+      )}
 
-        {/* Time / Date */}
-        {post.scheduled_for && post.status === 'SCHEDULED' ? (
-          <View style={styles.timeRow}>
-            <Calendar size={12} color={colors.text.secondary} style={styles.timeIcon} />
-            <Text style={styles.timeText}>
-              {format(new Date(post.scheduled_for), 'MMM d, h:mm a')}
-            </Text>
-          </View>
-        ) : post.published_at ? (
-          <Text style={styles.timeText}>
-            {formatDistanceToNow(new Date(post.published_at), { addSuffix: true })}
-          </Text>
-        ) : (
-          <Text style={styles.timeText}>
-            {format(new Date(post.created_at || Date.now()), 'MMM d')}
-          </Text>
-        )}
-      </Pressable>
-
-      {/* Main Content & Thumbnail */}
-      <Pressable onPress={() => onPress(post)} style={styles.bodyRow}>
-        <View style={styles.textContainer}>
-          <Text style={styles.contentText} numberOfLines={3}>
-            {getCleanPreviewText(post.content) || (mediaAttachments.length > 0 ? '(Media only)' : '')}
-          </Text>
-        </View>
-
-        {/* Media Thumbnail Preview */}
-        {mediaAttachments.length > 0 && mediaAttachments[0]?.media_url && (
-          <View style={styles.thumbnailWrapper}>
-            <Image
-              source={{ uri: mediaAttachments[0].media_url }}
-              style={styles.thumbnail}
-              resizeMode="cover"
-            />
-            {mediaAttachments.length > 1 && (
-              <View style={styles.mediaCountBadge}>
-                <ImageIcon size={10} color="#FFFFFF" />
-                <Text style={styles.mediaCountText}>
-                  +{mediaAttachments.length - 1}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-      </Pressable>
-
-      {/* Target Channel Destination Pills */}
-      {targets.length > 0 && (
-        <View style={styles.destinationsRow}>
-          {targets.map((target) => {
-            const isSuccess = target.status === 'SUCCESS';
-            const isFailed = target.status === 'FAILED';
-            const title = target.channel?.title || 'Telegram Channel';
-
-            return (
-              <View
-                key={target.id}
-                style={[
-                  styles.channelPill,
-                  isSuccess && styles.channelSuccessPill,
-                  isFailed && styles.channelFailedPill,
-                ]}
-              >
-                {isSuccess ? (
-                  <CheckCircle size={10} color={colors.status.success} />
-                ) : isFailed ? (
-                  <XCircle size={10} color={colors.status.error} />
-                ) : (
-                  <Clock size={10} color={colors.text.muted} />
-                )}
-                <Text style={styles.channelTitle} numberOfLines={1}>
-                  {title}
-                </Text>
-              </View>
-            );
-          })}
+      {/* Media Thumbnail preview if image attached */}
+      {mediaAttachments.length > 0 && mediaAttachments[0]?.media_url && (
+        <View style={styles.thumbnailWrapper}>
+          <Image
+            source={{ uri: mediaAttachments[0].media_url }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
+          {mediaAttachments.length > 1 && (
+            <View style={styles.mediaCountBadge}>
+              <ImageIcon size={11} color="#FFFFFF" />
+              <Text style={styles.mediaCountText}>+{mediaAttachments.length - 1}</Text>
+            </View>
+          )}
         </View>
       )}
 
-      {/* Error Notice if Failed */}
+      {/* Bottom Metadata Badges Row */}
+      <View style={styles.metadataRow}>
+        <View style={styles.metadataPills}>
+          {/* Status Badge */}
+          <View style={[styles.statusPill, { backgroundColor: statusBadge.bg }]}>
+            {statusBadge.icon}
+            <Text style={[styles.statusPillText, { color: statusBadge.text }]}>
+              {statusBadge.label}
+            </Text>
+          </View>
+
+          {/* Media Count Pill */}
+          {mediaAttachments.length > 0 && (
+            <View style={styles.metaChip}>
+              <Paperclip size={11} color={colors.text.secondary} />
+              <Text style={styles.metaChipText}>{mediaAttachments.length}</Text>
+            </View>
+          )}
+
+          {/* Pin Tag */}
+          {post.pin_message && (
+            <View style={styles.metaChip}>
+              <Pin size={11} color={colors.primary.DEFAULT} />
+              <Text style={[styles.metaChipText, { color: colors.primary.DEFAULT }]}>Pinned</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Schedule / Sent Timestamp */}
+        <View style={styles.timestampWrap}>
+          {post.scheduled_for && post.status === 'SCHEDULED' ? (
+            <View style={styles.scheduleRow}>
+              <Calendar size={11} color={colors.status.warning} />
+              <Text style={[styles.timestampText, { color: colors.status.warning }]}>
+                {format(new Date(post.scheduled_for), 'MMM d, h:mm a')}
+              </Text>
+            </View>
+          ) : post.published_at ? (
+            <Text style={styles.timestampText}>
+              {formatDistanceToNow(new Date(post.published_at), { addSuffix: true })}
+            </Text>
+          ) : (
+            <Text style={styles.timestampText}>
+              {format(new Date(post.created_at || Date.now()), 'MMM d')}
+            </Text>
+          )}
+        </View>
+      </View>
+
+      {/* Error Alert Notice if Failed */}
       {post.error_summary && post.status === 'FAILED' && (
-        <View style={styles.errorBanner}>
-          <AlertCircle size={14} color={colors.status.error} style={styles.errorIcon} />
-          <Text style={styles.errorText} numberOfLines={1}>
+        <View style={styles.errorNotice}>
+          <AlertCircle size={13} color={colors.status.error} style={styles.errorIcon} />
+          <Text style={styles.errorNoticeText} numberOfLines={1}>
             {post.error_summary}
           </Text>
         </View>
       )}
-
-      {/* Quick Action Footer */}
-      <View style={styles.footerRow}>
-        <View style={styles.footerLeft}>
-          <Text style={styles.formatModeText}>{post.formatting_mode} Format</Text>
-        </View>
-
-        <View style={styles.footerActions}>
-          {post.status === 'SCHEDULED' && (
-            <>
-              <TouchableOpacity
-                onPress={handlePublishNow}
-                style={styles.actionButton}
-                accessibilityLabel="Publish Now"
-              >
-                <Zap size={14} color={colors.primary.DEFAULT} style={styles.actionIcon} />
-                <Text style={[styles.actionText, { color: colors.primary.DEFAULT }]}>
-                  Publish Now
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleCancelSchedule}
-                style={styles.actionButton}
-                accessibilityLabel="Cancel Schedule"
-              >
-                <Clock size={14} color={colors.status.warning} style={styles.actionIcon} />
-                <Text style={[styles.actionText, { color: colors.status.warning }]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {post.status === 'FAILED' && onPublishNow && (
-            <TouchableOpacity
-              onPress={() => onPublishNow(post.id)}
-              style={styles.actionButton}
-            >
-              <Zap size={14} color={colors.primary.DEFAULT} style={styles.actionIcon} />
-              <Text style={[styles.actionText, { color: colors.primary.DEFAULT }]}>
-                Retry
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={styles.deleteButton}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityLabel="Delete post"
-          >
-            <Trash2 size={15} color={colors.text.muted} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Card>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    padding: spacing.md,
-    marginBottom: spacing.md,
     backgroundColor: colors.background.surface,
-    borderColor: colors.border.subtle,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm + 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  cardHeader: {
+  cardPressed: {
+    backgroundColor: colors.background.elevated,
+    transform: [{ scale: 0.995 }],
+  },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
   },
-  statusBadge: {
-    flexDirection: 'row',
+  platformAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(42, 171, 238, 0.12)',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: borderRadius.xs,
+    justifyContent: 'center',
+    marginRight: spacing.sm + 2,
   },
-  statusText: {
-    ...typography.presets.caption,
-    fontWeight: '600',
-    fontSize: 11,
+  airplaneIcon: {
+    marginLeft: -1,
   },
-  pinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: colors.primary.subtle,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: borderRadius.xs,
-    marginLeft: spacing.xs,
-  },
-  pinText: {
-    ...typography.presets.caption,
-    color: colors.primary.DEFAULT,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  headerSpacer: {
+  contentColumn: {
     flex: 1,
+    justifyContent: 'center',
   },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeIcon: {
-    marginRight: 4,
-  },
-  timeText: {
-    ...typography.presets.caption,
-    color: colors.text.muted,
-  },
-  bodyRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  contentText: {
+  postTitle: {
     ...typography.presets.body,
     color: colors.text.primary,
-    lineHeight: 20,
+    fontWeight: '700',
+    fontSize: 14,
+    letterSpacing: -0.2,
+  },
+  destinationText: {
+    ...typography.presets.caption,
+    color: colors.text.secondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  moreButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    marginLeft: spacing.xs,
+  },
+  bodyPreview: {
+    ...typography.presets.body,
+    color: colors.text.secondary,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: spacing.xs + 2,
   },
   thumbnailWrapper: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.sm,
+    marginTop: spacing.xs + 3,
+    borderRadius: borderRadius.md,
     overflow: 'hidden',
-    backgroundColor: colors.background.elevated,
+    height: 100,
     position: 'relative',
   },
   thumbnail: {
     width: '100%',
     height: '100%',
+    backgroundColor: colors.background.elevated,
   },
   mediaCountBadge: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
+    bottom: 6,
+    right: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: borderRadius.round,
+    gap: 4,
   },
   mediaCountText: {
+    ...typography.presets.caption,
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '700',
   },
-  destinationsRow: {
+  metadataRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+    paddingTop: spacing.xs + 2,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.04)',
   },
-  channelPill: {
+  metadataPills: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: borderRadius.round,
+    gap: 4,
+  },
+  statusPillText: {
+    ...typography.presets.caption,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: borderRadius.round,
+    gap: 4,
+  },
+  metaChipText: {
+    ...typography.presets.caption,
+    color: colors.text.secondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  timestampWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scheduleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.background.input,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: borderRadius.xs,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-    maxWidth: 140,
   },
-  channelSuccessPill: {
-    borderColor: 'rgba(52, 199, 89, 0.3)',
-    backgroundColor: 'rgba(52, 199, 89, 0.08)',
-  },
-  channelFailedPill: {
-    borderColor: 'rgba(255, 59, 48, 0.3)',
-    backgroundColor: 'rgba(255, 59, 48, 0.08)',
-  },
-  channelTitle: {
+  timestampText: {
     ...typography.presets.caption,
+    color: colors.text.muted,
     fontSize: 11,
-    color: colors.text.secondary,
+    fontWeight: '600',
   },
-  errorBanner: {
+  errorNotice: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.status.errorBg,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.xs,
-    marginBottom: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.xs,
   },
   errorIcon: {
     marginRight: 6,
   },
-  errorText: {
+  errorNoticeText: {
     ...typography.presets.caption,
     color: colors.status.error,
-    flex: 1,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: colors.border.subtle,
-    paddingTop: spacing.xs + 2,
-  },
-  footerLeft: {
-    flex: 1,
-  },
-  formatModeText: {
-    ...typography.presets.caption,
-    color: colors.text.muted,
-    fontSize: 10,
-  },
-  footerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.input,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: borderRadius.xs,
-  },
-  actionIcon: {
-    marginRight: 4,
-  },
-  actionText: {
-    ...typography.presets.caption,
-    fontWeight: '600',
     fontSize: 11,
-  },
-  deleteButton: {
-    padding: 4,
-    marginLeft: 2,
+    flex: 1,
   },
 });

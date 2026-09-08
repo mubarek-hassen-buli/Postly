@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/v1/posts/', include('apps.posts.urls')),
     path('api/v1/media/', include('apps.media.urls')),
     path('api/v1/notifications/', include('apps.notifications.urls')),
+    path('api/v1/analytics/', include('apps.analytics.urls')),
 
     # Platform Integrations (OAuth callbacks & APIs)
     path('api/integrations/', include('apps.integrations.urls')),

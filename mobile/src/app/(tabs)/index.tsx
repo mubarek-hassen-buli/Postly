@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Calendar, CheckCircle, FileText, Plus } from 'lucide-react-native';
+import { FileText, Plus } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import {
@@ -19,11 +18,13 @@ import {
   useCancelScheduledPost,
   useDeletePost,
 } from '../../hooks/usePosts';
+import { useAuthStore } from '../../store/useAuthStore';
 import { PostItem } from '../../services/posts/postService';
+import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
+import { AnalyticsSection } from '../../components/analytics/AnalyticsSection';
 import { PostCard } from '../../components/posts/PostCard';
 import { PostFilterBar, PostStatusFilter } from '../../components/posts/PostFilterBar';
 import { PostDetailModal } from '../../components/posts/PostDetailModal';
-import { NotificationBellButton } from '../../components/notifications/NotificationBellButton';
 import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -33,19 +34,29 @@ import { borderRadius, spacing } from '../../theme/spacing';
 
 export default function PostsScreen() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+
   const [activeStatus, setActiveStatus] = useState<PostStatusFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPostForDetail, setSelectedPostForDetail] = useState<PostItem | null>(null);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
 
+  // Backend Query Status filter mapping
+  const apiStatusFilter = useMemo(() => {
+    if (activeStatus === 'ALL' || activeStatus === 'TELEGRAM' || activeStatus === 'LINKEDIN') {
+      return undefined;
+    }
+    return activeStatus;
+  }, [activeStatus]);
+
   // Queries & Mutations
   const {
     data: postsData,
-    isLoading,
-    isRefetching,
-    refetch,
+    isLoading: isPostsLoading,
+    isRefetching: isPostsRefetching,
+    refetch: refetchPosts,
   } = usePosts({
-    status: activeStatus !== 'ALL' ? (activeStatus as any) : undefined,
+    status: apiStatusFilter,
     search: searchQuery.trim() || undefined,
   });
 
@@ -53,7 +64,22 @@ export default function PostsScreen() {
   const cancelScheduleMutation = useCancelScheduledPost();
   const deletePostMutation = useDeletePost();
 
-  const posts = postsData?.results || [];
+  const allPosts = postsData?.results || [];
+
+  // Client-side filtering for platform-specific tabs (Telegram vs LinkedIn)
+  const displayPosts = useMemo(() => {
+    if (activeStatus === 'TELEGRAM') {
+      return allPosts.filter((p) => p.targets && p.targets.length > 0);
+    }
+    if (activeStatus === 'LINKEDIN') {
+      return allPosts.filter((p) => !p.targets || p.targets.length === 0);
+    }
+    return allPosts;
+  }, [allPosts, activeStatus]);
+
+  const handleRefresh = async () => {
+    await refetchPosts();
+  };
 
   const handlePublishNow = async (postId: string) => {
     try {
@@ -83,7 +109,7 @@ export default function PostsScreen() {
   };
 
   const renderEmptyState = () => {
-    if (isLoading) {
+    if (isPostsLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
@@ -95,12 +121,12 @@ export default function PostsScreen() {
     if (searchQuery || activeStatus !== 'ALL') {
       return (
         <Card style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>No matching posts</Text>
+          <Text style={styles.emptyTitle}>No matching broadcasts</Text>
           <Text style={styles.emptySubtitle}>
-            No posts found for {activeStatus !== 'ALL' ? activeStatus.toLowerCase() : ''} filter.
+            No broadcasts found matching your filter criteria.
           </Text>
           <Button
-            title="View All Posts"
+            title="Clear Filters"
             variant="outline"
             size="sm"
             onPress={() => {
@@ -123,7 +149,7 @@ export default function PostsScreen() {
           Compose your first multi-channel post with rich text formatting, media attachments, and instant or scheduled delivery.
         </Text>
         <Button
-          title="Compose First Post"
+          title="Compose First Broadcast"
           onPress={() => router.push('/compose')}
           leftIcon={<Plus size={18} color="#FFFFFF" />}
           style={styles.emptyButton}
@@ -132,63 +158,66 @@ export default function PostsScreen() {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Broadcasts</Text>
-          <Text style={styles.headerSubtitle}>Manage scheduled and published posts</Text>
-        </View>
+  // Assembled Header Component for FlatList
+  const renderDashboardHeader = () => {
+    return (
+      <View style={styles.dashboardHeaderWrap}>
+        {/* 1. Hero Greeting & Actions */}
+        <DashboardHeader
+          userName={user?.first_name || user?.username || 'Creator'}
+          avatarUrl={user?.avatar_url}
+          onOpenNotifications={() => setNotificationsVisible(true)}
+        />
 
-        <View style={styles.headerRightActions}>
-          <NotificationBellButton onPress={() => setNotificationsVisible(true)} />
+        {/* 2. Decoupled Analytics Section (Metrics Grid + Gifted Stacked Bar + Donut + Area Charts) */}
+        <AnalyticsSection />
 
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-              router.push('/compose');
-            }}
-            style={styles.newPostButton}
-            accessibilityLabel="Compose new post"
-          >
-            <Plus size={16} color="#FFFFFF" style={styles.plusIcon} />
-            <Text style={styles.newPostText}>New</Text>
-          </TouchableOpacity>
+        {/* 3. Platform & Status Filter Pills */}
+        <PostFilterBar
+          activeStatus={activeStatus}
+          onStatusChange={setActiveStatus}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+
+        {/* 4. Section Header for Broadcast Feed */}
+        <View style={styles.feedHeaderRow}>
+          <Text style={styles.feedSectionTitle}>Recent & Scheduled</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countBadgeText}>{displayPosts.length}</Text>
+          </View>
         </View>
       </View>
+    );
+  };
 
-      {/* Filter Tabs & Search */}
-      <PostFilterBar
-        activeStatus={activeStatus}
-        onStatusChange={setActiveStatus}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-
-      {/* Posts List */}
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <FlatList
-        data={posts}
+        data={displayPosts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            onPress={(p) => setSelectedPostForDetail(p)}
-            onPublishNow={handlePublishNow}
-            onCancelSchedule={handleCancelSchedule}
-            onDelete={handleDeletePost}
-          />
+          <View style={styles.cardItemWrapper}>
+            <PostCard
+              post={item}
+              onPress={(p) => setSelectedPostForDetail(p)}
+              onPublishNow={handlePublishNow}
+              onCancelSchedule={handleCancelSchedule}
+              onDelete={handleDeletePost}
+            />
+          </View>
         )}
+        ListHeaderComponent={renderDashboardHeader}
+        ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
+            refreshing={isPostsRefetching}
+            onRefresh={handleRefresh}
             tintColor={colors.primary.DEFAULT}
             colors={[colors.primary.DEFAULT]}
           />
         }
-        ListEmptyComponent={renderEmptyState}
       />
 
       {/* Post Detailed Modal */}
@@ -215,63 +244,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.base,
   },
-  header: {
+  listContent: {
+    paddingBottom: spacing.xxl,
+  },
+  dashboardHeaderWrap: {
+    marginBottom: spacing.xs,
+  },
+  cardItemWrapper: {
+    paddingHorizontal: spacing.lg,
+  },
+  feedHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.xs,
     paddingBottom: spacing.sm,
   },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  headerTitle: {
-    ...typography.presets.title1,
+  feedSectionTitle: {
+    ...typography.presets.title3,
     color: colors.text.primary,
     fontWeight: '800',
+    fontSize: 16,
+    letterSpacing: -0.3,
   },
-  headerSubtitle: {
+  countBadge: {
+    backgroundColor: colors.background.surface,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: borderRadius.round,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  countBadgeText: {
     ...typography.presets.caption,
     color: colors.text.secondary,
-    marginTop: 2,
-  },
-  newPostButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary.DEFAULT,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.md,
-  },
-  plusIcon: {
-    marginRight: 4,
-  },
-  newPostText: {
-    ...typography.presets.subheadMedium,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  listContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.massive,
+    fontSize: 11,
+    fontWeight: '700',
   },
   loadingContainer: {
-    paddingVertical: spacing.xxxl,
+    paddingVertical: spacing.xxl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadingText: {
-    ...typography.presets.subhead,
+    ...typography.presets.body,
     color: colors.text.secondary,
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
   },
   emptyCard: {
+    marginHorizontal: spacing.lg,
+    padding: spacing.xl,
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
-    marginVertical: spacing.xl,
+    textAlign: 'center',
+    backgroundColor: colors.background.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginTop: spacing.md,
   },
   emptyIconContainer: {
     width: 68,
@@ -283,20 +313,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   emptyTitle: {
-    ...typography.presets.title3,
+    ...typography.presets.title2,
     color: colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '800',
     marginBottom: spacing.xs,
+    textAlign: 'center',
   },
   emptySubtitle: {
-    ...typography.presets.subhead,
+    ...typography.presets.body,
     color: colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: spacing.md,
+    lineHeight: 20,
     marginBottom: spacing.lg,
   },
   emptyButton: {
-    marginTop: spacing.xs,
+    minWidth: 180,
   },
 });

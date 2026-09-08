@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.core.cache import cache
 from knox.models import AuthToken
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -19,6 +20,7 @@ class LinkedInIntegrationTests(TestCase):
     """Integration and unit tests for LinkedIn OAuth 2.0, OpenID Connect, and publishing APIs."""
 
     def setUp(self) -> None:
+        cache.clear()
         self.client: Any = APIClient()
         self.user = User.objects.create_user(phone_number="+1234567890", first_name="John")
         _, self.token = AuthToken.objects.create(user=self.user)

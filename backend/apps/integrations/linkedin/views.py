@@ -104,6 +104,11 @@ class LinkedInCallbackView(APIView):
                 logger.info(f"Replay callback for user {user.id}; returning existing active connection without re-submitting code.")
                 account = existing_account
             else:
+                if 'application/json' in request.headers.get('Accept', ''):
+                    return Response(
+                        {'error': {'code': 'CODE_ALREADY_USED', 'message': 'This authorization code has already been used.'}},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 return self._render_html_response(
                     title="Code Already Used",
                     message="This authorization code has already been used. Please initiate a new connection from Postly Settings.",
