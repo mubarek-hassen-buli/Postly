@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.base,
   },
   listContent: {
-    paddingBottom: spacing.xxl,
+    paddingBottom: 110,
   },
   dashboardHeaderWrap: {
     marginBottom: spacing.xs,
