@@ -1,3 +1,4 @@
+import concurrent.futures
 import logging
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.channels.models import Channel
+from apps.integrations.linkedin.publishing import LinkedInPublishingService
 from .models import Post, PostChannelTarget, PostMediaAttachment
 from .serializers import (
     PostCreateSerializer,
@@ -262,14 +264,35 @@ class PostDetailView(APIView):
     def delete(self, request, pk, *args, **kwargs) -> Response:
         post = get_object_or_404(Post, id=pk, user=request.user)
 
+        # 1. Cancel pending Celery task if post was scheduled
         if post.celery_task_id:
-            cancel_post_celery_task(post.celery_task_id)
+            try:
+                cancel_post_celery_task(post.celery_task_id)
+            except Exception as exc:
+                logger.warning(f"Could not cancel Celery task {post.celery_task_id} for post {post.id}: {exc}")
+
+        # 2. Concurrently execute remote deletions (Telegram + LinkedIn)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            fut_tg = executor.submit(TelegramPublishingService.delete_remote_telegram_messages, post)
+            fut_li = (
+                executor.submit(LinkedInPublishingService.delete_post, post.user, post.linkedin_post_urn)
+                if post.linkedin_post_urn
+                else None
+            )
+
+            try:
+                fut_tg.result(timeout=10)
+            except Exception as exc:
+                logger.exception(f"Error during remote Telegram deletion for post {post.id}: {exc}")
+
+            if fut_li:
+                try:
+                    fut_li.result(timeout=10)
+                except Exception as exc:
+                    logger.exception(f"Error during remote LinkedIn deletion for post {post.id} (URN {post.linkedin_post_urn}): {exc}")
 
         post.delete()
-        return Response(
-            {'message': 'Post deleted successfully.'},
-            status=status.HTTP_204_NO_CONTENT
-        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PostPublishNowView(APIView):

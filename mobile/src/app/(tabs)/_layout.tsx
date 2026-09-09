@@ -13,7 +13,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Posts',
+          title: 'Dashboard',
+        }}
+      />
+
+      <Tabs.Screen
+        name="posts"
+        options={{
+          title: 'Posters',
         }}
       />
 

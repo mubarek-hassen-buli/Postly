@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/tabs';
 import {
   FileText,
+  LayoutDashboard,
   Plus,
   Radio,
   Settings as SettingsIcon,
@@ -28,7 +29,12 @@ interface TabConfig {
 const NAV_TABS: TabConfig[] = [
   {
     name: 'index',
-    label: 'Posts',
+    label: 'Dashboard',
+    icon: (color) => <LayoutDashboard size={18} color={color} strokeWidth={2.2} />,
+  },
+  {
+    name: 'posts',
+    label: 'Posters',
     icon: (color) => <FileText size={18} color={color} strokeWidth={2.2} />,
   },
   {
@@ -165,23 +171,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#272C35',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
     borderRadius: 28,
-    gap: 8,
+    gap: 6,
   },
   activeLabel: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
   inactiveTab: {
-    width: 44,
-    height: 40,
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
+    borderRadius: 19,
   },
   actionCircle: {
     width: 58,

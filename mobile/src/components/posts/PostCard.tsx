@@ -5,10 +5,12 @@ import {
   Image,
   Platform,
   Pressable,
+  StyleProp,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ViewStyle,
 } from 'react-native';
 import { format, formatDistanceToNow } from 'date-fns';
 import * as Haptics from 'expo-haptics';
@@ -41,6 +43,7 @@ export interface PostCardProps {
   onPublishNow?: (postId: string) => void;
   onCancelSchedule?: (postId: string) => void;
   onDelete?: (postId: string) => void;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const PostCard: React.FC<PostCardProps> = ({
@@ -49,6 +52,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   onPublishNow,
   onCancelSchedule,
   onDelete,
+  style,
 }) => {
   const mediaAttachments = post.media_attachments || [];
   const targets = post.targets || [];
@@ -154,9 +158,14 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   const handleDelete = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    const isSent = post.status === 'PUBLISHED';
+    const message = isSent
+      ? 'This will permanently delete this post from Postly and remove it from your Telegram channels and LinkedIn feed.'
+      : 'Are you sure you want to delete this broadcast?';
+
     Alert.alert(
       'Delete Post',
-      'Are you sure you want to delete this broadcast?',
+      message,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -219,7 +228,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   return (
     <Pressable
       onPress={() => onPress(post)}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [styles.card, style, pressed && styles.cardPressed]}
     >
       {/* Top Main Row: Platform Icon + Content Snippet + 3-Dot Action Button */}
       <View style={styles.topRow}>
@@ -341,10 +350,10 @@ export const PostCard: React.FC<PostCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
     backgroundColor: colors.background.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.sm + 2,
+    padding: spacing.sm + 2,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     shadowColor: '#000000',
@@ -355,20 +364,20 @@ const styles = StyleSheet.create({
   },
   cardPressed: {
     backgroundColor: colors.background.elevated,
-    transform: [{ scale: 0.995 }],
+    transform: [{ scale: 0.99 }],
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   platformAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: 'rgba(42, 171, 238, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.sm + 2,
+    marginRight: spacing.xs + 2,
   },
   airplaneIcon: {
     marginLeft: -1,
@@ -381,36 +390,36 @@ const styles = StyleSheet.create({
     ...typography.presets.body,
     color: colors.text.primary,
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 13,
     letterSpacing: -0.2,
   },
   destinationText: {
     ...typography.presets.caption,
     color: colors.text.secondary,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 11,
+    marginTop: 1,
   },
   moreButton: {
-    width: 30,
-    height: 30,
+    width: 26,
+    height: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 15,
+    borderRadius: 13,
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     marginLeft: spacing.xs,
   },
   bodyPreview: {
     ...typography.presets.body,
     color: colors.text.secondary,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     marginTop: spacing.xs + 2,
   },
   thumbnailWrapper: {
-    marginTop: spacing.xs + 3,
-    borderRadius: borderRadius.md,
+    marginTop: spacing.xs + 2,
+    borderRadius: borderRadius.sm + 2,
     overflow: 'hidden',
-    height: 100,
+    height: 85,
     position: 'relative',
   },
   thumbnail: {
@@ -437,10 +446,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   metadataRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.sm,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 5,
+    marginTop: spacing.xs + 4,
     paddingTop: spacing.xs + 2,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.04)',
@@ -448,19 +457,20 @@ const styles = StyleSheet.create({
   metadataPills: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 4,
   },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: borderRadius.round,
-    gap: 4,
+    gap: 3,
   },
   statusPillText: {
     ...typography.presets.caption,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   metaChip: {

@@ -275,3 +275,92 @@ class TelegramPublishingService:
                     }
 
         return results
+
+    @classmethod
+    def delete_remote_telegram_messages(cls, post: Post) -> Dict[str, Any]:
+        """
+        Connects via Telethon MTProto using the user's active Telegram session
+        and deletes the remote messages associated with this post across all target channels.
+        Handles per-channel errors gracefully so that one failure does not halt deletion in other channels.
+        """
+        targets = list(
+            post.targets.select_related('channel').filter(
+                telegram_message_id__isnull=False
+            )
+        )
+        if not targets:
+            logger.info(f"No remote Telegram message IDs to delete for post {post.id}.")
+            return {'status': 'SKIPPED', 'deleted_count': 0, 'failed_count': 0}
+
+        user = post.user
+        try:
+            telegram_session = user.telegram_session
+        except TelegramSession.DoesNotExist:
+            logger.warning(f"Cannot delete Telegram messages for post {post.id}: user {user.id} has no Telegram session.")
+            return {'status': 'FAILED', 'error': 'No Telegram session found for user.'}
+
+        if not telegram_session.is_authenticated or not telegram_session.encrypted_session_string:
+            logger.warning(f"Cannot delete Telegram messages for post {post.id}: Telegram session not authenticated.")
+            return {'status': 'FAILED', 'error': 'Telegram session not authenticated.'}
+
+        try:
+            return run_async(
+                cls._async_delete_from_channels(
+                    session_encrypted=telegram_session.encrypted_session_string,
+                    targets=targets
+                )
+            )
+        except Exception as exc:
+            logger.exception(f"Unexpected error during remote Telegram deletion for post {post.id}: {str(exc)}")
+            return {'status': 'FAILED', 'error': str(exc)}
+
+    @classmethod
+    async def _async_delete_from_channels(
+        cls,
+        session_encrypted: str,
+        targets: List[PostChannelTarget]
+    ) -> Dict[str, Any]:
+        deleted_count = 0
+        failed_count = 0
+        channel_errors: Dict[str, str] = {}
+
+        async with telethon_client_context(
+            session_string=session_encrypted,
+            is_encrypted=True
+        ) as client:
+            if not await client.is_user_authorized():
+                logger.warning("Telethon client not authorized during delete operation.")
+                return {'status': 'FAILED', 'error': 'Telethon session is not authorized.'}
+
+            for target in targets:
+                channel = target.channel
+                msg_id = target.telegram_message_id
+                if not msg_id:
+                    continue
+
+                try:
+                    # Construct InputPeerChannel
+                    if channel.access_hash:
+                        peer = InputPeerChannel(channel.telegram_channel_id, channel.access_hash)
+                    elif channel.username:
+                        peer = channel.username
+                    else:
+                        peer = channel.telegram_channel_id
+
+                    logger.info(f"Deleting message {msg_id} from channel {channel.title} ({channel.telegram_channel_id})...")
+                    await client.delete_messages(peer, [msg_id])
+                    deleted_count += 1
+                    logger.info(f"Successfully deleted message {msg_id} from channel {channel.title}.")
+                except Exception as exc:
+                    failed_count += 1
+                    channel_errors[channel.title or str(channel.id)] = str(exc)
+                    logger.warning(
+                        f"Failed to delete message {msg_id} in channel {channel.title} ({channel.id}): {str(exc)}"
+                    )
+
+        return {
+            'status': 'SUCCESS' if failed_count == 0 else 'PARTIAL_SUCCESS' if deleted_count > 0 else 'FAILED',
+            'deleted_count': deleted_count,
+            'failed_count': failed_count,
+            'errors': channel_errors
+        }

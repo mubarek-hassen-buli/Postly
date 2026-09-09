@@ -221,3 +221,93 @@ class PostApiTests(TestCase):
             reconciled = reconcile_scheduled_posts()
             self.assertEqual(reconciled, 1)
             mock_delay.assert_called_once_with(str(post.id))
+
+    @patch('apps.posts.services.TelegramPublishingService._async_delete_from_channels')
+    def test_telegram_remote_deletion_service(self, mock_async_delete) -> None:
+        post = Post.objects.create(
+            user=self.user,
+            text_content="Post with telegram targets",
+            status=Post.PostStatus.PUBLISHED,
+        )
+        target1 = PostChannelTarget.objects.create(
+            post=post, channel=self.channel1, telegram_message_id=555111, status=PostChannelTarget.TargetStatus.SUCCESS
+        )
+        target2 = PostChannelTarget.objects.create(
+            post=post, channel=self.channel2, telegram_message_id=555222, status=PostChannelTarget.TargetStatus.SUCCESS
+        )
+
+        mock_async_delete.return_value = {
+            'status': 'PARTIAL_SUCCESS',
+            'deleted_count': 1,
+            'failed_count': 1,
+            'errors': {'Channel Beta': 'Message not found'},
+        }
+
+        result = TelegramPublishingService.delete_remote_telegram_messages(post)
+        self.assertEqual(result['status'], 'PARTIAL_SUCCESS')
+        self.assertEqual(result['deleted_count'], 1)
+        self.assertEqual(result['failed_count'], 1)
+        mock_async_delete.assert_called_once()
+
+    @patch('apps.posts.views.TelegramPublishingService.delete_remote_telegram_messages')
+    @patch('apps.posts.views.LinkedInPublishingService.delete_post')
+    @patch('apps.posts.views.cancel_post_celery_task')
+    def test_post_detail_delete_orchestrates_remote_cleanup(
+        self, mock_cancel_celery, mock_linkedin_delete, mock_telegram_delete
+    ) -> None:
+        post = Post.objects.create(
+            user=self.user,
+            text_content="Post to be deleted everywhere",
+            status=Post.PostStatus.PUBLISHED,
+            linkedin_post_urn="urn:li:share:999888777",
+            celery_task_id="celery-to-cancel-456",
+        )
+        target = PostChannelTarget.objects.create(
+            post=post,
+            channel=self.channel1,
+            telegram_message_id=888123,
+            status=PostChannelTarget.TargetStatus.SUCCESS
+        )
+
+        url = reverse('post_detail', kwargs={'pk': str(post.id)})
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Assert Celery task cancelled
+        mock_cancel_celery.assert_called_once_with("celery-to-cancel-456")
+
+        # Assert Telegram remote deletion called with post
+        mock_telegram_delete.assert_called_once()
+        passed_post = mock_telegram_delete.call_args[0][0]
+        self.assertEqual(passed_post.text_content, "Post to be deleted everywhere")
+
+        # Assert LinkedIn remote deletion called
+        mock_linkedin_delete.assert_called_once_with(self.user, "urn:li:share:999888777")
+
+        # Assert local post record removed from database
+        self.assertFalse(Post.objects.filter(id=post.id).exists())
+
+    @patch('apps.posts.views.TelegramPublishingService.delete_remote_telegram_messages')
+    @patch('apps.posts.views.LinkedInPublishingService.delete_post')
+    def test_post_detail_delete_resilient_to_remote_exceptions(
+        self, mock_linkedin_delete, mock_telegram_delete
+    ) -> None:
+        post = Post.objects.create(
+            user=self.user,
+            text_content="Post with failing remote calls",
+            status=Post.PostStatus.PUBLISHED,
+            linkedin_post_urn="urn:li:share:failing",
+        )
+
+        # Simulate unexpected errors from remote services
+        mock_telegram_delete.side_effect = Exception("Telegram connection timed out")
+        mock_linkedin_delete.side_effect = Exception("LinkedIn network unreachable")
+
+        url = reverse('post_detail', kwargs={'pk': str(post.id)})
+        response = self.client.delete(url)
+
+        # Must still succeed in deleting the local post without crashing
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Post.objects.filter(id=post.id).exists())
+

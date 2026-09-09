@@ -93,6 +93,13 @@ class Post(models.Model):
         blank=True,
         help_text="Summary of failure errors if publishing failed."
     )
+    linkedin_post_urn = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="LinkedIn Post URN for tracking and remote API deletion."
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

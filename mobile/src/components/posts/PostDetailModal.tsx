@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   Image,
   Modal,
   Pressable,
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { format } from 'date-fns';
 import {
   AlertCircle,
@@ -47,6 +49,31 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
   onDelete,
 }) => {
   if (!post) return null;
+
+  const handleDelete = () => {
+    if (!onDelete) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    const isSent = post.status === 'PUBLISHED';
+    const message = isSent
+      ? 'This will permanently delete this post from Postly and remove it from your Telegram channels and LinkedIn feed.'
+      : 'Are you sure you want to delete this broadcast?';
+
+    Alert.alert(
+      'Delete Post',
+      message,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            onClose();
+            onDelete(post.id);
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <Modal
@@ -122,7 +149,6 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     const isSuccess = target.status === 'SUCCESS';
                     const isFailed = target.status === 'FAILED';
                     const channelTitle = target.channel?.title || 'Telegram Channel';
-
                     return (
                       <View
                         key={target.id}
@@ -228,10 +254,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
               <Button
                 title="Delete"
                 variant="ghost"
-                onPress={() => {
-                  onClose();
-                  onDelete(post.id);
-                }}
+                onPress={handleDelete}
                 leftIcon={<Trash2 size={16} color={colors.status.error} />}
                 textStyle={{ color: colors.status.error }}
                 style={styles.deleteButton}

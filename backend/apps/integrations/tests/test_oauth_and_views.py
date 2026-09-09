@@ -1,6 +1,6 @@
 from typing import Any
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.integrations.linkedin.oauth import LinkedInOAuthError, LinkedInOAuthService
+from apps.integrations.linkedin.publishing import LinkedInPublishingService
 from apps.integrations.models import LinkedInAccount
 
 User: Any = get_user_model()
@@ -172,3 +173,74 @@ class LinkedInIntegrationTests(TestCase):
         payload = {'text': 'Test post'}
         response = self.client.post('/api/integrations/linkedin/publish/', data=payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @patch('apps.integrations.linkedin.publishing.requests.delete')
+    def test_delete_post_rest_success(self, mock_requests_delete):
+        account = LinkedInAccount.objects.create(
+            user=self.user,
+            linkedin_member_id='sub_123',
+            name='Jane Doe',
+            token_expires_at=timezone.now() + timedelta(days=30),
+            is_active=True
+        )
+        account.set_access_token('sample_token')
+        account.save()
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 204
+        mock_requests_delete.return_value = mock_resp
+
+        result = LinkedInPublishingService.delete_post(self.user, 'urn:li:share:123456789')
+        self.assertEqual(result['status'], 'SUCCESS')
+        self.assertIn('deleted successfully', result['message'])
+        mock_requests_delete.assert_called_once()
+
+    @patch('apps.integrations.linkedin.publishing.requests.delete')
+    def test_delete_post_already_deleted_404(self, mock_requests_delete):
+        account = LinkedInAccount.objects.create(
+            user=self.user,
+            linkedin_member_id='sub_123',
+            name='Jane Doe',
+            token_expires_at=timezone.now() + timedelta(days=30),
+            is_active=True
+        )
+        account.set_access_token('sample_token')
+        account.save()
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 404
+        mock_requests_delete.return_value = mock_resp
+
+        result = LinkedInPublishingService.delete_post(self.user, 'urn:li:share:123456789')
+        self.assertEqual(result['status'], 'SUCCESS')
+        self.assertIn('already deleted', result['message'])
+
+    @patch('apps.integrations.linkedin.publishing.requests.delete')
+    def test_delete_post_ugc_fallback(self, mock_requests_delete):
+        account = LinkedInAccount.objects.create(
+            user=self.user,
+            linkedin_member_id='sub_123',
+            name='Jane Doe',
+            token_expires_at=timezone.now() + timedelta(days=30),
+            is_active=True
+        )
+        account.set_access_token('sample_token')
+        account.save()
+
+        # First REST call returns 500, UGC fallback returns 204
+        rest_fail = MagicMock()
+        rest_fail.status_code = 500
+        rest_fail.text = 'Internal error'
+
+        ugc_success = MagicMock()
+        ugc_success.status_code = 204
+
+        mock_requests_delete.side_effect = [rest_fail, ugc_success]
+
+        result = LinkedInPublishingService.delete_post(self.user, 'urn:li:share:123456789')
+        self.assertEqual(result['status'], 'SUCCESS')
+        self.assertEqual(mock_requests_delete.call_count, 2)
+
+    def test_delete_post_empty_urn_skipped(self):
+        result = LinkedInPublishingService.delete_post(self.user, '')
+        self.assertEqual(result['status'], 'SKIPPED')

@@ -324,7 +324,8 @@ class LinkedInPublishView(APIView):
                 user=request.user,
                 text_content=text_content,
                 status=Post.PostStatus.PUBLISHED,
-                published_at=timezone.now()
+                published_at=timezone.now(),
+                linkedin_post_urn=result.get('post_urn')
             )
             response_serializer = LinkedInPublishResponseSerializer(result)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)

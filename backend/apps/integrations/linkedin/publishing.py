@@ -1,4 +1,5 @@
 import logging
+import urllib.parse
 from typing import Any, Dict
 
 import requests
@@ -216,3 +217,73 @@ class LinkedInPublishingService:
             status_code=response.status_code,
             details=err_json
         )
+
+    @classmethod
+    def delete_post(cls, user, post_urn: str) -> Dict[str, Any]:
+        """
+        Deletes a published post from LinkedIn using the LinkedIn REST Posts API
+        (with UGC API fallback) using the user's w_member_social token.
+        Treats 204, 200, and 404 (already deleted) as success.
+        """
+        urn = (post_urn or "").strip()
+        if not urn:
+            logger.info("delete_post skipped: No LinkedIn post URN provided.")
+            return {'status': 'SKIPPED', 'message': 'No LinkedIn post URN provided.'}
+
+        # 1. Fetch connected account
+        try:
+            account = LinkedInAccount.objects.get(user=user, is_active=True)
+        except LinkedInAccount.DoesNotExist:
+            logger.warning(f"Cannot delete LinkedIn post {urn}: No active LinkedIn account for user {user.id}")
+            return {'status': 'SKIPPED', 'message': 'No active LinkedIn account connected.'}
+
+        if account.is_token_expired:
+            logger.warning(f"Cannot delete LinkedIn post {urn}: LinkedIn token expired for user {user.id}")
+            return {'status': 'FAILED', 'message': 'LinkedIn access token expired.'}
+
+        try:
+            access_token = account.get_access_token()
+        except Exception as exc:
+            logger.exception(f"Failed to decrypt LinkedIn token for user {user.id}")
+            return {'status': 'FAILED', 'message': f'Credential decryption error: {str(exc)}'}
+
+        encoded_urn = urllib.parse.quote(urn, safe='')
+        rest_url = f"{LINKEDIN_REST_POSTS_URL}/{encoded_urn}"
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'LinkedIn-Version': '202401',
+            'X-Restli-Protocol-Version': '2.0.0',
+        }
+
+        logger.info(f"Attempting remote LinkedIn deletion for post URN {urn} via REST Posts API...")
+        try:
+            resp = requests.delete(rest_url, headers=headers, timeout=8)
+            if resp.status_code in [200, 204]:
+                logger.info(f"Successfully deleted post {urn} from LinkedIn via REST API ({resp.status_code})")
+                return {'status': 'SUCCESS', 'message': 'LinkedIn post deleted successfully.', 'post_urn': urn}
+            elif resp.status_code == 404:
+                logger.info(f"Post {urn} was already deleted or not found on LinkedIn (404)")
+                return {'status': 'SUCCESS', 'message': 'Post was already deleted or not found on LinkedIn.', 'post_urn': urn}
+            else:
+                logger.warning(f"LinkedIn REST delete returned {resp.status_code}: {resp.text}. Attempting UGC fallback...")
+        except requests.RequestException as exc:
+            logger.warning(f"Network error during LinkedIn REST delete: {str(exc)}. Attempting UGC fallback...")
+
+        # Fallback to UGC delete
+        ugc_url = f"{LINKEDIN_UGC_POSTS_URL}/{encoded_urn}"
+        ugc_headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Restli-Protocol-Version': '2.0.0',
+        }
+        try:
+            ugc_resp = requests.delete(ugc_url, headers=ugc_headers, timeout=8)
+            if ugc_resp.status_code in [200, 204, 404]:
+                logger.info(f"Successfully deleted post {urn} from LinkedIn via UGC fallback ({ugc_resp.status_code})")
+                return {'status': 'SUCCESS', 'message': 'LinkedIn post deleted successfully.', 'post_urn': urn}
+            else:
+                logger.error(f"LinkedIn UGC delete also failed ({ugc_resp.status_code}): {ugc_resp.text}")
+                return {'status': 'FAILED', 'message': f"LinkedIn rejected deletion: {ugc_resp.text}", 'status_code': ugc_resp.status_code}
+        except requests.RequestException as exc:
+            logger.exception("Network error during LinkedIn UGC delete")
+            return {'status': 'FAILED', 'message': f"Network error during deletion: {str(exc)}"}
+
