@@ -49,19 +49,19 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ data, reliabil
           curved
           color="#2AABEE"
           thickness={2.5}
-          startFillColor="rgba(42, 171, 238, 0.3)"
+          startFillColor="rgba(42, 171, 238, 0.2)"
           endFillColor="rgba(42, 171, 238, 0.01)"
           startOpacity={0.8}
           endOpacity={0.1}
-          dataPointsColor="#54C0F8"
+          dataPointsColor="#2AABEE"
           dataPointsRadius={4}
           height={110}
           spacing={data.length > 14 ? 12 : 32}
           initialSpacing={12}
           yAxisThickness={0}
           xAxisThickness={1}
-          xAxisColor="rgba(255, 255, 255, 0.08)"
-          rulesColor="rgba(255, 255, 255, 0.04)"
+          xAxisColor={colors.border.subtle}
+          rulesColor="rgba(0, 0, 0, 0.04)"
           rulesType="solid"
           noOfSections={3}
           yAxisTextStyle={styles.axisLabel}
@@ -80,10 +80,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    shadowColor: '#000000',
+    borderColor: colors.border.subtle,
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
     marginBottom: spacing.md,

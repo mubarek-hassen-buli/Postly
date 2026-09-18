@@ -17,12 +17,12 @@ export const PlatformChart: React.FC<PlatformChartProps> = ({ data, totalBroadca
   // Transform pre-calculated API data directly into gifted-charts pieData
   const pieData: pieDataItem[] = useMemo(() => {
     if (!data || data.length === 0) {
-      return [{ value: 1, color: colors.background.elevated, text: 'No Data' }];
+      return [{ value: 1, color: colors.background.highlight, text: 'No Data' }];
     }
 
     const hasData = data.some((item) => item.value > 0);
     if (!hasData) {
-      return [{ value: 1, color: colors.background.elevated }];
+      return [{ value: 1, color: colors.background.highlight }];
     }
 
     return data.map((item) => ({
@@ -54,7 +54,7 @@ export const PlatformChart: React.FC<PlatformChartProps> = ({ data, totalBroadca
             donut
             radius={56}
             innerRadius={38}
-            innerCircleColor="#17212B"
+            innerCircleColor={colors.background.surface}
             isAnimated
             animationDuration={400}
             centerLabelComponent={() => (
@@ -93,10 +93,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    shadowColor: '#000000',
+    borderColor: colors.border.subtle,
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
     marginBottom: spacing.md,

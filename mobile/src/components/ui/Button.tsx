@@ -72,8 +72,8 @@ export const Button: React.FC<ButtonProps> = ({
     if (variant === 'outline' || variant === 'ghost') {
       return colors.primary.DEFAULT;
     }
-    if (variant === 'danger') {
-      return colors.text.primary;
+    if (variant === 'primary' || variant === 'danger') {
+      return '#FFFFFF';
     }
     return colors.text.primary;
   };
@@ -145,7 +145,7 @@ const variantStyles = StyleSheet.create({
     backgroundColor: colors.primary.DEFAULT,
   },
   secondary: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.background.highlight,
   },
   outline: {
     backgroundColor: 'transparent',

@@ -12,71 +12,71 @@ export const colors = {
     light: '#54C0F8',
     gradientStart: '#2AABEE',
     gradientEnd: '#229ED9',
-    subtle: 'rgba(42, 171, 238, 0.12)',
+    subtle: 'rgba(42, 171, 238, 0.10)',
     subtleBorder: 'rgba(42, 171, 238, 0.25)',
   },
 
-  // Background hierarchy (Dark Mode)
+  // Background hierarchy (Option A: Clean Apple/Stripe Light Mode)
   background: {
-    base: '#0E1621',       // Deepest background (e.g. app container)
-    surface: '#17212B',    // Card / Section background
-    elevated: '#242F3D',   // Modals, dropdowns, elevated headers
-    highlight: '#2B3B4B',  // Hovered / selected items
-    input: '#1C2733',      // Text input fields
+    base: '#F6F8FB',       // Crisp off-white app canvas (prevents harsh pure-white glare)
+    surface: '#FFFFFF',    // Card / Section background
+    elevated: '#FFFFFF',   // Modals, dropdowns, elevated sheets
+    highlight: '#F1F5F9',  // Hovered / selected items, chips
+    input: '#F1F5F9',      // Clean input fields
   },
 
-  // Text Hierarchy
+  // Text Hierarchy (Dark Slate / Charcoal)
   text: {
-    primary: '#FFFFFF',
-    secondary: '#8E9FA8',
-    muted: '#5A6F7C',
-    disabled: '#3D4C56',
-    inverse: '#0E1621',
-    link: '#2AABEE',
+    primary: '#0F172A',    // Slate 900: High-contrast headings and prominent text
+    secondary: '#475569',  // Slate 600: Body text, subheadings, labels
+    muted: '#94A3B8',      // Slate 400: Placeholders, captions, timestamps
+    disabled: '#CBD5E1',   // Slate 300: Disabled controls
+    inverse: '#FFFFFF',    // High-contrast text on dark surfaces
+    link: '#0284C7',       // Accessible link blue
   },
 
   // Border & Divider Colors
   border: {
-    subtle: 'rgba(255, 255, 255, 0.08)',
-    medium: 'rgba(255, 255, 255, 0.15)',
-    strong: '#2B3B4B',
-    focus: '#2AABEE',
+    subtle: '#E2E8F0',     // Slate 200: Crisp borders & dividers
+    medium: '#CBD5E1',     // Slate 300: Outlines, inactive controls
+    strong: '#94A3B8',     // Slate 400: Emphasized borders
+    focus: '#2AABEE',      // Telegram Blue on focus
   },
 
-  // Semantic Status Colors
+  // Semantic Status Colors (Rich, accessible on light backgrounds)
   status: {
-    success: '#34C759',
-    successBg: 'rgba(52, 199, 89, 0.12)',
-    successBorder: 'rgba(52, 199, 89, 0.25)',
+    success: '#16A34A',
+    successBg: '#F0FDF4',
+    successBorder: '#BBF7D0',
 
-    warning: '#FF9500',
-    warningBg: 'rgba(255, 149, 0, 0.12)',
-    warningBorder: 'rgba(255, 149, 0, 0.25)',
+    warning: '#D97706',
+    warningBg: '#FFFBEB',
+    warningBorder: '#FDE68A',
 
-    error: '#FF3B30',
-    errorBg: 'rgba(255, 59, 48, 0.12)',
-    errorBorder: 'rgba(255, 59, 48, 0.25)',
+    error: '#DC2626',
+    errorBg: '#FEF2F2',
+    errorBorder: '#FECACA',
 
-    info: '#007AFF',
-    infoBg: 'rgba(0, 122, 255, 0.12)',
-    infoBorder: 'rgba(0, 122, 255, 0.25)',
+    info: '#0284C7',
+    infoBg: '#F0F9FF',
+    infoBorder: '#BAE6FD',
 
-    draft: '#8E9FA8',
-    scheduled: '#FF9500',
+    draft: '#64748B',
+    scheduled: '#D97706',
     publishing: '#2AABEE',
-    published: '#34C759',
-    failed: '#FF3B30',
+    published: '#16A34A',
+    failed: '#DC2626',
   },
 
-  // Glassmorphism overlays
+  // Glassmorphism overlays (Frosted light surfaces)
   glass: {
-    background: 'rgba(23, 33, 43, 0.75)',
-    border: 'rgba(255, 255, 255, 0.12)',
-    card: 'rgba(36, 47, 61, 0.65)',
+    background: 'rgba(255, 255, 255, 0.85)',
+    border: 'rgba(0, 0, 0, 0.08)',
+    card: 'rgba(255, 255, 255, 0.95)',
   },
 
   // Overlay / Backdrop
-  overlay: 'rgba(14, 22, 33, 0.75)',
+  overlay: 'rgba(15, 23, 42, 0.45)',
 } as const;
 
 export type Colors = typeof colors;

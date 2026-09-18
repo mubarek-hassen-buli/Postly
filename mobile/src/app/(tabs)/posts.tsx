@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   countBadge: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.background.highlight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: borderRadius.round,

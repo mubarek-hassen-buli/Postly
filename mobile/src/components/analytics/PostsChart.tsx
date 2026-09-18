@@ -36,7 +36,7 @@ export const PostsChart: React.FC<PostsChartProps> = ({
             { value: scheduled, color: '#FF9500', marginBottom: 2 },
             { value: failed, color: '#FF3B30' },
           ]
-        : [{ value: 0.2, color: 'rgba(255, 255, 255, 0.08)' }];
+        : [{ value: 0.2, color: colors.background.highlight }];
 
       return {
         stacks,
@@ -82,8 +82,8 @@ export const PostsChart: React.FC<PostsChartProps> = ({
           barBorderRadius={4}
           yAxisThickness={0}
           xAxisThickness={1}
-          xAxisColor="rgba(255, 255, 255, 0.08)"
-          rulesColor="rgba(255, 255, 255, 0.05)"
+          xAxisColor={colors.border.subtle}
+          rulesColor="rgba(0, 0, 0, 0.04)"
           rulesType="solid"
           noOfSections={3}
           yAxisTextStyle={styles.axisLabel}
@@ -99,16 +99,16 @@ export const PostsChart: React.FC<PostsChartProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#16222F',
+    backgroundColor: colors.background.surface,
     borderRadius: borderRadius.lg + 2,
     padding: spacing.md + 2,
     borderWidth: 1,
-    borderColor: 'rgba(42, 171, 238, 0.18)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 4,
+    borderColor: colors.border.subtle,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
     marginBottom: spacing.md,
   },
   headerRow: {

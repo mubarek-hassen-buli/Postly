@@ -114,7 +114,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       default:
         return {
           label: 'Draft',
-          bg: colors.background.elevated,
+          bg: colors.background.highlight,
           text: colors.text.muted,
           icon: <FileText size={11} color={colors.text.muted} strokeWidth={2.5} />,
         };
@@ -355,15 +355,15 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.sm + 2,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    shadowColor: '#000000',
+    borderColor: colors.border.subtle,
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },
   cardPressed: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.background.highlight,
     transform: [{ scale: 0.99 }],
   },
   topRow: {
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 13,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.background.highlight,
     marginLeft: spacing.xs,
   },
   bodyPreview: {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs + 4,
     paddingTop: spacing.xs + 2,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.04)',
+    borderTopColor: colors.border.subtle,
   },
   metadataPills: {
     flexDirection: 'row',
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
   metaChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.background.highlight,
     paddingHorizontal: 7,
     paddingVertical: 2.5,
     borderRadius: borderRadius.round,

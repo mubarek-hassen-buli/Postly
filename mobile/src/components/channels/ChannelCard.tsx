@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   selectedCard: {
     borderColor: 'rgba(42, 171, 238, 0.45)',
-    backgroundColor: 'rgba(23, 33, 43, 0.95)',
+    backgroundColor: colors.primary.subtle,
   },
   checkbox: {
     width: 24,

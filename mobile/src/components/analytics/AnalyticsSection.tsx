@@ -112,8 +112,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ initialPerio
             trendText="Active"
             trendType="info"
             icon={<Radio size={13} color="#2AABEE" strokeWidth={2.5} />}
-            badgeBg="rgba(42, 171, 238, 0.12)"
-            badgeTextColor="#54C0F8"
+            badgeBg="rgba(42, 171, 238, 0.10)"
+            badgeTextColor={colors.primary.DEFAULT}
           />
 
           <MetricCard
@@ -200,11 +200,11 @@ const styles = StyleSheet.create({
   },
   periodPillsWrap: {
     flexDirection: 'row',
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.background.highlight,
     borderRadius: borderRadius.round,
     padding: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.border.subtle,
   },
   periodPill: {
     paddingHorizontal: 10,

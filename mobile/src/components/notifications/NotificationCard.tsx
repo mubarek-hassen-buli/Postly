@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   unreadCard: {
     borderColor: 'rgba(42, 171, 238, 0.4)',
-    backgroundColor: 'rgba(23, 33, 43, 0.95)',
+    backgroundColor: colors.primary.subtle,
   },
   contentRow: {
     flexDirection: 'row',
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   unreadTitle: {
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text.primary,
   },
   unreadDot: {
     width: 8,

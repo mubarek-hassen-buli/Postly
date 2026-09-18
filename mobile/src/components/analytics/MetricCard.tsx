@@ -22,8 +22,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   trendText,
   trendType = 'positive',
   icon,
-  badgeBg = 'rgba(42, 171, 238, 0.12)',
-  badgeTextColor = colors.primary.light,
+  badgeBg = 'rgba(42, 171, 238, 0.10)',
+  badgeTextColor = colors.primary.DEFAULT,
 }) => {
   const getTrendStyle = () => {
     switch (trendType) {
@@ -34,7 +34,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         };
       case 'info':
         return {
-          textColor: colors.primary.light,
+          textColor: colors.primary.DEFAULT,
           bg: colors.primary.subtle,
         };
       default:
@@ -82,10 +82,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    shadowColor: '#000000',
+    borderColor: colors.border.subtle,
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },

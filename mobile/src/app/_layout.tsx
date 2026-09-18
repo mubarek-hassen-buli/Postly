@@ -23,7 +23,7 @@ export default function RootLayout() {
       <GestureHandlerRootView style={styles.container}>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <View style={styles.container}>
               <Stack
                 screenOptions={{
