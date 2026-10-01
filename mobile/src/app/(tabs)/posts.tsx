@@ -32,7 +32,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, spacing } from '../../theme/spacing';
+import { borderRadius, layout, spacing } from '../../theme/spacing';
 
 export default function PostersScreen() {
   const router = useRouter();
@@ -252,9 +252,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.base,
   },
   listContent: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.xs,
-    paddingBottom: 110, // Space for floating capsule tab bar
+    paddingBottom: layout.tabBarClearance,
   },
   headerSection: {
     marginBottom: spacing.sm,

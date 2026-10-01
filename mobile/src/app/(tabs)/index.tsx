@@ -13,7 +13,7 @@ import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { AnalyticsSection } from '../../components/analytics/AnalyticsSection';
 import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal';
 import { colors } from '../../theme/colors';
-import { spacing } from '../../theme/spacing';
+import { layout, spacing } from '../../theme/spacing';
 
 export default function DashboardScreen() {
   const queryClient = useQueryClient();
@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.xs,
-    paddingBottom: 110, // Space for floating capsule tab bar
+    paddingBottom: layout.tabBarClearance,
   },
 });

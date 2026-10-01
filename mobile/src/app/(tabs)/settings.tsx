@@ -30,7 +30,7 @@ import {
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, spacing } from '../../theme/spacing';
+import { borderRadius, layout, spacing } from '../../theme/spacing';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -274,8 +274,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: spacing.massive,
+    paddingHorizontal: layout.screenPadding,
+    paddingTop: spacing.lg,
+    paddingBottom: layout.tabBarClearance,
   },
   profileCard: {
     flexDirection: 'row',

@@ -235,9 +235,9 @@ export const PostCard: React.FC<PostCardProps> = ({
         {/* Platform Avatar Icon Circle */}
         <View style={styles.platformAvatar}>
           {isLinkedIn ? (
-            <Share2 size={16} color="#0A66C2" strokeWidth={2.5} />
+            <Share2 size={14} color="#0A66C2" strokeWidth={2.5} />
           ) : (
-            <Send size={16} color="#2AABEE" strokeWidth={2.5} style={styles.airplaneIcon} />
+            <Send size={14} color="#2AABEE" strokeWidth={2.5} style={styles.airplaneIcon} />
           )}
         </View>
 
@@ -371,13 +371,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   platformAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: 'rgba(42, 171, 238, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.xs + 2,
+    marginRight: 6,
   },
   airplaneIcon: {
     marginLeft: -1,
@@ -385,28 +385,30 @@ const styles = StyleSheet.create({
   contentColumn: {
     flex: 1,
     justifyContent: 'center',
+    minWidth: 0,
   },
   postTitle: {
     ...typography.presets.body,
     color: colors.text.primary,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12.5,
+    lineHeight: 16,
     letterSpacing: -0.2,
   },
   destinationText: {
     ...typography.presets.caption,
     color: colors.text.secondary,
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 1,
   },
   moreButton: {
-    width: 26,
-    height: 26,
+    width: 30,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 13,
+    borderRadius: 15,
     backgroundColor: colors.background.highlight,
-    marginLeft: spacing.xs,
+    marginLeft: 4,
   },
   bodyPreview: {
     ...typography.presets.body,
@@ -477,15 +479,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background.highlight,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: borderRadius.round,
-    gap: 4,
+    gap: 3,
   },
   metaChipText: {
     ...typography.presets.caption,
     color: colors.text.secondary,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
   timestampWrap: {

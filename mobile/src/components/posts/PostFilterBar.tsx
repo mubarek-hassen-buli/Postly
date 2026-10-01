@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   searchWrapper: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 0,
     marginBottom: spacing.xs,
   },
   searchInputContainer: {
@@ -226,14 +226,15 @@ const styles = StyleSheet.create({
   tabsRow: {
     flexDirection: 'row',
     gap: spacing.xs + 3,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 0,
     paddingVertical: 2,
   },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 3,
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: spacing.sm,
+    minHeight: 36,
     borderRadius: borderRadius.round,
     backgroundColor: colors.background.surface,
     borderWidth: 1,

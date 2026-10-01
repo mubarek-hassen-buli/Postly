@@ -25,6 +25,12 @@ export const borderRadius = {
   round: 9999,
 } as const;
 
+export const layout = {
+  screenPadding: 16,
+  tabBarClearance: 110,
+  minTouchTarget: 44,
+} as const;
+
 export const shadows = {
   none: {
     shadowColor: 'transparent',

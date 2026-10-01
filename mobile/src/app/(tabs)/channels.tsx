@@ -23,7 +23,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, spacing } from '../../theme/spacing';
+import { borderRadius, layout, spacing } from '../../theme/spacing';
 
 export default function ChannelsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -285,8 +285,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   listContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.massive,
+    paddingHorizontal: layout.screenPadding,
+    paddingBottom: layout.tabBarClearance,
   },
   loadingContainer: {
     paddingVertical: spacing.xxxl,

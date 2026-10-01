@@ -174,7 +174,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ initialPerio
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 0,
     paddingVertical: spacing.xs,
   },
   sectionHeaderRow: {
