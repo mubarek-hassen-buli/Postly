@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
+import { NavigationBar } from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, View } from 'react-native';
 import { queryClient } from '../services/api/queryClient';
 import { useAuthStore } from '../store/useAuthStore';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
@@ -18,12 +18,27 @@ export default function RootLayout() {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      try {
+        NavigationBar.setStyle('light');
+      } catch {
+        // Safe fallback
+      }
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={styles.container}>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
-            <StatusBar style="dark" />
+            <StatusBar
+              barStyle="dark-content"
+              backgroundColor={colors.background.base}
+              translucent={false}
+            />
+            {Platform.OS === 'android' && <NavigationBar style="light" />}
             <View style={styles.container}>
               <Stack
                 screenOptions={{
