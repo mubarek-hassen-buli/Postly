@@ -85,19 +85,16 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
         </Text>
 
         <View style={styles.metadataRow}>
-          {/* Members count badge */}
-          <View style={styles.metaBadge}>
+          {/* Members count */}
+          <View style={styles.metaItem}>
             <Users size={12} color={colors.text.secondary} style={styles.metaIcon} />
             <Text style={styles.metaText}>{formatMembers(channel.member_count)} subs</Text>
           </View>
 
-          {/* Posting capability pill */}
-          <View
-            style={[
-              styles.permissionBadge,
-              channel.can_post_messages ? styles.canPostBadge : styles.cannotPostBadge,
-            ]}
-          >
+          <Text style={styles.dotSeparator}>•</Text>
+
+          {/* Posting capability */}
+          <View style={styles.metaItem}>
             {channel.can_post_messages ? (
               <>
                 <ShieldCheck size={12} color={colors.status.success} style={styles.metaIcon} />
@@ -136,13 +133,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.border.subtle,
     ...shadows.subtle,
   },
   selectedCard: {
-    borderColor: 'rgba(42, 171, 238, 0.45)',
-    backgroundColor: colors.primary.subtle,
+    borderColor: colors.primary.DEFAULT,
+    backgroundColor: 'rgba(42, 171, 238, 0.06)',
   },
   checkbox: {
     width: 24,
@@ -170,19 +167,19 @@ const styles = StyleSheet.create({
   title: {
     ...typography.presets.bodyMedium,
     color: colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '700',
     flexShrink: 1,
   },
   creatorBadge: {
     backgroundColor: colors.primary.subtle,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: borderRadius.xs,
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
+    borderRadius: borderRadius.round,
   },
   creatorText: {
     ...typography.presets.caption,
     color: colors.primary.DEFAULT,
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 10,
   },
   username: {
@@ -194,16 +191,12 @@ const styles = StyleSheet.create({
   metadataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
     marginTop: 2,
   },
-  metaBadge: {
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.elevated,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: borderRadius.xs,
   },
   metaIcon: {
     marginRight: 4,
@@ -211,31 +204,23 @@ const styles = StyleSheet.create({
   metaText: {
     ...typography.presets.caption,
     color: colors.text.secondary,
-    fontSize: 11,
+    fontSize: 12,
   },
-  permissionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: borderRadius.xs,
-  },
-  canPostBadge: {
-    backgroundColor: colors.status.successBg,
-  },
-  cannotPostBadge: {
-    backgroundColor: colors.background.elevated,
+  dotSeparator: {
+    color: colors.text.muted,
+    fontSize: 10,
+    marginHorizontal: 3,
   },
   canPostText: {
     ...typography.presets.caption,
     color: colors.status.success,
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
   },
   cannotPostText: {
     ...typography.presets.caption,
     color: colors.text.muted,
-    fontSize: 11,
+    fontSize: 12,
   },
   statsButton: {
     padding: spacing.xs,

@@ -74,7 +74,9 @@ export const ChannelStatsModal: React.FC<ChannelStatsModalProps> = ({
               <View style={styles.statsGrid}>
                 <Card style={styles.statCard}>
                   <Users size={20} color={colors.primary.DEFAULT} style={styles.statIcon} />
-                  <Text style={styles.statNumber}>{(channel.member_count ?? 0).toLocaleString()}</Text>
+                  <Text style={styles.statNumber}>
+                    {((stats?.member_count ?? channel.member_count) ?? 0).toLocaleString()}
+                  </Text>
                   <Text style={styles.statLabel}>Subscribers</Text>
                 </Card>
 

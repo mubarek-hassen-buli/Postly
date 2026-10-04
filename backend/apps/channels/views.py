@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.posts.models import PostChannelTarget
 from apps.telegram_engine.services import TelegramServiceError
 from .models import Channel
 from .serializers import (
@@ -125,24 +126,48 @@ class ChannelToggleSelectionView(APIView):
 class ChannelStatsView(APIView):
     """
     Retrieve overview statistics and permissions for a channel.
+    Calculates live targeted post counts, delivery successes, failures, and subscriber counts.
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, *args, **kwargs) -> Response:
         channel = get_object_or_404(Channel, id=pk, user=request.user)
 
+        # Real-time queries on PostChannelTarget
+        targets_qs = PostChannelTarget.objects.filter(channel=channel)
+        total_posts_targeted = targets_qs.count()
+        successful_posts = targets_qs.filter(status=PostChannelTarget.TargetStatus.SUCCESS).count()
+        failed_posts = targets_qs.filter(status=PostChannelTarget.TargetStatus.FAILED).count()
+        pending_posts = targets_qs.filter(status=PostChannelTarget.TargetStatus.PENDING).count()
+
+        last_sent = (
+            targets_qs.filter(status=PostChannelTarget.TargetStatus.SUCCESS)
+            .order_by('-sent_at')
+            .values_list('sent_at', flat=True)
+            .first()
+        )
+
         stats_data = {
             'id': channel.id,
+            'channel_id': channel.id,
             'telegram_channel_id': channel.telegram_channel_id,
             'title': channel.title,
+            'username': channel.username,
             'member_count': channel.member_count,
+            'subscribers': channel.member_count,
             'is_creator': channel.is_creator,
             'can_post_messages': channel.can_post_messages,
             'can_edit_messages': channel.can_edit_messages,
             'can_delete_messages': channel.can_delete_messages,
+            'can_pin_messages': channel.can_pin_messages,
             'is_selected_by_user': channel.is_selected_by_user,
-            'published_posts_count': getattr(channel, 'targets', None).filter(status='SUCCESS').count() if hasattr(channel, 'targets') else 0,
-            'scheduled_posts_count': getattr(channel, 'targets', None).filter(status='PENDING').count() if hasattr(channel, 'targets') else 0,
+            'total_posts_targeted': total_posts_targeted,
+            'successful_posts': successful_posts,
+            'failed_posts': failed_posts,
+            'pending_posts': pending_posts,
+            'published_posts_count': successful_posts,
+            'scheduled_posts_count': pending_posts,
+            'last_published_at': last_sent,
         }
 
         serializer = ChannelStatsSerializer(stats_data)

@@ -75,5 +75,7 @@ export function useChannelStats(channelId: string | null) {
     queryKey: ['channel_stats', channelId],
     queryFn: () => (channelId ? channelService.getChannelStats(channelId) : Promise.reject('No ID')),
     enabled: Boolean(channelId),
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
