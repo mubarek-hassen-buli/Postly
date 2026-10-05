@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -72,9 +72,12 @@ export default function ComposeModalScreen() {
   const publishLinkedInMutation = usePublishLinkedInPost();
   const isSubmitting = createPostMutation.isPending || publishLinkedInMutation.isPending;
 
-  // Pre-select channels that have `is_selected_by_user === true`
+  const hasInitializedChannels = useRef(false);
+
+  // Pre-select channels that have `is_selected_by_user === true` once on initial load
   useEffect(() => {
-    if (channels.length > 0 && selectedChannelIds.length === 0) {
+    if (!hasInitializedChannels.current && channels.length > 0) {
+      hasInitializedChannels.current = true;
       const defaultSelected = channels
         .filter((ch) => ch.is_selected_by_user)
         .map((ch) => ch.id);

@@ -1,10 +1,11 @@
 import React from 'react';
 import {
+  LayoutAnimation,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -61,6 +62,10 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
 
   const handleTabPress = (routeName: string, routeKey: string) => {
     Haptics.selectionAsync().catch(() => {});
+
+    if (Platform.OS !== 'web') {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
 
     const event = navigation.emit({
       type: 'tabPress',

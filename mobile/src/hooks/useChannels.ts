@@ -30,8 +30,15 @@ export function useToggleChannelSelection() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (channelId: string) => channelService.toggleChannelSelection(channelId),
-    onMutate: async (channelId: string) => {
+    mutationFn: (args: string | { channelId: string; isSelected?: boolean }) => {
+      const id = typeof args === 'string' ? args : args.channelId;
+      const isSelected = typeof args === 'string' ? undefined : args.isSelected;
+      return channelService.toggleChannelSelection(id, isSelected);
+    },
+    onMutate: async (args: string | { channelId: string; isSelected?: boolean }) => {
+      const channelId = typeof args === 'string' ? args : args.channelId;
+      const explicitSelected = typeof args === 'string' ? undefined : args.isSelected;
+
       // Cancel ongoing queries to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: CHANNELS_QUERY_KEY });
 
@@ -48,7 +55,15 @@ export function useToggleChannelSelection() {
           return {
             ...oldData,
             results: oldData.results.map((ch) =>
-              ch.id === channelId ? { ...ch, is_selected_by_user: !ch.is_selected_by_user } : ch
+              ch.id === channelId
+                ? {
+                    ...ch,
+                    is_selected_by_user:
+                      explicitSelected !== undefined
+                        ? explicitSelected
+                        : !ch.is_selected_by_user,
+                  }
+                : ch
             ),
           };
         }
@@ -56,12 +71,30 @@ export function useToggleChannelSelection() {
 
       return { previousQueries };
     },
-    onError: (_err, _channelId, context) => {
+    onError: (_err, _args, context) => {
       // Rollback on failure
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
+      }
+    },
+    onSuccess: (data) => {
+      if (data?.id) {
+        queryClient.setQueriesData<PaginatedChannelsResponse>(
+          { queryKey: CHANNELS_QUERY_KEY },
+          (oldData) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              results: oldData.results.map((ch) =>
+                ch.id === data.id
+                  ? { ...ch, is_selected_by_user: data.is_selected_by_user }
+                  : ch
+              ),
+            };
+          }
+        );
       }
     },
     onSettled: () => {

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -34,8 +35,14 @@ import { borderRadius, layout, spacing } from '../../theme/spacing';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, checkAuthStatus } = useAuthStore();
   const [disconnecting, setDisconnecting] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+
+  // Sync fresh profile on mount to guarantee up-to-date avatar_url
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
 
   // LinkedIn Integration Hooks
   const { data: linkedinData, isLoading: linkedinLoading } = useLinkedInStatus();
@@ -133,11 +140,21 @@ export default function SettingsScreen() {
         {/* User Profile Card */}
         <Card style={styles.profileCard}>
           <View style={styles.avatarCircle}>
-            <UserIcon size={32} color={colors.primary.DEFAULT} />
+            {user?.avatar_url && !avatarError ? (
+              <Image
+                source={{ uri: user.avatar_url }}
+                style={styles.avatarImage}
+                onError={() => setAvatarError(true)}
+              />
+            ) : (
+              <UserIcon size={30} color={colors.primary.DEFAULT} />
+            )}
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>
-              {user?.first_name || user?.username || 'Telegram User'}
+              {user?.first_name
+                ? `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`
+                : user?.username || 'Telegram User'}
             </Text>
             <Text style={styles.userPhone}>{user?.phone_number}</Text>
             {user?.telegram_session?.username && (
@@ -293,6 +310,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
   },
   profileInfo: {
     flex: 1,

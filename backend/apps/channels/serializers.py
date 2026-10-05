@@ -47,8 +47,10 @@ class ChannelSerializer(serializers.ModelSerializer):
 class ChannelToggleSelectionSerializer(serializers.Serializer):
     """Payload validator for updating channel selection state."""
     is_selected_by_user = serializers.BooleanField(
-        required=True,
-        help_text="Set to true to select this channel for management; false to exclude."
+        required=False,
+        default=None,
+        allow_null=True,
+        help_text="Set to true/false to explicitly set; omit to toggle existing state."
     )
 
 

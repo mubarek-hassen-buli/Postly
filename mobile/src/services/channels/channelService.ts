@@ -82,9 +82,14 @@ export const channelService = {
     return response.data;
   },
 
-  async toggleChannelSelection(id: string): Promise<{ id: string; is_selected_by_user: boolean; message: string }> {
+  async toggleChannelSelection(
+    id: string,
+    isSelected?: boolean
+  ): Promise<{ id: string; is_selected_by_user: boolean; message: string }> {
+    const payload = isSelected !== undefined ? { is_selected_by_user: isSelected } : {};
     const response = await apiClient.patch<{ id: string; is_selected_by_user: boolean; message: string }>(
-      `/channels/${id}/toggle-selection/`
+      `/channels/${id}/toggle-selection/`,
+      payload
     );
     return response.data;
   },

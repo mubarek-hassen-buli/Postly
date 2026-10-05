@@ -127,6 +127,23 @@ class ChannelApiTests(TestCase):
         url = reverse('channel_toggle_selection', kwargs={'pk': str(self.channel2.id)})
         self.assertFalse(self.channel2.is_selected_by_user)
 
+        # Test toggling without explicit payload (empty body)
+        response = self.client.patch(url, {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.json()['is_selected_by_user'])
+
+        self.channel2.refresh_from_db()
+        self.assertTrue(self.channel2.is_selected_by_user)
+
+        # Test toggling off without explicit payload
+        response = self.client.patch(url, {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.json()['is_selected_by_user'])
+
+        self.channel2.refresh_from_db()
+        self.assertFalse(self.channel2.is_selected_by_user)
+
+        # Test explicit payload
         response = self.client.patch(url, {'is_selected_by_user': True}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.json()['is_selected_by_user'])
@@ -180,11 +197,11 @@ class ChannelApiTests(TestCase):
         self.assertEqual(self.channel1.title, 'Tech News Official - Updated')
         self.assertEqual(self.channel1.member_count, 6500)
 
-        # Verify new channel created
+        # Verify new channel created and NOT auto-selected because user already has channels
         new_channel = Channel.objects.get(user=self.user, telegram_channel_id=2001)
         self.assertEqual(new_channel.title, 'Brand New Postly Channel')
         self.assertTrue(new_channel.can_post_messages)
-        self.assertTrue(new_channel.is_selected_by_user)
+        self.assertFalse(new_channel.is_selected_by_user)
 
     def test_channel_stats_endpoint(self) -> None:
         url = reverse('channel_stats', kwargs={'pk': str(self.channel1.id)})

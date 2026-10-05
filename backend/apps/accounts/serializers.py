@@ -118,8 +118,11 @@ class UserSerializer(serializers.ModelSerializer):
     def get_avatar_url(self, obj: User):
         if obj.avatar_url:
             return obj.avatar_url
-        if obj.username:
-            return f"https://t.me/i/userpic/320/{obj.username}.jpg"
+        session = getattr(obj, 'telegram_session', None)
+        telegram_username = session.username if session else None
+        target_username = obj.username or telegram_username
+        if target_username:
+            return f"https://t.me/i/userpic/320/{target_username}.jpg"
         # Check connected LinkedIn account fallback
         linkedin_account = getattr(obj, 'linkedin_account', None)
         if linkedin_account and linkedin_account.picture_url:

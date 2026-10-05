@@ -152,6 +152,9 @@ class TelegramChannelService:
         synced_channels: List[Channel] = []
         now = timezone.now()
 
+        # Check if the user already has channels configured
+        has_existing_channels = Channel.objects.filter(user=user).exists()
+
         with transaction.atomic():
             discovered_ids = set()
 
@@ -174,7 +177,7 @@ class TelegramChannelService:
                         'can_delete_messages': item['can_delete_messages'],
                         'can_pin_messages': item['can_pin_messages'],
                         'is_broadcast': item['is_broadcast'],
-                        'is_selected_by_user': True,
+                        'is_selected_by_user': False if has_existing_channels else True,
                     }
                 )
 

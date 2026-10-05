@@ -114,13 +114,20 @@ class ChannelToggleSelectionView(APIView):
 
     def patch(self, request, pk, *args, **kwargs) -> Response:
         channel = get_object_or_404(Channel, id=pk, user=request.user)
-        serializer = ChannelToggleSelectionSerializer(data=request.data)
+        serializer = ChannelToggleSelectionSerializer(data=request.data or {})
         serializer.is_valid(raise_exception=True)
 
-        channel.is_selected_by_user = serializer.validated_data['is_selected_by_user']
+        explicit_val = serializer.validated_data.get('is_selected_by_user')
+        if explicit_val is not None:
+            channel.is_selected_by_user = explicit_val
+        else:
+            channel.is_selected_by_user = not channel.is_selected_by_user
+
         channel.save(update_fields=['is_selected_by_user', 'updated_at'])
 
-        return Response(ChannelSerializer(channel).data, status=status.HTTP_200_OK)
+        response_data = ChannelSerializer(channel).data
+        response_data['message'] = f"Channel selection updated to {channel.is_selected_by_user}."
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class ChannelStatsView(APIView):
