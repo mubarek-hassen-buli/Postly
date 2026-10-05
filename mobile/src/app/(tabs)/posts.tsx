@@ -78,6 +78,17 @@ export default function PostersScreen() {
     return allPosts;
   }, [allPosts, activeStatus]);
 
+  // If odd number of posts, pad with an empty slot so a single/odd card maintains its exact 2-column width
+  const gridPosts = useMemo(() => {
+    if (displayPosts.length > 0 && displayPosts.length % 2 !== 0) {
+      return [
+        ...displayPosts,
+        { id: '__empty_grid_slot__', isEmptySlot: true } as PostItem & { isEmptySlot?: boolean },
+      ];
+    }
+    return displayPosts as (PostItem & { isEmptySlot?: boolean })[];
+  }, [displayPosts]);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -206,19 +217,24 @@ export default function PostersScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <FlatList
         key="posters-grid-2col"
-        data={displayPosts}
+        data={gridPosts}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.gridRow}
-        renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            onPress={(p) => setSelectedPostForDetail(p)}
-            onPublishNow={handlePublishNow}
-            onCancelSchedule={handleCancelSchedule}
-            onDelete={handleDeletePost}
-          />
-        )}
+        renderItem={({ item }) => {
+          if ('isEmptySlot' in item && item.isEmptySlot) {
+            return <View style={styles.emptySlot} pointerEvents="none" />;
+          }
+          return (
+            <PostCard
+              post={item}
+              onPress={(p) => setSelectedPostForDetail(p)}
+              onPublishNow={handlePublishNow}
+              onCancelSchedule={handleCancelSchedule}
+              onDelete={handleDeletePost}
+            />
+          );
+        }}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}
@@ -295,6 +311,11 @@ const styles = StyleSheet.create({
   gridRow: {
     gap: 12,
     marginBottom: 12,
+  },
+  emptySlot: {
+    flex: 1,
+    height: 250,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     paddingVertical: spacing.xxl,

@@ -17,7 +17,7 @@ import {
 import { ChannelItem } from '../../services/channels/channelService';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, shadows, spacing } from '../../theme/spacing';
+import { borderRadius, spacing } from '../../theme/spacing';
 
 export interface ChannelCardProps {
   channel: ChannelItem;
@@ -135,11 +135,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border.subtle,
-    ...shadows.subtle,
+    overflow: 'hidden',
   },
   selectedCard: {
     borderColor: colors.primary.DEFAULT,
-    backgroundColor: 'rgba(42, 171, 238, 0.06)',
+    borderWidth: 1.5,
+    backgroundColor: colors.status.infoBg,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   checkbox: {
     width: 24,
