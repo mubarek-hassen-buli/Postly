@@ -17,6 +17,7 @@ import {
   Calendar,
   CheckCircle,
   Clock,
+  Edit3,
   Pin,
   Send,
   Trash2,
@@ -35,6 +36,7 @@ export interface PostDetailModalProps {
   post: PostItem | null;
   visible: boolean;
   onClose: () => void;
+  onEdit?: (post: PostItem) => void;
   onPublishNow?: (postId: string) => void;
   onCancelSchedule?: (postId: string) => void;
   onDelete?: (postId: string) => void;
@@ -44,6 +46,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
   post,
   visible,
   onClose,
+  onEdit,
   onPublishNow,
   onCancelSchedule,
   onDelete,
@@ -246,6 +249,19 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                   onCancelSchedule(post.id);
                 }}
                 leftIcon={<Clock size={16} color={colors.status.warning} />}
+                style={styles.actionButton}
+              />
+            )}
+
+            {onEdit && (
+              <Button
+                title="Edit"
+                variant="outline"
+                onPress={() => {
+                  onClose();
+                  onEdit(post);
+                }}
+                leftIcon={<Edit3 size={16} color={colors.primary.DEFAULT} />}
                 style={styles.actionButton}
               />
             )}

@@ -37,6 +37,7 @@ import { borderRadius, spacing } from '../../theme/spacing';
 export interface PostCardProps {
   post: PostItem;
   onPress: (post: PostItem) => void;
+  onEdit?: (post: PostItem) => void;
   onPublishNow?: (postId: string) => void;
   onCancelSchedule?: (postId: string) => void;
   onDelete?: (postId: string) => void;
@@ -46,6 +47,7 @@ export interface PostCardProps {
 export const PostCard: React.FC<PostCardProps> = ({
   post,
   onPress,
+  onEdit,
   onPublishNow,
   onCancelSchedule,
   onDelete,
@@ -200,6 +202,11 @@ export const PostCard: React.FC<PostCardProps> = ({
 
     const options: string[] = ['View Details'];
     const actions: Array<() => void> = [() => onPress(post)];
+
+    if (onEdit) {
+      options.push('Edit Broadcast');
+      actions.push(() => onEdit(post));
+    }
 
     if (post.status === 'SCHEDULED') {
       options.push('Publish Now');

@@ -27,12 +27,14 @@ class PostChannelTargetSerializer(serializers.ModelSerializer):
     channel_title = serializers.CharField(source='channel.title', read_only=True)
     channel_username = serializers.CharField(source='channel.username', read_only=True)
     telegram_channel_id = serializers.IntegerField(source='channel.telegram_channel_id', read_only=True)
+    channel = serializers.SerializerMethodField()
 
     class Meta:
         model = PostChannelTarget
         fields = [
             'id',
             'channel_id',
+            'channel',
             'telegram_channel_id',
             'channel_title',
             'channel_username',
@@ -42,6 +44,16 @@ class PostChannelTargetSerializer(serializers.ModelSerializer):
             'sent_at',
         ]
         read_only_fields = fields
+
+    def get_channel(self, obj: PostChannelTarget):
+        if not getattr(obj, 'channel', None):
+            return None
+        return {
+            'id': str(obj.channel.id),
+            'telegram_channel_id': obj.channel.telegram_channel_id,
+            'title': obj.channel.title,
+            'username': obj.channel.username,
+        }
 
 
 class PostListSerializer(serializers.ModelSerializer):
@@ -229,8 +241,10 @@ class PostCreateSerializer(serializers.Serializer):
 class PostUpdateSerializer(serializers.Serializer):
     """Payload validator for updating an existing post."""
     text_content = serializers.CharField(required=False, allow_blank=True)
+    content = serializers.CharField(required=False, allow_blank=True, help_text="Alias for text_content.")
     formatting_mode = serializers.ChoiceField(choices=Post.FormattingMode.choices, required=False)
     target_channel_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
+    channel_ids = serializers.ListField(child=serializers.UUIDField(), required=False, help_text="Alias for target_channel_ids.")
     silent = serializers.BooleanField(required=False)
     disable_web_page_preview = serializers.BooleanField(required=False)
     pin_message = serializers.BooleanField(required=False)
@@ -241,3 +255,10 @@ class PostUpdateSerializer(serializers.Serializer):
         if value and value <= timezone.now():
             raise serializers.ValidationError("The scheduled datetime must be in the future.")
         return value
+
+    def validate(self, attrs: dict) -> dict:
+        if not attrs.get('text_content') and attrs.get('content'):
+            attrs['text_content'] = attrs.get('content', '')
+        if not attrs.get('target_channel_ids') and attrs.get('channel_ids'):
+            attrs['target_channel_ids'] = attrs.get('channel_ids', [])
+        return attrs

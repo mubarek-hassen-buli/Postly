@@ -12,10 +12,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Calendar,
   Eye,
+  Info,
   Pin,
   Send,
   Share2,
@@ -27,7 +28,7 @@ import { format } from 'date-fns';
 
 import { useChannels } from '../hooks/useChannels';
 import { ChannelItem } from '../services/channels/channelService';
-import { useCreatePost } from '../hooks/usePosts';
+import { useCreatePost, usePost, useUpdatePost } from '../hooks/usePosts';
 import { useLinkedInStatus, usePublishLinkedInPost } from '../hooks/useLinkedIn';
 import { FormattingToolbar, FormattingMode } from '../components/composer/FormattingToolbar';
 import { ChannelSelectorPills } from '../components/composer/ChannelSelectorPills';
@@ -45,6 +46,8 @@ const MAX_CAPTION_LENGTH = 1024;
 
 export default function ComposeModalScreen() {
   const router = useRouter();
+  const { editPostId } = useLocalSearchParams<{ editPostId?: string }>();
+  const isEditing = Boolean(editPostId);
 
   // Form State
   const [content, setContent] = useState('');
@@ -67,23 +70,62 @@ export default function ComposeModalScreen() {
     ? (channelsData as ChannelItem[])
     : [];
 
+  const { data: editingPost } = usePost(editPostId || null);
   const createPostMutation = useCreatePost();
+  const updatePostMutation = useUpdatePost();
   const { data: linkedinData } = useLinkedInStatus();
   const publishLinkedInMutation = usePublishLinkedInPost();
-  const isSubmitting = createPostMutation.isPending || publishLinkedInMutation.isPending;
+  const isSubmitting =
+    createPostMutation.isPending ||
+    publishLinkedInMutation.isPending ||
+    updatePostMutation.isPending;
 
   const hasInitializedChannels = useRef(false);
+  const hasPopulatedEditPost = useRef(false);
 
-  // Pre-select channels that have `is_selected_by_user === true` once on initial load
+  // Pre-populate fields when editing an existing post
   useEffect(() => {
-    if (!hasInitializedChannels.current && channels.length > 0) {
+    if (editingPost && !hasPopulatedEditPost.current) {
+      hasPopulatedEditPost.current = true;
+      setContent(editingPost.text_content || editingPost.content || '');
+      if (editingPost.formatting_mode) {
+        setFormattingMode(editingPost.formatting_mode as FormattingMode);
+      }
+      if (editingPost.targets && editingPost.targets.length > 0) {
+        const targetChannelIds = editingPost.targets
+          .map((t) => t.channel_id || t.channel?.id)
+          .filter((id): id is string => Boolean(id));
+        if (targetChannelIds.length > 0) {
+          setSelectedChannelIds(targetChannelIds);
+        }
+      }
+      setPinMessage(Boolean(editingPost.pin_message));
+      setScheduledFor(editingPost.scheduled_for || null);
+      if (editingPost.media_attachments && editingPost.media_attachments.length > 0) {
+        setAttachments(
+          editingPost.media_attachments.map((m) => ({
+            localUri: m.media_url,
+            media_url: m.media_url,
+            media_type: m.media_type || 'IMAGE',
+            file_size: m.file_size || 0,
+            isUploading: false,
+            progress: 1,
+          }))
+        );
+      }
+    }
+  }, [editingPost]);
+
+  // Pre-select channels that have `is_selected_by_user === true` once on initial load (only for new posts)
+  useEffect(() => {
+    if (!isEditing && !hasInitializedChannels.current && channels.length > 0) {
       hasInitializedChannels.current = true;
       const defaultSelected = channels
         .filter((ch) => ch.is_selected_by_user)
         .map((ch) => ch.id);
       setSelectedChannelIds(defaultSelected.length > 0 ? defaultSelected : [channels[0].id]);
     }
-  }, [channels]);
+  }, [channels, isEditing]);
 
   const maxChars = postToLinkedIn ? 3000 : (attachments.length > 0 ? MAX_CAPTION_LENGTH : MAX_TEXT_LENGTH);
   const isOverLimit = content.length > maxChars;
@@ -123,6 +165,37 @@ export default function ComposeModalScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     try {
+      const mediaPayload = attachments
+        .filter((a) => a.media_url)
+        .map((a, index) => ({
+          media_url: a.media_url!,
+          media_type: a.media_type,
+          file_size: a.file_size,
+          order: index,
+        }));
+
+      // Edit Mode
+      if (isEditing && editPostId) {
+        await updatePostMutation.mutateAsync({
+          id: editPostId,
+          payload: {
+            text_content: content.trim(),
+            content: content.trim(),
+            target_channel_ids: selectedChannelIds,
+            channel_ids: selectedChannelIds,
+            formatting_mode: formattingMode,
+            pin_message: pinMessage,
+            scheduled_for: scheduledFor,
+            media_attachments: mediaPayload,
+          },
+        });
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        router.back();
+        return;
+      }
+
+      // Create Mode
       const dispatchPromises: Promise<any>[] = [];
 
       // 1. Dispatch directly to LinkedIn if enabled
@@ -132,15 +205,6 @@ export default function ComposeModalScreen() {
 
       // 2. Dispatch to Telegram if target channels are selected
       if (selectedChannelIds.length > 0) {
-        const mediaPayload = attachments
-          .filter((a) => a.media_url)
-          .map((a, index) => ({
-            media_url: a.media_url!,
-            media_type: a.media_type,
-            file_size: a.file_size,
-            order: index,
-          }));
-
         dispatchPromises.push(
           createPostMutation.mutateAsync({
             text_content: content.trim(),
@@ -181,7 +245,9 @@ export default function ComposeModalScreen() {
           <X size={22} color={colors.text.secondary} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>New Broadcast</Text>
+        <Text style={styles.headerTitle}>
+          {isEditing ? 'Edit Broadcast' : 'New Broadcast'}
+        </Text>
 
         <View style={styles.headerRightActions}>
           <TouchableOpacity
@@ -193,12 +259,20 @@ export default function ComposeModalScreen() {
           </TouchableOpacity>
 
           <Button
-            title={scheduledFor ? 'Schedule' : 'Publish'}
+            title={
+              isEditing
+                ? editingPost?.status === 'PUBLISHED'
+                  ? 'Update Telegram'
+                  : 'Save Changes'
+                : scheduledFor
+                ? 'Schedule'
+                : 'Publish'
+            }
             onPress={handleSubmit}
             loading={isSubmitting}
             size="sm"
             leftIcon={
-              scheduledFor ? (
+              scheduledFor && !isEditing ? (
                 <Calendar size={14} color="#FFFFFF" />
               ) : (
                 <Send size={14} color="#FFFFFF" />
@@ -213,6 +287,16 @@ export default function ComposeModalScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          {/* Published Edit Notice */}
+          {editingPost?.status === 'PUBLISHED' && (
+            <View style={styles.publishedEditBanner}>
+              <Info size={16} color={colors.primary.DEFAULT} style={styles.bannerIcon} />
+              <Text style={styles.publishedEditText}>
+                Editing published broadcast. Saving will immediately update the messages in your Telegram channels.
+              </Text>
+            </View>
+          )}
+
           {/* Target Channel Selector */}
           <ChannelSelectorPills
             channels={channels}
@@ -504,5 +588,25 @@ const styles = StyleSheet.create({
     ...typography.presets.caption,
     color: colors.text.secondary,
     marginTop: 1,
+  },
+  publishedEditBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary.subtle,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(42, 171, 238, 0.25)',
+  },
+  bannerIcon: {
+    marginRight: spacing.sm,
+  },
+  publishedEditText: {
+    ...typography.presets.caption,
+    color: colors.primary.DEFAULT,
+    fontWeight: '600',
+    flex: 1,
+    lineHeight: 18,
   },
 });

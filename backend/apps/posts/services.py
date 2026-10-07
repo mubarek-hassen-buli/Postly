@@ -364,3 +364,106 @@ class TelegramPublishingService:
             'failed_count': failed_count,
             'errors': channel_errors
         }
+
+    @classmethod
+    def edit_remote_telegram_messages(cls, post: Post) -> Dict[str, Any]:
+        """
+        Connects via Telethon MTProto using the user's active Telegram session
+        and edits the remote messages associated with this post across all target channels.
+        Handles per-channel errors gracefully so that one failure does not halt editing in other channels.
+        """
+        targets = list(
+            post.targets.select_related('channel').filter(
+                telegram_message_id__isnull=False
+            )
+        )
+        if not targets:
+            logger.info(f"No remote Telegram message IDs to edit for post {post.id}.")
+            return {'status': 'SKIPPED', 'edited_count': 0, 'failed_count': 0}
+
+        user = post.user
+        try:
+            telegram_session = user.telegram_session
+        except TelegramSession.DoesNotExist:
+            logger.warning(f"Cannot edit Telegram messages for post {post.id}: user {user.id} has no Telegram session.")
+            return {'status': 'FAILED', 'error': 'No Telegram session found for user.'}
+
+        if not telegram_session.is_authenticated or not telegram_session.encrypted_session_string:
+            logger.warning(f"Cannot edit Telegram messages for post {post.id}: Telegram session not authenticated.")
+            return {'status': 'FAILED', 'error': 'Telegram session not authenticated.'}
+
+        try:
+            return run_async(
+                cls._async_edit_in_channels(
+                    session_encrypted=telegram_session.encrypted_session_string,
+                    post=post,
+                    targets=targets
+                )
+            )
+        except Exception as exc:
+            logger.exception(f"Unexpected error during remote Telegram editing for post {post.id}: {str(exc)}")
+            return {'status': 'FAILED', 'error': str(exc)}
+
+    @classmethod
+    async def _async_edit_in_channels(
+        cls,
+        session_encrypted: str,
+        post: Post,
+        targets: List[PostChannelTarget]
+    ) -> Dict[str, Any]:
+        edited_count = 0
+        failed_count = 0
+        channel_errors: Dict[str, str] = {}
+
+        parse_mode = None
+        if post.formatting_mode == Post.FormattingMode.HTML:
+            parse_mode = 'html'
+        elif post.formatting_mode == Post.FormattingMode.MARKDOWN:
+            parse_mode = 'md'
+
+        async with telethon_client_context(
+            session_string=session_encrypted,
+            is_encrypted=True
+        ) as client:
+            if not await client.is_user_authorized():
+                logger.warning("Telethon client not authorized during edit operation.")
+                return {'status': 'FAILED', 'error': 'Telethon session is not authorized.'}
+
+            for target in targets:
+                channel = target.channel
+                msg_id = target.telegram_message_id
+                if not msg_id:
+                    continue
+
+                try:
+                    if channel.access_hash:
+                        peer = InputPeerChannel(channel.telegram_channel_id, channel.access_hash)
+                    elif channel.username:
+                        peer = channel.username
+                    else:
+                        peer = channel.telegram_channel_id
+
+                    logger.info(f"Editing message {msg_id} in channel {channel.title} ({channel.telegram_channel_id})...")
+                    await client.edit_message(
+                        peer,
+                        message=msg_id,
+                        text=post.text_content or "",
+                        parse_mode=parse_mode,
+                        link_preview=not post.disable_web_page_preview
+                    )
+                    edited_count += 1
+                    logger.info(f"Successfully edited message {msg_id} in channel {channel.title}.")
+                except Exception as exc:
+                    failed_count += 1
+                    channel_errors[channel.title or str(channel.id)] = str(exc)
+                    logger.warning(
+                        f"Failed to edit message {msg_id} in channel {channel.title} ({channel.id}): {str(exc)}"
+                    )
+
+        return {
+            'status': 'SUCCESS' if failed_count == 0 else 'PARTIAL_SUCCESS' if edited_count > 0 else 'FAILED',
+            'edited_count': edited_count,
+            'failed_count': failed_count,
+            'errors': channel_errors
+        }
+

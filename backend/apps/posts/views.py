@@ -204,8 +204,8 @@ class PostDetailView(APIView):
             if 'pin_message' in data:
                 post.pin_message = data['pin_message']
 
-            # Target channels update
-            if 'target_channel_ids' in data:
+            # Target channels update (only editable before publication)
+            if 'target_channel_ids' in data and post.status != Post.PostStatus.PUBLISHED:
                 target_ids = data['target_channel_ids']
                 channels = list(Channel.objects.filter(id__in=target_ids, user=request.user))
                 if len(channels) != len(target_ids):
@@ -223,8 +223,8 @@ class PostDetailView(APIView):
                 for channel in channels:
                     PostChannelTarget.objects.create(post=post, channel=channel)
 
-            # Media attachments update
-            if 'media_attachments' in data:
+            # Media attachments update (only editable before publication)
+            if 'media_attachments' in data and post.status != Post.PostStatus.PUBLISHED:
                 post.media_attachments.all().delete()
                 for idx, item in enumerate(data['media_attachments']):
                     PostMediaAttachment.objects.create(
@@ -236,8 +236,8 @@ class PostDetailView(APIView):
                         order=item.get('order', idx)
                     )
 
-            # Scheduling updates
-            if 'scheduled_for' in data:
+            # Scheduling updates (only editable before publication)
+            if 'scheduled_for' in data and post.status != Post.PostStatus.PUBLISHED:
                 new_scheduled_for = data['scheduled_for']
                 # Revoke previous Celery task if present
                 if post.celery_task_id:
@@ -258,8 +258,19 @@ class PostDetailView(APIView):
 
             post.save()
 
+        # If post was already PUBLISHED, propagate text edits to remote Telegram messages
+        edit_result = None
+        if post.status == Post.PostStatus.PUBLISHED and ('text_content' in data or 'formatting_mode' in data):
+            try:
+                edit_result = TelegramPublishingService.edit_remote_telegram_messages(post)
+            except Exception as exc:
+                logger.exception(f"Error updating remote Telegram messages for post {post.id}: {exc}")
+
         post.refresh_from_db()
-        return Response(PostDetailSerializer(post).data, status=status.HTTP_200_OK)
+        response_data = PostDetailSerializer(post).data
+        if edit_result:
+            response_data['telegram_edit_result'] = edit_result
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs) -> Response:
         post = get_object_or_404(Post, id=pk, user=request.user)

@@ -121,6 +121,15 @@ export default function PostersScreen() {
     }
   };
 
+  const handleEditPost = (post: PostItem) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSelectedPostForDetail(null);
+    router.push({
+      pathname: '/compose',
+      params: { editPostId: post.id },
+    });
+  };
+
   const handleDeletePost = async (postId: string) => {
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
@@ -229,6 +238,7 @@ export default function PostersScreen() {
             <PostCard
               post={item}
               onPress={(p) => setSelectedPostForDetail(p)}
+              onEdit={handleEditPost}
               onPublishNow={handlePublishNow}
               onCancelSchedule={handleCancelSchedule}
               onDelete={handleDeletePost}
@@ -254,6 +264,7 @@ export default function PostersScreen() {
         post={selectedPostForDetail}
         visible={Boolean(selectedPostForDetail)}
         onClose={() => setSelectedPostForDetail(null)}
+        onEdit={handleEditPost}
         onPublishNow={handlePublishNow}
         onCancelSchedule={handleCancelSchedule}
         onDelete={handleDeletePost}

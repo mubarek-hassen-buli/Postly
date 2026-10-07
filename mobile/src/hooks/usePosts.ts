@@ -5,6 +5,7 @@ import {
   PaginatedPostsResponse,
   PostItem,
   PostQueryParams,
+  UpdatePostPayload,
 } from '../services/posts/postService';
 import { ANALYTICS_QUERY_KEY } from './useAnalytics';
 import { DashboardAnalyticsData } from '../services/analytics/analyticsService';
@@ -47,6 +48,35 @@ export function useCreatePost() {
         }
       );
       queryClient.setQueryData(['post', newPost.id], newPost);
+
+      // Reconcile with server in background
+      queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ANALYTICS_QUERY_KEY });
+    },
+  });
+}
+
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdatePostPayload }) =>
+      postService.updatePost(id, payload),
+    onSuccess: (updatedPost: PostItem) => {
+      // Update matching post in all cached post lists
+      queryClient.setQueriesData<PaginatedPostsResponse>(
+        { queryKey: POSTS_QUERY_KEY },
+        (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            results: oldData.results.map((p) =>
+              p.id === updatedPost.id ? updatedPost : p
+            ),
+          };
+        }
+      );
+      queryClient.setQueryData(['post', updatedPost.id], updatedPost);
 
       // Reconcile with server in background
       queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });

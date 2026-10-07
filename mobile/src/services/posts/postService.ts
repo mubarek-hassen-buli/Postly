@@ -2,7 +2,11 @@ import { apiClient } from '../api/client';
 
 export interface PostChannelTargetItem {
   id: string;
-  channel: {
+  channel_id?: string;
+  channel_title?: string;
+  channel_username?: string;
+  telegram_channel_id?: number;
+  channel?: {
     id: string;
     telegram_channel_id: number;
     title: string;
@@ -62,6 +66,25 @@ export interface CreatePostPayload {
   }>;
 }
 
+export interface UpdatePostPayload {
+  content?: string;
+  text_content?: string;
+  channel_ids?: string[];
+  target_channel_ids?: string[];
+  formatting_mode?: 'HTML' | 'MARKDOWN' | 'PLAIN';
+  silent?: boolean;
+  disable_web_page_preview?: boolean;
+  pin_message?: boolean;
+  scheduled_for?: string | null;
+  media_attachments?: Array<{
+    media_url: string;
+    media_type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+    file_name?: string;
+    file_size?: number;
+    order?: number;
+  }>;
+}
+
 export interface PostQueryParams {
   status?: 'DRAFT' | 'SCHEDULED' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED' | 'CANCELLED';
   channel_id?: string;
@@ -96,6 +119,11 @@ export const postService = {
 
   async createPost(payload: CreatePostPayload): Promise<PostItem> {
     const response = await apiClient.post<PostItem>('/posts/', payload);
+    return response.data;
+  },
+
+  async updatePost(id: string, payload: UpdatePostPayload): Promise<PostItem> {
+    const response = await apiClient.patch<PostItem>(`/posts/${id}/`, payload);
     return response.data;
   },
 

@@ -311,3 +311,85 @@ class PostApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Post.objects.filter(id=post.id).exists())
 
+    def test_post_detail_patch_draft_or_scheduled(self) -> None:
+        post = Post.objects.create(
+            user=self.user,
+            text_content="Original draft content",
+            status=Post.PostStatus.DRAFT,
+            pin_message=False,
+        )
+        url = reverse('post_detail', kwargs={'pk': str(post.id)})
+        new_scheduled = (timezone.now() + timedelta(days=1)).isoformat()
+        payload = {
+            'text_content': 'Updated draft content with corrections',
+            'pin_message': True,
+            'scheduled_for': new_scheduled,
+        }
+        response = self.client.patch(url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        post.refresh_from_db()
+        self.assertEqual(post.text_content, 'Updated draft content with corrections')
+        self.assertTrue(post.pin_message)
+        self.assertEqual(post.status, Post.PostStatus.SCHEDULED)
+
+    @patch('apps.posts.views.TelegramPublishingService.edit_remote_telegram_messages')
+    def test_post_detail_patch_published_triggers_remote_telegram_edit(self, mock_edit_tg) -> None:
+        mock_edit_tg.return_value = {
+            'status': 'SUCCESS',
+            'edited_count': 1,
+            'failed_count': 0,
+            'errors': {}
+        }
+        post = Post.objects.create(
+            user=self.user,
+            text_content="Published message with a typo",
+            status=Post.PostStatus.PUBLISHED,
+        )
+        PostChannelTarget.objects.create(
+            post=post,
+            channel=self.channel1,
+            telegram_message_id=999111,
+            status=PostChannelTarget.TargetStatus.SUCCESS
+        )
+
+        url = reverse('post_detail', kwargs={'pk': str(post.id)})
+        payload = {
+            'content': 'Corrected published message without typos',
+        }
+        response = self.client.patch(url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        post.refresh_from_db()
+        self.assertEqual(post.text_content, 'Corrected published message without typos')
+        mock_edit_tg.assert_called_once()
+        passed_post = mock_edit_tg.call_args[0][0]
+        self.assertEqual(passed_post.text_content, 'Corrected published message without typos')
+
+    @patch('apps.posts.services.TelegramPublishingService._async_edit_in_channels')
+    def test_telegram_remote_editing_service(self, mock_async_edit) -> None:
+        post = Post.objects.create(
+            user=self.user,
+            text_content="Corrected text",
+            status=Post.PostStatus.PUBLISHED,
+        )
+        PostChannelTarget.objects.create(
+            post=post,
+            channel=self.channel1,
+            telegram_message_id=777111,
+            status=PostChannelTarget.TargetStatus.SUCCESS
+        )
+
+        mock_async_edit.return_value = {
+            'status': 'SUCCESS',
+            'edited_count': 1,
+            'failed_count': 0,
+            'errors': {}
+        }
+
+        result = TelegramPublishingService.edit_remote_telegram_messages(post)
+        self.assertEqual(result['status'], 'SUCCESS')
+        self.assertEqual(result['edited_count'], 1)
+        mock_async_edit.assert_called_once()
+
+
