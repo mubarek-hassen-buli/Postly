@@ -18,6 +18,7 @@ import {
   Settings as SettingsIcon,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { useDetailModalStore } from '../../store/useDetailModalStore';
 
 export type FloatingTabBarProps = BottomTabBarProps;
 
@@ -56,9 +57,14 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const isDetailModalOpen = useDetailModalStore((s) => s.isDetailModalOpen);
 
   // Active route name
   const currentRouteName = state.routes[state.index]?.name || 'index';
+
+  if (isDetailModalOpen) {
+    return null;
+  }
 
   const handleTabPress = (routeName: string, routeKey: string) => {
     Haptics.selectionAsync().catch(() => {});
