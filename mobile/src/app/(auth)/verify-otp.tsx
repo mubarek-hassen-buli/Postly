@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -9,23 +10,21 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MessageSquareCode, RefreshCw } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { ChevronLeft, RefreshCw } from 'lucide-react-native';
 
 import { authService } from '../../services/auth/authService';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Button } from '../../components/ui/Button';
 import { OtpInput } from '../../components/ui/OtpInput';
-import { Header } from '../../components/ui/Header';
-import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing } from '../../theme/spacing';
 
 const COUNTDOWN_INITIAL = 60;
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     phoneNumber: string;
     phoneCodeHash: string;
@@ -66,6 +65,7 @@ export default function VerifyOtpScreen() {
 
     setLoading(true);
     setError(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     try {
       const response = await authService.verifyCode(phoneNumber, phoneCodeHash, codeToVerify);
@@ -99,6 +99,7 @@ export default function VerifyOtpScreen() {
 
     setResending(true);
     setError(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
     try {
       const response = await authService.sendCode(phoneNumber);
@@ -112,26 +113,57 @@ export default function VerifyOtpScreen() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header showBack onBack={() => router.back()} />
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    router.back();
+  };
 
+  return (
+    <View style={styles.container}>
+      {/* Top Banner (Postly Signature Blue Gradient matching inspiration) */}
+      <LinearGradient
+        colors={['#0077B6', '#0096C7', '#2AABEE']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.topBanner, { paddingTop: Math.max(insets.top, 16) }]}
+      >
+        <View style={styles.bannerPatternLayer}>
+          <View style={styles.patternCircleLarge} />
+          <View style={styles.patternCircleMedium} />
+        </View>
+
+        <TouchableOpacity
+          onPress={handleBack}
+          style={styles.backButton}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <ChevronLeft size={24} color="#FFFFFF" strokeWidth={2.4} />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Main White Card with Curved Top */}
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.iconContainer}>
-            <MessageSquareCode size={36} color={colors.primary.DEFAULT} />
+        <ScrollView
+          style={styles.cardContainer}
+          contentContainerStyle={styles.cardContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.headerArea}>
+            <Text style={styles.title}>Enter Your OTP</Text>
+            <Text style={styles.subtitle}>
+              Enter the Code that we have sent to{'\n'}
+              <Text style={styles.highlightPhone}>{phoneNumber}</Text>
+            </Text>
           </View>
 
-          <Text style={styles.title}>Enter Verification Code</Text>
-          <Text style={styles.subtitle}>
-            Telegram sent a login code to your active Telegram app or SMS for{' '}
-            <Text style={styles.highlightPhone}>{phoneNumber}</Text>
-          </Text>
-
-          <Card style={styles.card}>
+          {/* OTP Digit Inputs */}
+          <View style={styles.otpSection}>
             <OtpInput
               length={5}
               value={code}
@@ -139,115 +171,244 @@ export default function VerifyOtpScreen() {
               error={error ?? undefined}
             />
 
-            <Button
-              title="Verify & Continue"
-              onPress={() => handleVerify(code)}
-              loading={loading}
-              disabled={code.length < 5}
-              size="lg"
-              style={styles.verifyButton}
-            />
-
+            {/* Resend OTP Row */}
             <View style={styles.resendRow}>
               {countdown > 0 ? (
                 <Text style={styles.countdownText}>
-                  Resend code in <Text style={styles.countdownNumber}>{countdown}s</Text>
+                  Resend OTP in <Text style={styles.countdownNumber}>{countdown}s</Text>
                 </Text>
               ) : (
                 <TouchableOpacity
                   onPress={handleResend}
                   disabled={resending}
                   style={styles.resendButton}
+                  activeOpacity={0.7}
                 >
-                  <RefreshCw size={16} color={colors.primary.DEFAULT} style={styles.resendIcon} />
+                  <RefreshCw size={14} color={colors.primary.DEFAULT} style={styles.resendIcon} />
                   <Text style={styles.resendText}>
-                    {resending ? 'Sending...' : 'Resend Code'}
+                    {resending ? 'Sending...' : 'Resend OTP'}
                   </Text>
                 </TouchableOpacity>
               )}
             </View>
-          </Card>
+
+            {/* Verify Code Button */}
+            <TouchableOpacity
+              onPress={() => handleVerify(code)}
+              disabled={loading || code.length < 5}
+              activeOpacity={0.88}
+              style={[
+                styles.verifyButtonWrapper,
+                code.length < 5 && styles.verifyButtonDisabled,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Verify Code"
+            >
+              <LinearGradient
+                colors={['#0088CC', '#2AABEE']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.verifyButton}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.verifyButtonText}>Verify Code</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
+          {/* Bottom Watermark Motif */}
+          <View style={styles.watermarkArea}>
+            <View style={styles.watermarkArchCenter} />
+            <View style={styles.watermarkArchLeft} />
+            <View style={styles.watermarkArchRight} />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: colors.background.base,
+    backgroundColor: '#FFFFFF',
   },
-  keyboardView: {
-    flex: 1,
+  topBanner: {
+    height: 190,
+    paddingHorizontal: 20,
+    justifyContent: 'flex-start',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  scrollContent: {
-    padding: spacing.xl,
-    alignItems: 'center',
-    flexGrow: 1,
+  bannerPatternLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.15,
   },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.primary.subtle,
+  patternCircleLarge: {
+    position: 'absolute',
+    top: -50,
+    right: -40,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  patternCircleMedium: {
+    position: 'absolute',
+    top: 20,
+    right: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     borderWidth: 1.5,
-    borderColor: colors.primary.subtleBorder,
+    borderColor: '#FFFFFF',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
-    marginTop: spacing.sm,
+    marginTop: 8,
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  cardContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    marginTop: -32,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  cardContent: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 40,
+    flexGrow: 1,
+    justifyContent: 'space-between',
+  },
+  headerArea: {
+    marginBottom: 24,
   },
   title: {
-    ...typography.presets.title2,
-    color: colors.text.primary,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: spacing.xs,
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111827',
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   subtitle: {
-    ...typography.presets.subhead,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 320,
-    marginBottom: spacing.xxl,
+    fontSize: 14.5,
+    color: '#6B7280',
+    lineHeight: 22,
   },
   highlightPhone: {
-    color: colors.primary.DEFAULT,
-    fontWeight: '600',
+    color: '#111827',
+    fontWeight: '700',
   },
-  card: {
-    width: '100%',
+  otpSection: {
+    flex: 1,
     alignItems: 'center',
   },
-  verifyButton: {
-    width: '100%',
-    marginTop: spacing.md,
-  },
   resendRow: {
-    marginTop: spacing.lg,
+    marginTop: 20,
+    marginBottom: 28,
     alignItems: 'center',
   },
   countdownText: {
-    ...typography.presets.caption,
-    color: colors.text.muted,
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   countdownNumber: {
-    color: colors.text.secondary,
-    fontWeight: '600',
+    color: colors.primary.DEFAULT,
+    fontWeight: '700',
   },
   resendButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    gap: 6,
   },
   resendIcon: {
-    marginRight: spacing.xs,
+    marginRight: 2,
   },
   resendText: {
-    ...typography.presets.subheadMedium,
+    fontSize: 14,
+    fontWeight: '700',
     color: colors.primary.DEFAULT,
+  },
+  verifyButtonWrapper: {
+    width: '100%',
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#0088CC',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  verifyButtonDisabled: {
+    opacity: 0.6,
+  },
+  verifyButton: {
+    height: 52,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verifyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+
+  // Watermark Skyline at bottom
+  watermarkArea: {
+    height: 120,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 20,
+    opacity: 0.25,
+    marginTop: 30,
+  },
+  watermarkArchCenter: {
+    width: 90,
+    height: 80,
+    borderTopLeftRadius: 45,
+    borderTopRightRadius: 45,
+    backgroundColor: '#E0F2FE',
+  },
+  watermarkArchLeft: {
+    width: 65,
+    height: 55,
+    borderTopLeftRadius: 32.5,
+    borderTopRightRadius: 32.5,
+    backgroundColor: '#F0F9FF',
+  },
+  watermarkArchRight: {
+    width: 65,
+    height: 55,
+    borderTopLeftRadius: 32.5,
+    borderTopRightRadius: 32.5,
+    backgroundColor: '#F0F9FF',
   },
 });

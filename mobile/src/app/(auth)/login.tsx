@@ -1,54 +1,64 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Phone, ShieldCheck, Send } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { AlertCircle, ChevronDown, ChevronLeft } from 'lucide-react-native';
 
-import { phoneSchema, PhoneFormValues } from '../../schemas/authSchemas';
 import { authService } from '../../services/auth/authService';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing, borderRadius } from '../../theme/spacing';
+import { Country, CountryPickerModal, COUNTRIES_DATA } from '../../components/auth/CountryPickerModal';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  // Default to Netherlands +31 (matching inspiration image) or easily selectable
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES_DATA[0]);
+  const [nationalNumber, setNationalNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<PhoneFormValues>({
-    resolver: zodResolver(phoneSchema),
-    defaultValues: {
-      phoneNumber: '',
-    },
-  });
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(auth)/onboarding');
+    }
+  };
 
-  const onSubmit = async (data: PhoneFormValues) => {
+  const handleContinue = async () => {
+    const cleanDigits = nationalNumber.replace(/\D/g, '');
+    if (!cleanDigits || cleanDigits.length < 6) {
+      setApiError('Please enter a valid phone number');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      return;
+    }
+
+    const fullPhoneNumber = `${selectedCountry.dialCode}${cleanDigits}`;
     setLoading(true);
     setApiError(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     try {
-      const response = await authService.sendCode(data.phoneNumber);
+      const response = await authService.sendCode(fullPhoneNumber);
       router.push({
         pathname: '/(auth)/verify-otp',
         params: {
-          phoneNumber: data.phoneNumber,
+          phoneNumber: fullPhoneNumber,
           phoneCodeHash: response.phone_code_hash,
           isCodeViaApp: response.is_code_via_app ? 'true' : 'false',
         },
@@ -60,218 +70,350 @@ export default function LoginScreen() {
     }
   };
 
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(auth)/onboarding');
-    }
-  };
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topNavRow}>
+    <View style={styles.container}>
+      {/* Top Banner (Postly Signature Blue/Teal Gradient matching inspiration layout) */}
+      <LinearGradient
+        colors={['#0077B6', '#0096C7', '#2AABEE']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.topBanner, { paddingTop: Math.max(insets.top, 16) }]}
+      >
+        {/* Subtle geometric pattern overlay */}
+        <View style={styles.bannerPatternLayer}>
+          <View style={styles.patternCircleLarge} />
+          <View style={styles.patternCircleMedium} />
+        </View>
+
+        {/* Back Button */}
         <TouchableOpacity
           onPress={handleBack}
           style={styles.backButton}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityLabel="Back to feature tour"
+          accessibilityLabel="Go back"
           accessibilityRole="button"
         >
-          <ChevronLeft size={22} color={colors.text.primary} />
-          <Text style={styles.backButtonText}>Tour</Text>
+          <ChevronLeft size={24} color="#FFFFFF" strokeWidth={2.4} />
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
+      {/* Main White Content Card with High Curved Top */}
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          style={styles.cardContainer}
+          contentContainerStyle={styles.cardContent}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
-          {/* Brand Header */}
-          <View style={styles.brandHeader}>
-            <View style={styles.logoCircle}>
-              <Send size={36} color={colors.primary.DEFAULT} style={styles.logoIcon} />
-            </View>
+          {/* Headline & Subtitle */}
+          <View style={styles.headerArea}>
             <Text style={styles.title}>Welcome to Postly</Text>
-            <Text style={styles.subtitle}>
-              Connect your Telegram account to manage and schedule posts across all your channels.
-            </Text>
+            <Text style={styles.subtitle}>Where Connections Come Alive.</Text>
           </View>
 
-          {/* Input Card */}
-          <Card style={styles.formCard}>
-            <Text style={styles.cardHeader}>Telegram Phone Number</Text>
-            <Text style={styles.cardSubtext}>
-              Please enter your phone number with your country code prefix.
-            </Text>
+          {/* Phone Field Section */}
+          <View style={styles.formSection}>
+            <Text style={styles.inputLabel}>Phone Number</Text>
 
-            <Controller
-              control={control}
-              name="phoneNumber"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  placeholder="+1 234 567 8900"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="phone-pad"
-                  autoComplete="tel"
-                  autoCapitalize="none"
-                  leftIcon={<Phone size={20} color={colors.text.muted} />}
-                  error={errors.phoneNumber?.message || (apiError ?? undefined)}
-                  helperText="Format: +[Country Code][Number]"
-                />
-              )}
-            />
+            {/* Input Capsule with Country Picker Trigger */}
+            <View style={[styles.inputCapsule, apiError ? styles.inputCapsuleError : null]}>
+              {/* Country Selection Button */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setPickerVisible(true);
+                }}
+                style={styles.countryPickerTrigger}
+                activeOpacity={0.7}
+                accessibilityLabel={`Select country code, currently ${selectedCountry.name} ${selectedCountry.dialCode}`}
+              >
+                <Text style={styles.flagEmoji}>{selectedCountry.flag}</Text>
+                <Text style={styles.dialCodeText}>{selectedCountry.dialCode}</Text>
+                <ChevronDown size={14} color="#6B7280" style={styles.chevronIcon} />
+              </TouchableOpacity>
 
-            <Button
-              title="Send Verification Code"
-              onPress={handleSubmit(onSubmit)}
-              loading={loading}
-              size="lg"
-              style={styles.submitButton}
-            />
-          </Card>
+              {/* Vertical Divider */}
+              <View style={styles.divider} />
 
-          {/* Security Notice */}
-          <View style={styles.securityBanner}>
-            <ShieldCheck size={20} color={colors.primary.DEFAULT} style={styles.shieldIcon} />
-            <Text style={styles.securityText}>
-              Official Telegram MTProto Protocol. Your session keys are encrypted at rest with AES-256 and never shared with third parties.
-            </Text>
+              {/* National Number Input */}
+              <TextInput
+                style={styles.numberInput}
+                placeholder="0000000000"
+                placeholderTextColor="#9CA3AF"
+                value={nationalNumber}
+                onChangeText={(text) => {
+                  setNationalNumber(text);
+                  if (apiError) setApiError(null);
+                }}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+                returnKeyType="done"
+                onSubmitEditing={handleContinue}
+              />
+            </View>
+
+            {/* Error Message */}
+            {apiError && (
+              <View style={styles.errorRow}>
+                <AlertCircle size={14} color={colors.status.error} />
+                <Text style={styles.errorText}>{apiError}</Text>
+              </View>
+            )}
+
+            {/* Continue Button */}
+            <TouchableOpacity
+              onPress={handleContinue}
+              disabled={loading}
+              activeOpacity={0.88}
+              style={styles.continueButtonWrapper}
+              accessibilityRole="button"
+              accessibilityLabel="Continue to OTP verification"
+            >
+              <LinearGradient
+                colors={['#0088CC', '#2AABEE']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.continueButton}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
 
-          {/* Feature Tour Link */}
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/onboarding')}
-            style={styles.tourLink}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Explore Postly feature tour"
-          >
-            <Text style={styles.tourPrompt}>
-              New to Postly? <Text style={styles.tourHighlight}>Explore Features Tour</Text>
-            </Text>
-          </TouchableOpacity>
+          {/* Bottom Watermark Skyline Graphic (Soft, ambient silhouette) */}
+          <View style={styles.watermarkArea}>
+            <View style={styles.watermarkArchCenter} />
+            <View style={styles.watermarkArchLeft} />
+            <View style={styles.watermarkArchRight} />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+
+      {/* Country Code Picker Modal */}
+      <CountryPickerModal
+        visible={pickerVisible}
+        selectedCountry={selectedCountry}
+        onSelect={(country) => setSelectedCountry(country)}
+        onClose={() => setPickerVisible(false)}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: colors.background.base,
+    backgroundColor: '#FFFFFF',
   },
-  keyboardView: {
-    flex: 1,
+  topBanner: {
+    height: 190,
+    paddingHorizontal: 20,
+    justifyContent: 'flex-start',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  scrollContent: {
-    padding: spacing.xl,
-    justifyContent: 'center',
-    flexGrow: 1,
+  bannerPatternLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.15,
   },
-  brandHeader: {
-    alignItems: 'center',
-    marginBottom: spacing.xxl,
+  patternCircleLarge: {
+    position: 'absolute',
+    top: -50,
+    right: -40,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  logoCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: colors.primary.subtle,
+  patternCircleMedium: {
+    position: 'absolute',
+    top: 20,
+    right: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     borderWidth: 1.5,
-    borderColor: colors.primary.subtleBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  logoIcon: {
-    marginLeft: -2,
-  },
-  title: {
-    ...typography.presets.title1,
-    color: colors.text.primary,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    ...typography.presets.subhead,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 320,
-  },
-  formCard: {
-    marginBottom: spacing.xl,
-  },
-  cardHeader: {
-    ...typography.presets.title3,
-    color: colors.text.primary,
-    marginBottom: 4,
-  },
-  cardSubtext: {
-    ...typography.presets.caption,
-    color: colors.text.secondary,
-    marginBottom: spacing.lg,
-  },
-  submitButton: {
-    marginTop: spacing.sm,
-  },
-  securityBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-  },
-  shieldIcon: {
-    marginRight: spacing.md,
-    flexShrink: 0,
-  },
-  securityText: {
-    ...typography.presets.caption,
-    color: colors.text.muted,
-    flex: 1,
-    lineHeight: 16,
-  },
-  topNavRow: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
+    borderColor: '#FFFFFF',
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 2,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  backButtonText: {
-    ...typography.presets.subhead,
-    color: colors.text.primary,
-    fontWeight: '600',
-  },
-  tourLink: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.lg,
-    paddingVertical: spacing.sm,
+    marginTop: 8,
   },
-  tourPrompt: {
-    ...typography.presets.subhead,
-    color: colors.text.secondary,
+  keyboardContainer: {
+    flex: 1,
   },
-  tourHighlight: {
-    color: colors.primary.DEFAULT,
+  cardContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    marginTop: -32,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  cardContent: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 40,
+    flexGrow: 1,
+    justifyContent: 'space-between',
+  },
+  headerArea: {
+    marginBottom: 28,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111827',
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 14.5,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  formSection: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 10,
+  },
+  inputCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    height: 56,
+    paddingHorizontal: 14,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  inputCapsuleError: {
+    borderColor: colors.status.error,
+  },
+  countryPickerTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  flagEmoji: {
+    fontSize: 22,
+    marginRight: 6,
+  },
+  dialCodeText: {
+    fontSize: 16,
     fontWeight: '700',
+    color: '#111827',
+    marginRight: 4,
+  },
+  chevronIcon: {
+    marginLeft: 2,
+  },
+  divider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 12,
+  },
+  numberInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
+    paddingVertical: 0,
+    letterSpacing: 0.5,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  errorText: {
+    fontSize: 13,
+    color: colors.status.error,
+    fontWeight: '500',
+  },
+  continueButtonWrapper: {
+    marginTop: 24,
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#0088CC',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  continueButton: {
+    height: 52,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  continueButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+
+  // Watermark Skyline Motif at bottom
+  watermarkArea: {
+    height: 120,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 20,
+    opacity: 0.25,
+    marginTop: 30,
+  },
+  watermarkArchCenter: {
+    width: 90,
+    height: 80,
+    borderTopLeftRadius: 45,
+    borderTopRightRadius: 45,
+    backgroundColor: '#E0F2FE',
+  },
+  watermarkArchLeft: {
+    width: 65,
+    height: 55,
+    borderTopLeftRadius: 32.5,
+    borderTopRightRadius: 32.5,
+    backgroundColor: '#F0F9FF',
+  },
+  watermarkArchRight: {
+    width: 65,
+    height: 55,
+    borderTopLeftRadius: 32.5,
+    borderTopRightRadius: 32.5,
+    backgroundColor: '#F0F9FF',
   },
 });
