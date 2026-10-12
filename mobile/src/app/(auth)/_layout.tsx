@@ -11,6 +11,7 @@ export default function AuthLayout() {
         animation: 'slide_from_right',
       }}
     >
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="login" />
       <Stack.Screen name="verify-otp" />
       <Stack.Screen name="verify-password" />

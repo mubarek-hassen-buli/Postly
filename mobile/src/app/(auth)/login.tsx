@@ -5,13 +5,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Phone, ShieldCheck, Send } from 'lucide-react-native';
+import { ChevronLeft, Phone, ShieldCheck, Send } from 'lucide-react-native';
 
 import { phoneSchema, PhoneFormValues } from '../../schemas/authSchemas';
 import { authService } from '../../services/auth/authService';
@@ -59,8 +60,29 @@ export default function LoginScreen() {
     }
   };
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(auth)/onboarding');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topNavRow}>
+        <TouchableOpacity
+          onPress={handleBack}
+          style={styles.backButton}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityLabel="Back to feature tour"
+          accessibilityRole="button"
+        >
+          <ChevronLeft size={22} color={colors.text.primary} />
+          <Text style={styles.backButtonText}>Tour</Text>
+        </TouchableOpacity>
+      </View>
+
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -122,6 +144,19 @@ export default function LoginScreen() {
               Official Telegram MTProto Protocol. Your session keys are encrypted at rest with AES-256 and never shared with third parties.
             </Text>
           </View>
+
+          {/* Feature Tour Link */}
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/onboarding')}
+            style={styles.tourLink}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Explore Postly feature tour"
+          >
+            <Text style={styles.tourPrompt}>
+              New to Postly? <Text style={styles.tourHighlight}>Explore Features Tour</Text>
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -207,5 +242,36 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
     flex: 1,
     lineHeight: 16,
+  },
+  topNavRow: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 2,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
+  },
+  backButtonText: {
+    ...typography.presets.subhead,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  tourLink: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  tourPrompt: {
+    ...typography.presets.subhead,
+    color: colors.text.secondary,
+  },
+  tourHighlight: {
+    color: colors.primary.DEFAULT,
+    fontWeight: '700',
   },
 });
