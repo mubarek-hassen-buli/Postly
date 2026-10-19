@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { onlineManager } from '@tanstack/react-query';
 import { tokenStorage } from '../auth/tokenStorage';
 
 const getFallbackApiUrl = (): string => {
@@ -67,12 +68,21 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Normalize Errors and handle 401s
+// Response Interceptor: Normalize Errors, handle 401s, and sync online status
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // If request succeeded, device is online
+    onlineManager.setOnline(true);
+    return response;
+  },
   async (error: AxiosError) => {
     const status = error.response?.status;
     const data = error.response?.data as { error?: ApiErrorContract; message?: string; detail?: string } | undefined;
+
+    // Detect offline / network failure
+    if (!error.response || error.code === 'ECONNABORTED' || error.message?.includes('Network Error')) {
+      onlineManager.setOnline(false);
+    }
 
     // Handle core Postly Knox session expiration (do not wipe for external integration errors)
     const isIntegrationRoute = error.config?.url?.includes('/integrations/');

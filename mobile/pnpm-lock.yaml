@@ -17,6 +17,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.102.8
         version: 5.102.8(react@19.2.3)
+      '@tanstack/react-query-persist-client':
+        specifier: ^5.104.4
+        version: 5.104.4(@tanstack/react-query@5.102.8(react@19.2.3))(@types/react@19.2.18)(react@19.2.3)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -74,6 +77,9 @@ importers:
       expo-splash-screen:
         specifier: ~57.0.8
         version: 57.0.8(expo@57.0.18)(typescript@6.0.3)
+      expo-sqlite:
+        specifier: ^58.0.13
+        version: 58.0.13(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       expo-status-bar:
         specifier: ~57.0.1
         version: 57.0.1(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -1217,6 +1223,22 @@ packages:
   '@tanstack/query-core@5.102.8':
     resolution: {integrity: sha512-ZNjkJ33CqvPNec/6lZBnHqLc3EVGPZ9ySLhYahU9TcuRFdmwXewuj0c4hwSWcGHqEUwcSrKeZ+oGcvPBqXcQcg==}
 
+  '@tanstack/query-core@5.104.4':
+    resolution: {integrity: sha512-nU4Yrb8Sjn0DeVb7PKG9uiepNavys3yoxy1FX0hViY4/P6Ng/mBje2SMl7i9812rtyHKtHyqiaC/td6GkI8StA==}
+
+  '@tanstack/query-persist-client-core@5.104.4':
+    resolution: {integrity: sha512-jnKIZWoHJOuYFoUAiXQozupLvCDrn7qEpNfQ1NPvLnzDW8D6mD5029yqu3syPspt+88buTfiSLNyfoabZdGsGA==}
+
+  '@tanstack/react-query-persist-client@5.104.4':
+    resolution: {integrity: sha512-AGxUxCNZmLC3Nbw4jb2EUfAK9Re3IYrYrQr3iQ5+7xpit/aSr2HrgWkT/2CQb7Gv+0VCyGS9fXLyW2L4WnE3XQ==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.104.4
+      '@types/react': ^18 || ^19
+      react: ^18 || ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   '@tanstack/react-query@5.102.8':
     resolution: {integrity: sha512-TYBea4OuXWD7MhaSHq069TWbFe7rcwWN6kzT7JF0OKi1K6c1gTv2IzD6A6ExJsCMozdkqBWeuIUZmu4KQg0O5A==}
     peerDependencies:
@@ -1344,6 +1366,9 @@ packages:
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+
+  await-lock@2.2.2:
+    resolution: {integrity: sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==}
 
   axios@1.20.0:
     resolution: {integrity: sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==}
@@ -1925,6 +1950,13 @@ packages:
     resolution: {integrity: sha512-BEsrKg4niYBZa5AFzWRyGqxA4ZemtBOPwbCy+C336iGYYPuZYLEgWJGmm2xD1gRfCdrM/TP+l2ONd86Zvk3KyA==}
     peerDependencies:
       expo: '*'
+
+  expo-sqlite@58.0.13:
+    resolution: {integrity: sha512-EqYQTJUJ2Ub+Q/PwM8UTQBeg1/+piuhG8KQTO8HOhZfYu8e34bB3sOkGsM0HQ7KNesvWLlN8UmbrajRQRyE3gg==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
 
   expo-status-bar@57.0.1:
     resolution: {integrity: sha512-Xwaq1gAoVRWx5dPG5VhT5RSbnI9OilhZnO5qoPBnUaBAa5VzRzfdS8q0/bsPt0jR2DKLtGuP0bQ6efMJ4RIMDg==}
@@ -4648,6 +4680,20 @@ snapshots:
 
   '@tanstack/query-core@5.102.8': {}
 
+  '@tanstack/query-core@5.104.4': {}
+
+  '@tanstack/query-persist-client-core@5.104.4':
+    dependencies:
+      '@tanstack/query-core': 5.104.4
+
+  '@tanstack/react-query-persist-client@5.104.4(@tanstack/react-query@5.102.8(react@19.2.3))(@types/react@19.2.18)(react@19.2.3)':
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.104.4
+      '@tanstack/react-query': 5.102.8(react@19.2.3)
+      react: 19.2.3
+    optionalDependencies:
+      '@types/react': 19.2.18
+
   '@tanstack/react-query@5.102.8(react@19.2.3)':
     dependencies:
       '@tanstack/query-core': 5.102.8
@@ -4763,6 +4809,8 @@ snapshots:
   asap@2.0.6: {}
 
   asynckit@0.4.0: {}
+
+  await-lock@2.2.2: {}
 
   axios@1.20.0:
     dependencies:
@@ -5411,6 +5459,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  expo-sqlite@58.0.13(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      await-lock: 2.2.2
+      expo: 57.0.18(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.14)(expo-router@57.0.17)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      react: 19.2.3
+      react-native: 0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3)
 
   expo-status-bar@57.0.1(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
     dependencies:

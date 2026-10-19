@@ -2,13 +2,15 @@ import React, { useEffect } from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { NavigationBar } from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { queryClient } from '../services/api/queryClient';
+import { queryPersistOptions } from '../services/storage/queryPersistor';
 import { useAuthStore } from '../store/useAuthStore';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { ToastContainer } from '../components/common/ToastContainer';
+import { OfflineNoticeBar } from '../components/common/OfflineNoticeBar';
 import { colors } from '../theme/colors';
 
 export default function RootLayout() {
@@ -32,7 +34,10 @@ export default function RootLayout() {
     <ErrorBoundary>
       <GestureHandlerRootView style={styles.container}>
         <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
+          <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={queryPersistOptions}
+          >
             <StatusBar
               barStyle="dark-content"
               backgroundColor={colors.background.base}
@@ -40,6 +45,7 @@ export default function RootLayout() {
             />
             {Platform.OS === 'android' && <NavigationBar style="light" />}
             <View style={styles.container}>
+              <OfflineNoticeBar />
               <Stack
                 screenOptions={{
                   headerShown: false,
@@ -60,7 +66,7 @@ export default function RootLayout() {
               </Stack>
               <ToastContainer />
             </View>
-          </QueryClientProvider>
+          </PersistQueryClientProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>

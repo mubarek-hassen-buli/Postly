@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { tokenStorage } from '../services/auth/tokenStorage';
+import { sqliteStorage } from '../services/storage/sqliteStorage';
 import { apiClient } from '../services/api/client';
+import { queryClient } from '../services/api/queryClient';
 
 export interface TelegramSessionInfo {
   telegram_user_id: number | null;
@@ -61,6 +63,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } finally {
       await tokenStorage.clearAll();
+      await sqliteStorage.clear();
+      queryClient.clear();
       set({
         token: null,
         user: null,
@@ -90,22 +94,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false;
       }
 
-      // Validate token with backend /api/v1/auth/me/
-      const response = await apiClient.get<UserProfile>('/auth/me/');
-      const user = response.data;
-      await tokenStorage.setUserData(user);
+      // Pre-read cached user data for immediate offline availability
+      const cachedUser = await tokenStorage.getUserData<UserProfile>();
 
-      set({
-        token,
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-        isInitialized: true,
-      });
-      return true;
+      try {
+        // Validate token with backend /api/v1/auth/me/
+        const response = await apiClient.get<UserProfile>('/auth/me/');
+        const freshUser = response.data;
+        await tokenStorage.setUserData(freshUser);
+
+        set({
+          token,
+          user: freshUser,
+          isAuthenticated: true,
+          isLoading: false,
+          isInitialized: true,
+        });
+        return true;
+      } catch (error: unknown) {
+        const isAuthError = (error as { statusCode?: number })?.statusCode === 401;
+        if (isAuthError) {
+          console.warn('Auth token rejected with 401. Logging out.');
+          await tokenStorage.clearAll();
+          await sqliteStorage.clear();
+          queryClient.clear();
+          set({
+            token: null,
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            isInitialized: true,
+          });
+          return false;
+        }
+
+        // Network or offline error: keep user authenticated using cached profile
+        console.warn('Backend /auth/me/ unreachable. Maintaining session in offline mode.');
+        set({
+          token,
+          user: cachedUser,
+          isAuthenticated: true,
+          isLoading: false,
+          isInitialized: true,
+        });
+        return true;
+      }
     } catch (error) {
-      console.warn('Auth token verification failed:', error);
-      await tokenStorage.clearAll();
+      console.warn('Unexpected error in checkAuthStatus:', error);
       set({
         token: null,
         user: null,
