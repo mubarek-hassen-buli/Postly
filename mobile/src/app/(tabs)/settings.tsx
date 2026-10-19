@@ -29,6 +29,7 @@ import {
   useLinkedInStatus,
 } from '../../hooks/useLinkedIn';
 import { Card } from '../../components/ui/Card';
+import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { borderRadius, layout, spacing } from '../../theme/spacing';
@@ -130,38 +131,45 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Account & Session Preferences</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* User Profile Card */}
-        <Card style={styles.profileCard}>
-          <View style={styles.avatarCircle}>
+    <View style={styles.container}>
+      <ScreenHeaderBanner
+        title="Settings"
+        subtitle="Account & Session Preferences"
+      >
+        {/* User Profile Hero inside Header */}
+        <View style={styles.bannerProfileHero}>
+          <View style={styles.bannerAvatarCircle}>
             {user?.avatar_url && !avatarError ? (
               <Image
                 source={{ uri: user.avatar_url }}
-                style={styles.avatarImage}
+                style={styles.bannerAvatarImage}
                 onError={() => setAvatarError(true)}
               />
             ) : (
-              <UserIcon size={30} color={colors.primary.DEFAULT} />
+              <UserIcon size={26} color="#FFFFFF" />
             )}
           </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.userName}>
+          <View style={styles.bannerProfileText}>
+            <Text style={styles.bannerProfileName}>
               {user?.first_name
                 ? `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`
                 : user?.username || 'Telegram User'}
             </Text>
-            <Text style={styles.userPhone}>{user?.phone_number}</Text>
+            <Text style={styles.bannerProfilePhone}>{user?.phone_number}</Text>
             {user?.telegram_session?.username && (
-              <Text style={styles.userHandle}>@{user.telegram_session.username}</Text>
+              <Text style={styles.bannerProfileHandle}>
+                @{user.telegram_session.username}
+              </Text>
             )}
           </View>
-        </Card>
+        </View>
+      </ScreenHeaderBanner>
+
+      <CurvedSheet>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
 
         {/* Telegram Session Section */}
         <Text style={styles.sectionTitle}>Telegram MTProto Connection</Text>
@@ -266,34 +274,66 @@ export default function SettingsScreen() {
           <Text style={styles.versionSubtext}>Encrypted Telegram MTProto Bridge</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
-  );
+    </CurvedSheet>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: colors.background.base,
+    backgroundColor: '#0077B6',
   },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+  bannerProfileHero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginTop: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
-  headerTitle: {
-    ...typography.presets.title1,
-    color: colors.text.primary,
-    fontWeight: '800',
+  bannerAvatarCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  headerSubtitle: {
+  bannerAvatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  bannerProfileText: {
+    flex: 1,
+  },
+  bannerProfileName: {
+    ...typography.presets.title2,
+    color: '#FFFFFF',
+    fontSize: 18,
+  },
+  bannerProfilePhone: {
+    ...typography.presets.subhead,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
+    marginTop: 1,
+  },
+  bannerProfileHandle: {
     ...typography.presets.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 11,
   },
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.lg,
-    paddingBottom: layout.tabBarClearance,
+    paddingBottom: layout.tabBarClearance + 24,
   },
   profileCard: {
     flexDirection: 'row',

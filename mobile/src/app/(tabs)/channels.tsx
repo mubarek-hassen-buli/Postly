@@ -18,6 +18,7 @@ import { ChannelItem } from '../../services/channels/channelService';
 import { ChannelCard } from '../../components/channels/ChannelCard';
 import { ChannelFilterBar, ChannelFilterMode } from '../../components/channels/ChannelFilterBar';
 import { NotificationBellButton } from '../../components/notifications/NotificationBellButton';
+import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
@@ -120,136 +121,107 @@ export default function ChannelsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Channels</Text>
-          <Text style={styles.headerSubtitle}>
-            Manage your broadcast destinations
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <ScreenHeaderBanner
+        title="Channels"
+        subtitle="Manage your broadcast destinations"
+        badge={totalCount}
+        rightActions={
+          <View style={styles.headerRightActions}>
+            <TouchableOpacity
+              onPress={handleSync}
+              disabled={syncMutation.isPending || isRefetching}
+              style={styles.frostedSyncButton}
+              accessibilityLabel="Sync channels from Telegram"
+            >
+              {syncMutation.isPending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <RefreshCw size={18} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
 
-        <View style={styles.headerRightActions}>
-          <NotificationBellButton onPress={() => router.push('/notifications')} />
-
-          <TouchableOpacity
-            onPress={handleSync}
-            disabled={syncMutation.isPending || isRefetching}
-            style={[styles.syncButton, syncMutation.isPending && styles.syncingButton]}
-            accessibilityLabel="Sync channels from Telegram"
-          >
-            {syncMutation.isPending ? (
-              <ActivityIndicator size="small" color={colors.primary.DEFAULT} />
-            ) : (
-              <>
-                <RefreshCw size={16} color={colors.primary.DEFAULT} style={styles.syncIcon} />
-                <Text style={styles.syncText}>Sync</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Selected Summary Banner */}
-      {selectedCount > 0 && (
-        <View style={styles.summaryBanner}>
-          <Sparkles size={16} color={colors.primary.DEFAULT} style={styles.sparkleIcon} />
-          <Text style={styles.summaryText}>
-            <Text style={styles.summaryHighlight}>{selectedCount}</Text> channel
-            {selectedCount > 1 ? 's' : ''} selected for quick publishing
-          </Text>
-        </View>
-      )}
-
-      {/* Search & Filter Bar */}
-      <ChannelFilterBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        filterMode={filterMode}
-        onFilterModeChange={setFilterMode}
-        selectedCount={selectedCount}
-        totalCount={totalCount}
-      />
-
-      {/* Channels List */}
-      <FlatList
-        data={channels}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ChannelCard
-            channel={item}
-            onToggleSelect={handleToggleSelect}
-            onPressStats={(channel) =>
-              router.push({
-                pathname: '/channels/[id]',
-                params: { id: channel.id },
-              })
-            }
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor={colors.primary.DEFAULT}
-            colors={[colors.primary.DEFAULT]}
-          />
+            <NotificationBellButton
+              variant="frosted"
+              onPress={() => router.push('/notifications')}
+            />
+          </View>
         }
-        ListEmptyComponent={renderEmptyState}
       />
-    </SafeAreaView>
+
+      <CurvedSheet>
+        {/* Selected Summary Banner */}
+        {selectedCount > 0 && (
+          <View style={styles.summaryBanner}>
+            <Sparkles size={16} color={colors.primary.DEFAULT} style={styles.sparkleIcon} />
+            <Text style={styles.summaryText}>
+              <Text style={styles.summaryHighlight}>{selectedCount}</Text> channel
+              {selectedCount > 1 ? 's' : ''} selected for quick publishing
+            </Text>
+          </View>
+        )}
+
+        {/* Search & Filter Bar */}
+        <ChannelFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filterMode={filterMode}
+          onFilterModeChange={setFilterMode}
+          selectedCount={selectedCount}
+          totalCount={totalCount}
+        />
+
+        {/* Channels List */}
+        <FlatList
+          data={channels}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ChannelCard
+              channel={item}
+              onToggleSelect={handleToggleSelect}
+              onPressStats={(channel) =>
+                router.push({
+                  pathname: '/channels/[id]',
+                  params: { id: channel.id },
+                })
+              }
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.primary.DEFAULT}
+              colors={[colors.primary.DEFAULT]}
+            />
+          }
+          ListEmptyComponent={renderEmptyState}
+        />
+      </CurvedSheet>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: colors.background.base,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    backgroundColor: '#0077B6',
   },
   headerRightActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 8,
   },
-  headerTitle: {
-    ...typography.presets.title1,
-    color: colors.text.primary,
-    fontWeight: '800',
-  },
-  headerSubtitle: {
-    ...typography.presets.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  syncButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary.subtle,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.md,
+  frostedSyncButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
     borderWidth: 1,
-    borderColor: colors.primary.subtleBorder,
-  },
-  syncingButton: {
-    opacity: 0.8,
-  },
-  syncIcon: {
-    marginRight: spacing.xs,
-  },
-  syncText: {
-    ...typography.presets.subheadMedium,
-    color: colors.primary.DEFAULT,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   summaryBanner: {
     flexDirection: 'row',

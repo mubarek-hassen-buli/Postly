@@ -23,6 +23,7 @@ import {
 import { PostItem } from '../../services/posts/postService';
 import { PostCard } from '../../components/posts/PostCard';
 import { NotificationBellButton } from '../../components/notifications/NotificationBellButton';
+import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import {
   DashboardSearchBar,
   PostFilterTabs,
@@ -194,17 +195,6 @@ export default function PostersScreen() {
   const renderHeader = () => {
     return (
       <View style={styles.headerSection}>
-        {/* Title & Count Row */}
-        <View style={styles.titleRow}>
-          <View style={styles.titleLeft}>
-            <Text style={styles.pageTitle}>Posters</Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{displayPosts.length}</Text>
-            </View>
-          </View>
-          <NotificationBellButton onPress={() => router.push('/notifications')} />
-        </View>
-
         {/* Search Bar directly above the filters */}
         <DashboardSearchBar
           searchQuery={searchQuery}
@@ -222,69 +212,74 @@ export default function PostersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <FlatList
-        key="posters-grid-2col"
-        data={gridPosts}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.gridRow}
-        renderItem={({ item }) => {
-          if ('isEmptySlot' in item && item.isEmptySlot) {
-            return <View style={styles.emptySlot} pointerEvents="none" />;
-          }
-          return (
-            <PostCard
-              post={item}
-              onPress={(p) =>
-                router.push({
-                  pathname: '/posts/[id]',
-                  params: { id: p.id },
-                })
-              }
-              onEdit={handleEditPost}
-              onPublishNow={handlePublishNow}
-              onCancelSchedule={handleCancelSchedule}
-              onDelete={handleDeletePost}
-            />
-          );
-        }}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary.DEFAULT}
-            colors={[colors.primary.DEFAULT]}
+    <View style={styles.container}>
+      <ScreenHeaderBanner
+        title="Posters"
+        badge={displayPosts.length}
+        rightActions={
+          <NotificationBellButton
+            variant="frosted"
+            onPress={() => router.push('/notifications')}
           />
         }
       />
-    </SafeAreaView>
+      <CurvedSheet>
+        <FlatList
+          key="posters-grid-2col"
+          data={gridPosts}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.gridRow}
+          renderItem={({ item }) => {
+            if ('isEmptySlot' in item && item.isEmptySlot) {
+              return <View style={styles.emptySlot} pointerEvents="none" />;
+            }
+            return (
+              <PostCard
+                post={item}
+                onPress={(p) =>
+                  router.push({
+                    pathname: '/posts/[id]',
+                    params: { id: p.id },
+                  })
+                }
+                onEdit={handleEditPost}
+                onPublishNow={handlePublishNow}
+                onCancelSchedule={handleCancelSchedule}
+                onDelete={handleDeletePost}
+              />
+            );
+          }}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmptyState}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary.DEFAULT}
+              colors={[colors.primary.DEFAULT]}
+            />
+          }
+        />
+      </CurvedSheet>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: colors.background.base,
+    backgroundColor: '#0077B6',
   },
   listContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing.xs,
-    paddingBottom: layout.tabBarClearance,
+    paddingTop: spacing.md,
+    paddingBottom: layout.tabBarClearance + 20,
   },
   headerSection: {
     marginBottom: spacing.sm,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.sm,
   },
   titleLeft: {
     flexDirection: 'row',

@@ -14,10 +14,12 @@ import { borderRadius, spacing } from '../../theme/spacing';
 
 export interface NotificationBellButtonProps {
   onPress: () => void;
+  variant?: 'default' | 'frosted';
 }
 
 export const NotificationBellButton: React.FC<NotificationBellButtonProps> = ({
   onPress,
+  variant = 'default',
 }) => {
   const unreadCount = useUnreadNotificationsCount();
 
@@ -26,14 +28,23 @@ export const NotificationBellButton: React.FC<NotificationBellButtonProps> = ({
     onPress();
   };
 
+  const isFrosted = variant === 'frosted';
+
   return (
     <TouchableOpacity
       onPress={handlePress}
-      style={styles.container}
+      style={[
+        styles.container,
+        isFrosted && styles.frostedContainer,
+      ]}
       accessibilityLabel={`Notifications (${unreadCount} unread)`}
       accessibilityRole="button"
     >
-      <Bell size={20} color={colors.text.secondary} />
+      <Bell
+        size={20}
+        color={isFrosted ? '#FFFFFF' : colors.text.secondary}
+        strokeWidth={2.2}
+      />
       {unreadCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
@@ -56,6 +67,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  frostedContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   badge: {
     position: 'absolute',

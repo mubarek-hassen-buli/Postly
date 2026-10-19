@@ -16,6 +16,7 @@ import { ArrowLeft, Bell, CheckCheck, Clock, Radio, Sparkles } from 'lucide-reac
 import { useMarkNotificationsRead, useNotifications } from '../hooks/useNotifications';
 import { NotificationCard } from '../components/notifications/NotificationCard';
 import { NotificationLogItem } from '../services/notifications/notificationService';
+import { ScreenHeaderBanner, CurvedSheet } from '../components/common/ScreenHeaderBanner';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { borderRadius, layout, spacing } from '../theme/spacing';
@@ -106,124 +107,87 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <ArrowLeft size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-
-        <View style={styles.titleColumn}>
-          <Text style={styles.headerTitle}>Activity & Alerts</Text>
-          <Text style={styles.headerSubtitle}>Broadcast results & logs</Text>
-        </View>
-
-        {hasUnread ? (
-          <TouchableOpacity
-            onPress={handleMarkAllRead}
-            style={styles.markAllBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            disabled={markReadMutation.isPending}
-          >
-            {markReadMutation.isPending ? (
-              <ActivityIndicator size="small" color="#0088CC" />
-            ) : (
-              <>
-                <CheckCheck size={16} color="#0088CC" />
-                <Text style={styles.markAllBtnText}>Read All</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 36 }} />
-        )}
-      </View>
-
-      {/* Notifications List */}
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <NotificationCard notification={item} onPress={handleItemPress} />
-        )}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: Math.max(insets.bottom + 24, 40) },
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor={colors.primary.DEFAULT}
-            colors={[colors.primary.DEFAULT]}
-          />
+    <View style={styles.container}>
+      <ScreenHeaderBanner
+        compact={true}
+        showBackButton={true}
+        title="Activity & Alerts"
+        rightActions={
+          hasUnread ? (
+            <TouchableOpacity
+              onPress={handleMarkAllRead}
+              style={styles.frostedMarkAllBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              disabled={markReadMutation.isPending}
+              accessibilityLabel="Mark all as read"
+            >
+              {markReadMutation.isPending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <CheckCheck size={16} color="#FFFFFF" />
+                  <Text style={styles.frostedMarkAllText}>Read All</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          ) : undefined
         }
       />
-    </SafeAreaView>
+
+      <CurvedSheet>
+        {/* Notifications List */}
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <NotificationCard notification={item} onPress={handleItemPress} />
+          )}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmptyState}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: Math.max(insets.bottom + 24, 40) },
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.primary.DEFAULT}
+              colors={[colors.primary.DEFAULT]}
+            />
+          }
+        />
+      </CurvedSheet>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#0077B6',
   },
-  header: {
+  frostedMarkAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  titleColumn: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    ...typography.presets.title2,
-    color: '#0F172A',
-    fontSize: 18,
-  },
-  headerSubtitle: {
+  frostedMarkAllText: {
     ...typography.presets.caption,
-    color: '#64748B',
-    fontSize: 12,
-    marginTop: 1,
-  },
-  markAllBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 136, 204, 0.08)',
-  },
-  markAllBtnText: {
-    ...typography.presets.caption,
-    color: '#0088CC',
+    fontFamily: 'Fredoka-SemiBold',
+    color: '#FFFFFF',
     fontSize: 12,
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 16,
   },
   filterBar: {
     flexDirection: 'row',

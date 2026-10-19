@@ -43,6 +43,7 @@ import {
   useSyncChannels,
   useToggleChannelSelection,
 } from '../../hooks/useChannels';
+import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { borderRadius, layout, spacing } from '../../theme/spacing';
@@ -98,41 +99,41 @@ export default function ChannelDetailScreen() {
 
   if (channelLoading) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Channel</Text>
-          <View style={{ width: 36 }} />
-        </View>
-        <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-          <Text style={styles.centerMessage}>Loading channel details...</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <ScreenHeaderBanner
+          compact={true}
+          showBackButton={true}
+          title="Channel Details"
+        />
+        <CurvedSheet>
+          <View style={styles.centerBox}>
+            <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+            <Text style={styles.centerMessage}>Loading channel details...</Text>
+          </View>
+        </CurvedSheet>
+      </View>
     );
   }
 
   if (!channel) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Channel</Text>
-          <View style={{ width: 36 }} />
-        </View>
-        <View style={styles.centerBox}>
-          <AlertCircle size={44} color={colors.status.error} />
-          <Text style={styles.errorTitle}>Channel Not Found</Text>
-          <Text style={styles.centerMessage}>This channel could not be loaded or was unlinked.</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <ScreenHeaderBanner
+          compact={true}
+          showBackButton={true}
+          title="Channel Details"
+        />
+        <CurvedSheet>
+          <View style={styles.centerBox}>
+            <AlertCircle size={44} color={colors.status.error} />
+            <Text style={styles.errorTitle}>Channel Not Found</Text>
+            <Text style={styles.centerMessage}>This channel could not be loaded or was unlinked.</Text>
+            <TouchableOpacity onPress={() => router.back()} style={styles.retryButton}>
+              <Text style={styles.retryButtonText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </CurvedSheet>
+      </View>
     );
   }
 
@@ -142,41 +143,35 @@ export default function ChannelDetailScreen() {
       : 100;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <ArrowLeft size={22} color={colors.text.primary} />
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <ScreenHeaderBanner
+        compact={true}
+        showBackButton={true}
+        title={channel.title}
+        rightActions={
+          <TouchableOpacity
+            onPress={handleSync}
+            style={styles.frostedRightButton}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            disabled={syncMutation.isPending}
+            accessibilityLabel="Sync channel"
+          >
+            {syncMutation.isPending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <RefreshCw size={18} color="#FFFFFF" />
+            )}
+          </TouchableOpacity>
+        }
+      />
 
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {channel.title}
-        </Text>
-
-        <TouchableOpacity
-          onPress={handleSync}
-          style={styles.syncHeaderButton}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          disabled={syncMutation.isPending}
-        >
-          {syncMutation.isPending ? (
-            <ActivityIndicator size="small" color="#0088CC" />
-          ) : (
-            <RefreshCw size={19} color="#0088CC" />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 24, 40) }]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
+      <CurvedSheet>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 24, 40) }]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
             refreshing={isLoading}
             onRefresh={handleRefresh}
             tintColor={colors.primary.DEFAULT}
@@ -465,24 +460,25 @@ export default function ChannelDetailScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
-  );
+    </CurvedSheet>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#0077B6',
   },
-  header: {
-    flexDirection: 'row',
+  frostedRightButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    justifyContent: 'center',
   },
   backButton: {
     width: 36,

@@ -14,18 +14,20 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import {
   AlertCircle,
-  ArrowLeft,
   Calendar,
+  Check,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Clock,
   Copy,
   FileText,
   Layers,
-  Pin,
+  MessageSquare,
   Radio,
   Send,
   Share2,
@@ -33,6 +35,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 import {
   useCancelScheduledPost,
@@ -41,11 +44,14 @@ import {
   usePublishPostNow,
 } from '../../hooks/usePosts';
 import { PostChannelTargetItem, PostItem } from '../../services/posts/postService';
+import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { borderRadius, layout, spacing } from '../../theme/spacing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CAROUSEL_WIDTH = SCREEN_WIDTH - 40;
+const CAROUSEL_HEIGHT = 260;
 
 export default function PostDetailScreen() {
   const router = useRouter();
@@ -56,6 +62,8 @@ export default function PostDetailScreen() {
   const { data: post, isLoading, isError, refetch } = usePost(postId ?? null);
 
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [selectedChannelFilter, setSelectedChannelFilter] = useState<string>('ALL');
+  const [expandedSection, setExpandedSection] = useState<string | null>('delivery');
   const [copied, setCopied] = useState(false);
 
   const publishMutation = usePublishPostNow();
@@ -64,6 +72,7 @@ export default function PostDetailScreen() {
 
   const handleCopyContent = () => {
     if (!post?.content) return;
+    Haptics.selectionAsync().catch(() => {});
     Clipboard.setString(post.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -72,6 +81,7 @@ export default function PostDetailScreen() {
   const handlePublishNow = async () => {
     if (!postId) return;
     try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       await publishMutation.mutateAsync(postId);
       Alert.alert('Broadcast Sent', 'Your post has been published to targeted channels.');
       refetch();
@@ -92,6 +102,7 @@ export default function PostDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
               await cancelMutation.mutateAsync(postId);
               refetch();
             } catch (err: any) {
@@ -115,6 +126,7 @@ export default function PostDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
               await deleteMutation.mutateAsync(postId);
               router.back();
             } catch (err: any) {
@@ -126,142 +138,81 @@ export default function PostDetailScreen() {
     );
   };
 
+  const toggleSection = (sectionKey: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    setExpandedSection((prev) => (prev === sectionKey ? null : sectionKey));
+  };
+
   const getStatusBadge = (status: PostItem['status']) => {
     switch (status) {
       case 'PUBLISHED':
         return {
-          label: 'Published',
+          label: 'PUBLISHED',
           bg: 'rgba(52, 199, 89, 0.12)',
-          text: '#34C759',
-          icon: <CheckCircle2 size={13} color="#34C759" />,
+          text: '#28A745',
+          border: 'rgba(52, 199, 89, 0.25)',
         };
       case 'SCHEDULED':
         return {
-          label: 'Scheduled',
-          bg: 'rgba(42, 171, 238, 0.12)',
-          text: '#2AABEE',
-          icon: <Clock size={13} color="#2AABEE" />,
-        };
-      case 'PUBLISHING':
-        return {
-          label: 'Broadcasting...',
-          bg: 'rgba(255, 149, 0, 0.12)',
-          text: '#FF9500',
-          icon: <ActivityIndicator size="small" color="#FF9500" />,
+          label: 'SCHEDULED',
+          bg: 'rgba(0, 136, 204, 0.12)',
+          text: '#0088CC',
+          border: 'rgba(0, 136, 204, 0.25)',
         };
       case 'FAILED':
         return {
-          label: 'Broadcast Failed',
+          label: 'FAILED',
           bg: 'rgba(255, 59, 48, 0.12)',
           text: '#FF3B30',
-          icon: <XCircle size={13} color="#FF3B30" />,
-        };
-      case 'CANCELLED':
-        return {
-          label: 'Cancelled',
-          bg: 'rgba(142, 142, 147, 0.12)',
-          text: '#8E8E93',
-          icon: <Clock size={13} color="#8E8E93" />,
+          border: 'rgba(255, 59, 48, 0.25)',
         };
       default:
         return {
-          label: 'Draft',
+          label: 'DRAFT',
           bg: 'rgba(100, 116, 139, 0.12)',
           text: '#64748B',
-          icon: <FileText size={13} color="#64748B" />,
+          border: 'rgba(100, 116, 139, 0.25)',
         };
     }
   };
 
-  const renderTargetItem = (target: PostChannelTargetItem) => {
-    const title = target.channel?.title || target.channel_title || 'Telegram Channel';
-    const username = target.channel?.username || target.channel_username;
-    const isSuccess = target.status === 'SUCCESS';
-    const isFailed = target.status === 'FAILED';
-
-    return (
-      <View key={target.id || String(target.telegram_channel_id)} style={styles.targetRow}>
-        <View style={styles.targetIconWrap}>
-          <Radio size={16} color="#0088CC" />
-        </View>
-
-        <View style={styles.targetInfo}>
-          <Text style={styles.targetTitle} numberOfLines={1}>
-            {title}
-          </Text>
-          {username ? (
-            <Text style={styles.targetUsername}>@{username}</Text>
-          ) : (
-            <Text style={styles.targetUsername}>Channel ID: {target.telegram_channel_id}</Text>
-          )}
-
-          {isFailed && target.error_message && (
-            <Text style={styles.targetError} numberOfLines={2}>
-              {target.error_message}
-            </Text>
-          )}
-        </View>
-
-        <View
-          style={[
-            styles.targetBadge,
-            isSuccess && styles.targetBadgeSuccess,
-            isFailed && styles.targetBadgeFailed,
-          ]}
-        >
-          {isSuccess && <CheckCircle2 size={12} color="#34C759" style={styles.targetBadgeIcon} />}
-          {isFailed && <XCircle size={12} color="#FF3B30" style={styles.targetBadgeIcon} />}
-          <Text
-            style={[
-              styles.targetBadgeText,
-              isSuccess && { color: '#34C759' },
-              isFailed && { color: '#FF3B30' },
-            ]}
-          >
-            {target.status}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Post Details</Text>
-          <View style={{ width: 36 }} />
-        </View>
-        <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-          <Text style={styles.centerMessage}>Loading post...</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <ScreenHeaderBanner
+          compact={true}
+          showBackButton={true}
+          title="Post Details"
+        />
+        <CurvedSheet>
+          <View style={styles.centerBox}>
+            <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+            <Text style={styles.centerMessage}>Loading post...</Text>
+          </View>
+        </CurvedSheet>
+      </View>
     );
   }
 
   if (isError || !post) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Post Details</Text>
-          <View style={{ width: 36 }} />
-        </View>
-        <View style={styles.centerBox}>
-          <AlertCircle size={44} color={colors.status.error} />
-          <Text style={styles.errorTitle}>Post Not Found</Text>
-          <Text style={styles.centerMessage}>This post could not be loaded or was removed.</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <ScreenHeaderBanner
+          compact={true}
+          showBackButton={true}
+          title="Post Details"
+        />
+        <CurvedSheet>
+          <View style={styles.centerBox}>
+            <AlertCircle size={44} color={colors.status.error} />
+            <Text style={styles.errorTitle}>Post Not Found</Text>
+            <Text style={styles.centerMessage}>This post could not be loaded or was removed.</Text>
+            <TouchableOpacity onPress={() => router.back()} style={styles.retryButton}>
+              <Text style={styles.retryButtonText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </CurvedSheet>
+      </View>
     );
   }
 
@@ -269,260 +220,502 @@ export default function PostDetailScreen() {
   const mediaList = post.media_attachments || [];
   const targets = post.targets || [];
 
+  // Filtered targets for the variant channel chips
+  const displayedTargets =
+    selectedChannelFilter === 'ALL'
+      ? targets
+      : targets.filter(
+          (t) =>
+            t.channel_id === selectedChannelFilter ||
+            t.channel_title?.toLowerCase() === selectedChannelFilter.toLowerCase()
+        );
+
+  const formattedDate = post.scheduled_for
+    ? format(new Date(post.scheduled_for), 'MMM d, yyyy • h:mm a')
+    : post.published_at
+    ? format(new Date(post.published_at), 'MMM d, yyyy • h:mm a')
+    : format(new Date(post.created_at), 'MMM d, yyyy • h:mm a');
+
+  // Extract a clean heading from post content or default
+  const titleExcerpt =
+    post.content?.split('\n')[0]?.slice(0, 60) || 'Broadcast Message';
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top App Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <ArrowLeft size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Post Details</Text>
-
-        <TouchableOpacity
-          onPress={handleDelete}
-          style={styles.deleteHeaderButton}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Trash2 size={20} color={colors.status.error} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 24, 40) }]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={refetch}
-            tintColor={colors.primary.DEFAULT}
-          />
+    <View style={styles.container}>
+      {/* 1. Signature Header Banner with Frosted Nav Actions */}
+      <ScreenHeaderBanner
+        compact={true}
+        showBackButton={true}
+        title="Post Details"
+        rightActions={
+          <TouchableOpacity
+            onPress={handleDelete}
+            style={styles.frostedRightButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Delete post"
+          >
+            <Trash2 size={18} color="#FFFFFF" />
+          </TouchableOpacity>
         }
-      >
-        {/* Status & Timing Banner */}
-        <View style={styles.statusBanner}>
-          <View style={styles.statusBadgeRow}>
-            <View style={[styles.badgePill, { backgroundColor: badge.bg }]}>
-              {badge.icon}
-              <Text style={[styles.badgePillText, { color: badge.text }]}>{badge.label}</Text>
+      />
+
+      {/* 2. Main Sheet matching The Ordinary inspiration */}
+      <CurvedSheet>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: Math.max(insets.bottom + 90, 110) },
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={false}
+              onRefresh={refetch}
+              tintColor={colors.primary.DEFAULT}
+            />
+          }
+        >
+          {/* A. Hero Media Showcase / Canvas */}
+          {mediaList.length > 0 ? (
+            <View style={styles.mediaContainer}>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={(e) => {
+                  const x = e.nativeEvent.contentOffset.x;
+                  const idx = Math.round(x / CAROUSEL_WIDTH);
+                  if (idx !== activeMediaIndex) setActiveMediaIndex(idx);
+                }}
+                scrollEventThrottle={16}
+                style={styles.carouselScrollView}
+              >
+                {mediaList.map((media, idx) => (
+                  <View key={media.id || idx} style={styles.mediaSlide}>
+                    <Image
+                      source={{ uri: media.media_url }}
+                      style={styles.mediaImage}
+                      contentFit="cover"
+                      transition={250}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Pill Pagination Indicator matching reference (- • • •) */}
+              {mediaList.length > 1 && (
+                <View style={styles.paginationRow}>
+                  {mediaList.map((_, idx) => {
+                    const isActive = idx === activeMediaIndex;
+                    return (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.paginationDot,
+                          isActive && styles.paginationDotActive,
+                        ]}
+                      />
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          ) : (
+            /* Aesthetic Preview Canvas when post has no media */
+            <View style={styles.textOnlyHeroCanvas}>
+              <View style={styles.heroWatermarkIcon}>
+                <Radio size={72} color="rgba(0, 136, 204, 0.08)" />
+              </View>
+              <View style={styles.heroQuoteBadge}>
+                <MessageSquare size={16} color={colors.primary.DEFAULT} />
+                <Text style={styles.heroQuoteBadgeText}>Broadcast Preview</Text>
+              </View>
+              <Text style={styles.heroQuoteText} numberOfLines={3}>
+                "{post.content?.trim() || 'No message content'}"
+              </Text>
+            </View>
+          )}
+
+          {/* B. Title, Status & Meta Row (Unboxed Hierarchy) */}
+          <View style={styles.titleSection}>
+            <Text style={styles.categoryLabel}>
+              {post.status === 'PUBLISHED'
+                ? 'PUBLISHED BROADCAST'
+                : post.status === 'SCHEDULED'
+                ? 'SCHEDULED BROADCAST'
+                : 'DRAFT BROADCAST'}
+            </Text>
+
+            <View style={styles.headlineAndPriceRow}>
+              <Text style={styles.postHeadline} numberOfLines={2}>
+                {titleExcerpt}
+              </Text>
+
+              {/* Status Pill in the "$6.50" Price Spot */}
+              <View
+                style={[
+                  styles.statusBadgeCapsule,
+                  { backgroundColor: badge.bg, borderColor: badge.border },
+                ]}
+              >
+                <Text style={[styles.statusBadgeText, { color: badge.text }]}>
+                  {badge.label}
+                </Text>
+              </View>
             </View>
 
-            {post.pin_message && (
-              <View style={styles.pinBadge}>
-                <Pin size={12} color="#0088CC" />
-                <Text style={styles.pinBadgeText}>Pinned</Text>
-              </View>
-            )}
+            {/* Rating / Meta equivalent row */}
+            <View style={styles.metaRow}>
+              <Zap size={14} color="#0088CC" />
+              <Text style={styles.metaText}>
+                {targets.length} Target Channel{targets.length !== 1 ? 's' : ''}
+              </Text>
+              <Text style={styles.metaDivider}>•</Text>
+              <Clock size={13} color="#64748B" />
+              <Text style={styles.metaText}>{formattedDate}</Text>
+            </View>
           </View>
 
-          <View style={styles.metaRow}>
-            {post.scheduled_for && (
-              <View style={styles.metaItem}>
-                <Clock size={13} color={colors.text.secondary} />
-                <Text style={styles.metaText}>
-                  Scheduled: {format(new Date(post.scheduled_for), 'MMM d, yyyy · h:mm a')}
-                </Text>
-              </View>
-            )}
-
-            {post.published_at && (
-              <View style={styles.metaItem}>
-                <Calendar size={13} color={colors.text.secondary} />
-                <Text style={styles.metaText}>
-                  Published: {format(new Date(post.published_at), 'MMM d, yyyy · h:mm a')}
-                </Text>
-              </View>
-            )}
-
-            {!post.published_at && !post.scheduled_for && post.created_at && (
-              <View style={styles.metaItem}>
-                <Calendar size={13} color={colors.text.secondary} />
-                <Text style={styles.metaText}>
-                  Created: {format(new Date(post.created_at), 'MMM d, yyyy · h:mm a')}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Media Attachments Section */}
-        {mediaList.length > 0 && (
-          <View style={styles.mediaContainer}>
-            <Image
-              source={{ uri: mediaList[activeMediaIndex]?.media_url }}
-              style={styles.activeMediaImage}
-              contentFit="cover"
-              priority="high"
-            />
-            {mediaList.length > 1 && (
-              <View style={styles.mediaThumbRow}>
-                {mediaList.map((m, idx) => (
-                  <TouchableOpacity
-                    key={m.id || idx}
-                    onPress={() => setActiveMediaIndex(idx)}
+          {/* C. Channel Variant Pills (Matching 30ml, 100ml, 150ml) */}
+          {targets.length > 0 && (
+            <View style={styles.channelPillsSection}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.pillsScrollContent}
+              >
+                <TouchableOpacity
+                  onPress={() => setSelectedChannelFilter('ALL')}
+                  style={[
+                    styles.channelPill,
+                    selectedChannelFilter === 'ALL' && styles.channelPillActive,
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text
                     style={[
-                      styles.thumbWrap,
-                      activeMediaIndex === idx && styles.thumbWrapActive,
+                      styles.channelPillText,
+                      selectedChannelFilter === 'ALL' && styles.channelPillTextActive,
                     ]}
                   >
-                    <Image source={{ uri: m.media_url }} style={styles.thumbImage} contentFit="cover" />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
+                    All Channels ({targets.length})
+                  </Text>
+                </TouchableOpacity>
 
-        {/* Message Content Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderTitleRow}>
-              <FileText size={16} color={colors.primary.DEFAULT} />
-              <Text style={styles.cardTitle}>Message Content</Text>
+                {targets.map((t, index) => {
+                  const isSelected = selectedChannelFilter === t.channel_id;
+                  return (
+                    <TouchableOpacity
+                      key={t.channel_id || t.id || index}
+                      onPress={() => setSelectedChannelFilter(t.channel_id || t.id)}
+                      style={[
+                        styles.channelPill,
+                        isSelected && styles.channelPillActive,
+                      ]}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.channelPillText,
+                          isSelected && styles.channelPillTextActive,
+                        ]}
+                      >
+                        {t.channel_title || `Channel ${index + 1}`}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </View>
-
-            <TouchableOpacity
-              onPress={handleCopyContent}
-              style={styles.copyButton}
-              activeOpacity={0.7}
-            >
-              <Copy size={13} color={copied ? colors.status.success : colors.text.secondary} />
-              <Text style={[styles.copyButtonText, copied && { color: colors.status.success }]}>
-                {copied ? 'Copied!' : 'Copy'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.messageBox}>
-            <Text style={styles.messageText} selectable>
-              {post.content || post.text_content || 'No text content attached.'}
-            </Text>
-          </View>
-
-          <View style={styles.formattingRow}>
-            <Text style={styles.formattingBadge}>
-              Format: {post.formatting_mode || 'HTML'}
-            </Text>
-            <Text style={styles.charCountText}>
-              {(post.content || '').length} characters
-            </Text>
-          </View>
-        </View>
-
-        {/* Target Channels Delivery Breakdown */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderTitleRow}>
-              <Share2 size={16} color={colors.primary.DEFAULT} />
-              <Text style={styles.cardTitle}>Broadcast Targets</Text>
-            </View>
-            <Text style={styles.targetCountBadge}>{targets.length} channels</Text>
-          </View>
-
-          {targets.length === 0 ? (
-            <Text style={styles.emptyTargetText}>No channel targets specified for this post.</Text>
-          ) : (
-            <View style={styles.targetsList}>{targets.map(renderTargetItem)}</View>
           )}
-        </View>
 
-        {/* Primary Action Buttons */}
-        <View style={styles.actionSection}>
-          {post.status === 'SCHEDULED' && (
-            <>
+          {/* D. Unboxed Message Content */}
+          <View style={styles.contentSection}>
+            <View style={styles.contentHeaderRow}>
+              <Text style={styles.contentSectionTitle}>Message Text</Text>
               <TouchableOpacity
-                onPress={handlePublishNow}
-                style={[styles.primaryBtn, { backgroundColor: '#0088CC' }]}
-                activeOpacity={0.8}
-                disabled={publishMutation.isPending}
+                onPress={handleCopyContent}
+                style={styles.copyInlineButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                {publishMutation.isPending ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
+                {copied ? (
+                  <>
+                    <Check size={14} color="#28A745" />
+                    <Text style={[styles.copyInlineText, { color: '#28A745' }]}>
+                      Copied!
+                    </Text>
+                  </>
                 ) : (
                   <>
-                    <Zap size={18} color="#FFFFFF" />
-                    <Text style={styles.primaryBtnText}>Publish Now</Text>
+                    <Copy size={14} color="#0088CC" />
+                    <Text style={styles.copyInlineText}>Copy</Text>
                   </>
                 )}
               </TouchableOpacity>
+            </View>
 
-              <TouchableOpacity
-                onPress={handleCancelSchedule}
-                style={styles.secondaryBtn}
-                activeOpacity={0.8}
-                disabled={cancelMutation.isPending}
-              >
-                <Clock size={16} color={colors.status.error} />
-                <Text style={[styles.secondaryBtnText, { color: colors.status.error }]}>
-                  Cancel Schedule
+            <Text style={styles.postBodyText} selectable={true}>
+              {post.content || 'No text content in this broadcast.'}
+            </Text>
+          </View>
+
+          {/* E. Grouped Accordion Rows (Description ->, Ingredients ->, How to use ->) */}
+          <View style={styles.accordionCard}>
+            {/* 1. Delivery & Channel Logs */}
+            <TouchableOpacity
+              onPress={() => toggleSection('delivery')}
+              style={styles.accordionHeader}
+              activeOpacity={0.7}
+            >
+              <View style={styles.accordionTitleRow}>
+                <Radio size={18} color="#0088CC" />
+                <Text style={styles.accordionTitle}>Delivery & Channel Logs</Text>
+              </View>
+              {expandedSection === 'delivery' ? (
+                <ChevronDown size={18} color="#94A3B8" />
+              ) : (
+                <ChevronRight size={18} color="#94A3B8" />
+              )}
+            </TouchableOpacity>
+
+            {expandedSection === 'delivery' && (
+              <View style={styles.accordionBody}>
+                {displayedTargets.length === 0 ? (
+                  <Text style={styles.emptyAccordionText}>
+                    No target channels found for this selection.
+                  </Text>
+                ) : (
+                  displayedTargets.map((target, idx) => {
+                    const isSuccess = target.status === 'SUCCESS';
+                    const isFailed = target.status === 'FAILED';
+                    return (
+                      <View key={target.channel_id || target.id || idx} style={styles.targetRow}>
+                        <View style={styles.targetLeft}>
+                          <View
+                            style={[
+                              styles.targetStatusDot,
+                              isSuccess && { backgroundColor: '#34C759' },
+                              isFailed && { backgroundColor: '#FF3B30' },
+                            ]}
+                          />
+                          <View>
+                            <Text style={styles.targetChannelTitle}>
+                              {target.channel_title || 'Target Channel'}
+                            </Text>
+                            {target.error_message ? (
+                              <Text style={styles.targetErrorText} numberOfLines={2}>
+                                {target.error_message}
+                              </Text>
+                            ) : (
+                              <Text style={styles.targetSubText}>
+                                {isSuccess
+                                  ? 'Delivered to Telegram'
+                                  : target.status === 'PENDING'
+                                  ? 'Pending dispatch'
+                                  : 'Queued'}
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+
+                        <View
+                          style={[
+                            styles.targetStatusBadge,
+                            isSuccess && styles.targetBadgeSuccess,
+                            isFailed && styles.targetBadgeFailed,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.targetStatusBadgeText,
+                              isSuccess && { color: '#34C759' },
+                              isFailed && { color: '#FF3B30' },
+                            ]}
+                          >
+                            {target.status}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })
+                )}
+              </View>
+            )}
+
+            <View style={styles.accordionDivider} />
+
+            {/* 2. Schedule & Timing */}
+            <TouchableOpacity
+              onPress={() => toggleSection('schedule')}
+              style={styles.accordionHeader}
+              activeOpacity={0.7}
+            >
+              <View style={styles.accordionTitleRow}>
+                <Clock size={18} color="#0088CC" />
+                <Text style={styles.accordionTitle}>Schedule & Timing</Text>
+              </View>
+              {expandedSection === 'schedule' ? (
+                <ChevronDown size={18} color="#94A3B8" />
+              ) : (
+                <ChevronRight size={18} color="#94A3B8" />
+              )}
+            </TouchableOpacity>
+
+            {expandedSection === 'schedule' && (
+              <View style={styles.accordionBody}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoKey}>Created At</Text>
+                  <Text style={styles.infoVal}>
+                    {format(new Date(post.created_at), 'PPP • p')}
+                  </Text>
+                </View>
+                {post.scheduled_for && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoKey}>Scheduled For</Text>
+                    <Text style={styles.infoVal}>
+                      {format(new Date(post.scheduled_for), 'PPP • p')}
+                    </Text>
+                  </View>
+                )}
+                {post.published_at && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoKey}>Published At</Text>
+                    <Text style={styles.infoVal}>
+                      {format(new Date(post.published_at), 'PPP • p')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            <View style={styles.accordionDivider} />
+
+            {/* 3. Media & Attachments Info */}
+            <TouchableOpacity
+              onPress={() => toggleSection('media')}
+              style={styles.accordionHeader}
+              activeOpacity={0.7}
+            >
+              <View style={styles.accordionTitleRow}>
+                <Layers size={18} color="#0088CC" />
+                <Text style={styles.accordionTitle}>
+                  Media Attachments ({mediaList.length})
                 </Text>
-              </TouchableOpacity>
-            </>
-          )}
+              </View>
+              {expandedSection === 'media' ? (
+                <ChevronDown size={18} color="#94A3B8" />
+              ) : (
+                <ChevronRight size={18} color="#94A3B8" />
+              )}
+            </TouchableOpacity>
 
-          {(post.status === 'FAILED' || post.status === 'DRAFT') && (
+            {expandedSection === 'media' && (
+              <View style={styles.accordionBody}>
+                {mediaList.length === 0 ? (
+                  <Text style={styles.emptyAccordionText}>
+                    No media files attached to this broadcast.
+                  </Text>
+                ) : (
+                  mediaList.map((item, idx) => (
+                    <View key={item.id || idx} style={styles.mediaInfoItem}>
+                      <FileText size={16} color="#64748B" />
+                      <Text style={styles.mediaInfoText} numberOfLines={1}>
+                        File #{idx + 1} ({item.media_type || 'image'})
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* F. Sticky Floating Bottom Action Bar (Matching "- 1 +" & "Add to Cart") */}
+        <View
+          style={[
+            styles.bottomStickyBar,
+            { paddingBottom: Math.max(insets.bottom + 8, 16) },
+          ]}
+        >
+          {/* Secondary Action Pill */}
+          <TouchableOpacity
+            onPress={handleCopyContent}
+            style={styles.bottomSecondaryButton}
+            activeOpacity={0.8}
+            accessibilityLabel="Copy post content"
+          >
+            <Copy size={18} color="#0F172A" />
+            <Text style={styles.bottomSecondaryText}>Copy</Text>
+          </TouchableOpacity>
+
+          {/* Primary Action Button */}
+          {post.status === 'SCHEDULED' ? (
             <TouchableOpacity
               onPress={handlePublishNow}
-              style={[styles.primaryBtn, { backgroundColor: '#0088CC' }]}
-              activeOpacity={0.8}
               disabled={publishMutation.isPending}
+              style={[
+                styles.bottomPrimaryButton,
+                publishMutation.isPending && styles.buttonDisabled,
+              ]}
+              activeOpacity={0.8}
             >
               {publishMutation.isPending ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <Send size={18} color="#FFFFFF" />
-                  <Text style={styles.primaryBtnText}>
-                    {post.status === 'FAILED' ? 'Retry Broadcast' : 'Publish Broadcast'}
-                  </Text>
+                  <Send size={18} color="#FFFFFF" strokeWidth={2.4} />
+                  <Text style={styles.bottomPrimaryText}>Publish Now</Text>
                 </>
               )}
             </TouchableOpacity>
+          ) : post.status === 'DRAFT' ? (
+            <TouchableOpacity
+              onPress={handlePublishNow}
+              disabled={publishMutation.isPending}
+              style={[
+                styles.bottomPrimaryButton,
+                publishMutation.isPending && styles.buttonDisabled,
+              ]}
+              activeOpacity={0.8}
+            >
+              {publishMutation.isPending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Send size={18} color="#FFFFFF" strokeWidth={2.4} />
+                  <Text style={styles.bottomPrimaryText}>Broadcast Now</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => router.push('/compose')}
+              style={styles.bottomPrimaryButton}
+              activeOpacity={0.8}
+            >
+              <Zap size={18} color="#FFFFFF" strokeWidth={2.4} />
+              <Text style={styles.bottomPrimaryText}>Compose New</Text>
+            </TouchableOpacity>
           )}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </CurvedSheet>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#0077B6',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    ...typography.presets.title2,
-    color: '#0F172A',
-    fontSize: 18,
-  },
-  deleteHeaderButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  frostedRightButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -530,298 +723,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  statusBanner: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6 },
-      android: { elevation: 2 },
-    }),
-  },
-  statusBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  badgePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    gap: 6,
-  },
-  badgePillText: {
-    ...typography.presets.caption,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  pinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 136, 204, 0.1)',
-    gap: 4,
-  },
-  pinBadgeText: {
-    ...typography.presets.caption,
-    fontSize: 11,
-    color: '#0088CC',
-  },
-  metaRow: {
-    gap: 6,
-    marginTop: 4,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  metaText: {
-    ...typography.presets.caption,
-    color: '#64748B',
-    fontSize: 12.5,
-  },
-  mediaContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  activeMediaImage: {
-    width: '100%',
-    height: 220,
-    backgroundColor: '#F1F5F9',
-  },
-  mediaThumbRow: {
-    flexDirection: 'row',
-    padding: 10,
-    gap: 8,
-  },
-  thumbWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  thumbWrapActive: {
-    borderColor: colors.primary.DEFAULT,
-  },
-  thumbImage: {
-    width: '100%',
-    height: '100%',
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6 },
-      android: { elevation: 2 },
-    }),
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  cardHeaderTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cardTitle: {
-    ...typography.presets.title3,
-    color: '#0F172A',
-    fontSize: 15,
-  },
-  copyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-  },
-  copyButtonText: {
-    ...typography.presets.caption,
-    fontSize: 11,
-    color: '#64748B',
-  },
-  messageBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  messageText: {
-    ...typography.presets.body,
-    color: '#0F172A',
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  formattingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  formattingBadge: {
-    ...typography.presets.caption,
-    fontSize: 11,
-    color: '#94A3B8',
-  },
-  charCountText: {
-    ...typography.presets.caption,
-    fontSize: 11,
-    color: '#94A3B8',
-  },
-  targetCountBadge: {
-    ...typography.presets.caption,
-    fontSize: 11.5,
-    color: '#64748B',
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  targetsList: {
-    gap: 10,
-  },
-  targetRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  targetIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(0, 136, 204, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  targetInfo: {
-    flex: 1,
-  },
-  targetTitle: {
-    ...typography.presets.bodyMedium,
-    color: '#0F172A',
-    fontSize: 14,
-  },
-  targetUsername: {
-    ...typography.presets.caption,
-    color: '#64748B',
-    fontSize: 12,
-    marginTop: 1,
-  },
-  targetError: {
-    ...typography.presets.caption,
-    color: colors.status.error,
-    fontSize: 11,
-    marginTop: 3,
-  },
-  targetBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-  },
-  targetBadgeSuccess: {
-    backgroundColor: 'rgba(52, 199, 89, 0.1)',
-  },
-  targetBadgeFailed: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-  },
-  targetBadgeIcon: {
-    marginRight: 4,
-  },
-  targetBadgeText: {
-    ...typography.presets.caption,
-    fontSize: 10.5,
-    color: '#64748B',
-    fontWeight: '700',
-  },
-  emptyTargetText: {
-    ...typography.presets.body,
-    color: '#94A3B8',
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 12,
-  },
-  actionSection: {
-    gap: 12,
-    marginTop: 8,
-  },
-  primaryBtn: {
-    height: 52,
-    borderRadius: 26,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    ...Platform.select({
-      ios: { shadowColor: '#0088CC', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8 },
-      android: { elevation: 3 },
-    }),
-  },
-  primaryBtnText: {
-    ...typography.presets.button,
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  secondaryBtn: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  secondaryBtnText: {
-    ...typography.presets.button,
-    fontSize: 15,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   centerBox: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    padding: 32,
   },
   centerMessage: {
     ...typography.presets.body,
     color: '#64748B',
-    marginTop: 10,
+    marginTop: 12,
     textAlign: 'center',
   },
   errorTitle: {
@@ -830,15 +744,380 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   retryButton: {
-    marginTop: 16,
-    paddingHorizontal: 20,
+    marginTop: 18,
     paddingVertical: 10,
-    backgroundColor: '#0F172A',
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    backgroundColor: '#0088CC',
+    borderRadius: 12,
   },
   retryButtonText: {
     ...typography.presets.button,
     color: '#FFFFFF',
+  },
+
+  /* Media Carousel */
+  mediaContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  carouselScrollView: {
+    width: CAROUSEL_WIDTH,
+    height: CAROUSEL_HEIGHT,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#EDF2F7',
+  },
+  mediaSlide: {
+    width: CAROUSEL_WIDTH,
+    height: CAROUSEL_HEIGHT,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  mediaImage: {
+    width: '100%',
+    height: '100%',
+  },
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 14,
+  },
+  paginationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#CBD5E1',
+  },
+  paginationDotActive: {
+    width: 24,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0088CC',
+  },
+
+  /* No-Media Canvas */
+  textOnlyHeroCanvas: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  heroWatermarkIcon: {
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+  },
+  heroQuoteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
+  heroQuoteBadgeText: {
+    ...typography.presets.caption,
+    fontFamily: 'Fredoka-SemiBold',
+    color: '#0088CC',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  heroQuoteText: {
+    ...typography.presets.body,
+    color: '#475569',
+    fontSize: 16,
+    lineHeight: 23,
+    fontStyle: 'italic',
+  },
+
+  /* Title, Status, Price */
+  titleSection: {
+    marginBottom: 18,
+  },
+  categoryLabel: {
+    ...typography.presets.caption,
+    fontFamily: 'Fredoka-SemiBold',
+    color: '#94A3B8',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  headlineAndPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  postHeadline: {
+    ...typography.presets.title2,
+    color: '#0F172A',
+    fontSize: 22,
+    lineHeight: 28,
+    flex: 1,
+  },
+  statusBadgeCapsule: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  statusBadgeText: {
+    ...typography.presets.caption,
+    fontFamily: 'Fredoka-Bold',
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  metaText: {
+    ...typography.presets.subhead,
+    color: '#64748B',
+    fontSize: 13,
+  },
+  metaDivider: {
+    color: '#CBD5E1',
+    marginHorizontal: 2,
+  },
+
+  /* Channel Variant Pills (30ml, 100ml) */
+  channelPillsSection: {
+    marginBottom: 20,
+    marginHorizontal: -20,
+  },
+  pillsScrollContent: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  channelPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+  },
+  channelPillActive: {
+    backgroundColor: '#0F172A',
+    borderColor: '#0F172A',
+  },
+  channelPillText: {
+    ...typography.presets.subheadMedium,
+    color: '#475569',
+    fontSize: 13,
+  },
+  channelPillTextActive: {
+    color: '#FFFFFF',
+    fontFamily: 'Fredoka-SemiBold',
+  },
+
+  /* Unboxed Post Body */
+  contentSection: {
+    marginBottom: 22,
+  },
+  contentHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  contentSectionTitle: {
+    ...typography.presets.title3,
+    color: '#0F172A',
+    fontSize: 16,
+  },
+  copyInlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  copyInlineText: {
+    ...typography.presets.caption,
+    fontFamily: 'Fredoka-SemiBold',
+    color: '#0088CC',
+  },
+  postBodyText: {
+    ...typography.presets.body,
+    color: '#334155',
+    fontSize: 15,
+    lineHeight: 23,
+  },
+
+  /* Grouped Accordion Rows */
+  accordionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
+  accordionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  accordionTitle: {
+    ...typography.presets.bodyMedium,
+    color: '#1E293B',
+    fontSize: 15,
+  },
+  accordionDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+  },
+  accordionBody: {
+    paddingHorizontal: 18,
+    paddingBottom: 16,
+  },
+  emptyAccordionText: {
+    ...typography.presets.subhead,
+    color: '#94A3B8',
+    fontStyle: 'italic',
+  },
+  targetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  targetLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  targetStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#94A3B8',
+  },
+  targetChannelTitle: {
+    ...typography.presets.bodyMedium,
+    color: '#0F172A',
     fontSize: 14,
+  },
+  targetSubText: {
+    ...typography.presets.caption,
+    color: '#64748B',
+  },
+  targetErrorText: {
+    ...typography.presets.caption,
+    color: '#FF3B30',
+  },
+  targetStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#F1F5F9',
+  },
+  targetBadgeSuccess: {
+    backgroundColor: 'rgba(52, 199, 89, 0.12)',
+  },
+  targetBadgeFailed: {
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
+  },
+  targetStatusBadgeText: {
+    ...typography.presets.caption,
+    fontFamily: 'Fredoka-SemiBold',
+    fontSize: 11,
+    color: '#64748B',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  infoKey: {
+    ...typography.presets.subhead,
+    color: '#64748B',
+  },
+  infoVal: {
+    ...typography.presets.subheadMedium,
+    color: '#0F172A',
+  },
+  mediaInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 6,
+  },
+  mediaInfoText: {
+    ...typography.presets.subhead,
+    color: '#334155',
+  },
+
+  /* Sticky Bottom Bar */
+  bottomStickyBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    gap: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 12,
+  },
+  bottomSecondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 18,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F1F5F9',
+  },
+  bottomSecondaryText: {
+    ...typography.presets.button,
+    color: '#0F172A',
+    fontSize: 14,
+  },
+  bottomPrimaryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#0088CC',
+    shadowColor: '#0088CC',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  bottomPrimaryText: {
+    ...typography.presets.button,
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
