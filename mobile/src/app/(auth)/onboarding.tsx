@@ -1,8 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Redirect, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -58,6 +58,13 @@ export default function OnboardingScreen() {
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
+  // Warm image cache natively on mount
+  useEffect(() => {
+    SLIDES_DATA.forEach((slide) => {
+      Image.prefetch(slide.image);
+    });
+  }, []);
+
   // If session is active, go straight to home
   if (isAuthenticated) {
     return <Redirect href="/(tabs)" />;
@@ -96,7 +103,7 @@ export default function OnboardingScreen() {
 
       {/* Upper Part: Image taking upper part edge-to-edge */}
       <View style={styles.topCanvas}>
-        {/* Horizontal Swipeable Visuals */}
+        {/* Horizontal Swipeable Visuals with all items pre-rendered */}
         <FlatList
           ref={flatListRef}
           data={SLIDES_DATA}
@@ -107,12 +114,24 @@ export default function OnboardingScreen() {
           onScroll={handleScroll}
           scrollEventThrottle={16}
           bounces={false}
+          initialNumToRender={3}
+          maxToRenderPerBatch={3}
+          windowSize={3}
+          removeClippedSubviews={false}
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
+            index,
+          })}
           renderItem={({ item }) => (
             <View style={styles.heroSlide}>
               <Image
                 source={item.image}
                 style={styles.heroImage}
-                resizeMode="cover"
+                contentFit="cover"
+                priority="high"
+                cachePolicy="memory-disk"
+                transition={0}
               />
             </View>
           )}
@@ -157,7 +176,7 @@ export default function OnboardingScreen() {
             ))}
           </View>
 
-          {/* Headline & Description matching inspiration typography */}
+          {/* Centered Headline & Description */}
           <View style={styles.contentArea}>
             <Text style={styles.headline}>
               {currentSlide.headline}
@@ -215,9 +234,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.22)',
   },
   skipText: {
+    fontFamily: 'Fredoka-Medium',
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '600',
     letterSpacing: 0.3,
   },
   heroFlatList: {
@@ -274,19 +293,24 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     marginBottom: 16,
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   headline: {
+    fontFamily: 'Fredoka-Bold',
     fontSize: 28,
-    fontWeight: '800',
     color: '#0F172A',
     lineHeight: 34,
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   description: {
+    fontFamily: 'Fredoka-Regular',
     fontSize: 15,
     color: '#64748B',
     lineHeight: 22,
     marginTop: 10,
+    textAlign: 'center',
   },
   ctaButton: {
     width: '100%',
@@ -308,9 +332,9 @@ const styles = StyleSheet.create({
     }),
   },
   ctaButtonText: {
+    fontFamily: 'Fredoka-SemiBold',
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: 0.2,
   },
 });

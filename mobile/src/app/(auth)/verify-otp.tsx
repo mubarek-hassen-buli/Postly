@@ -304,20 +304,21 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
+    fontFamily: 'Fredoka-Bold',
     fontSize: 26,
-    fontWeight: '800',
     color: '#111827',
     letterSpacing: -0.5,
     marginBottom: 8,
   },
   subtitle: {
+    fontFamily: 'Fredoka-Regular',
     fontSize: 14.5,
     color: '#6B7280',
     lineHeight: 22,
   },
   highlightPhone: {
+    fontFamily: 'Fredoka-SemiBold',
     color: '#111827',
-    fontWeight: '700',
   },
   otpSection: {
     flex: 1,
@@ -329,13 +330,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countdownText: {
+    fontFamily: 'Fredoka-Regular',
     fontSize: 14,
     color: '#6B7280',
-    fontWeight: '500',
   },
   countdownNumber: {
+    fontFamily: 'Fredoka-SemiBold',
     color: colors.primary.DEFAULT,
-    fontWeight: '700',
   },
   resendButton: {
     flexDirection: 'row',
@@ -348,8 +349,8 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   resendText: {
+    fontFamily: 'Fredoka-SemiBold',
     fontSize: 14,
-    fontWeight: '700',
     color: colors.primary.DEFAULT,
   },
   verifyButtonWrapper: {
@@ -372,9 +373,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   verifyButtonText: {
+    fontFamily: 'Fredoka-SemiBold',
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: 0.2,
   },
 

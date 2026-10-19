@@ -277,13 +277,14 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   title: {
+    fontFamily: 'Fredoka-Bold',
     fontSize: 26,
-    fontWeight: '800',
     color: '#111827',
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   subtitle: {
+    fontFamily: 'Fredoka-Regular',
     fontSize: 14.5,
     color: '#6B7280',
     lineHeight: 20,
@@ -292,8 +293,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputLabel: {
+    fontFamily: 'Fredoka-Medium',
     fontSize: 14,
-    fontWeight: '600',
     color: '#1F2937',
     marginBottom: 10,
   },
@@ -325,8 +326,8 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   dialCodeText: {
+    fontFamily: 'Fredoka-SemiBold',
     fontSize: 16,
-    fontWeight: '700',
     color: '#111827',
     marginRight: 4,
   },
@@ -341,6 +342,7 @@ const styles = StyleSheet.create({
   },
   numberInput: {
     flex: 1,
+    fontFamily: 'Fredoka-Regular',
     fontSize: 16,
     color: '#111827',
     paddingVertical: 0,
@@ -353,9 +355,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   errorText: {
+    fontFamily: 'Fredoka-Regular',
     fontSize: 13,
     color: colors.status.error,
-    fontWeight: '500',
   },
   continueButtonWrapper: {
     marginTop: 24,
@@ -374,9 +376,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   continueButtonText: {
+    fontFamily: 'Fredoka-SemiBold',
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: 0.2,
   },
 
