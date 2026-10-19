@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { RefreshCw, Radio, Sparkles } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -16,9 +17,7 @@ import { useChannels, useSyncChannels, useToggleChannelSelection } from '../../h
 import { ChannelItem } from '../../services/channels/channelService';
 import { ChannelCard } from '../../components/channels/ChannelCard';
 import { ChannelFilterBar, ChannelFilterMode } from '../../components/channels/ChannelFilterBar';
-import { ChannelStatsModal } from '../../components/channels/ChannelStatsModal';
 import { NotificationBellButton } from '../../components/notifications/NotificationBellButton';
-import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
@@ -26,10 +25,9 @@ import { typography } from '../../theme/typography';
 import { borderRadius, layout, spacing } from '../../theme/spacing';
 
 export default function ChannelsScreen() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<ChannelFilterMode>('ALL');
-  const [selectedChannelForStats, setSelectedChannelForStats] = useState<ChannelItem | null>(null);
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   // Queries & Mutations
   const {
@@ -133,7 +131,7 @@ export default function ChannelsScreen() {
         </View>
 
         <View style={styles.headerRightActions}>
-          <NotificationBellButton onPress={() => setNotificationsVisible(true)} />
+          <NotificationBellButton onPress={() => router.push('/notifications')} />
 
           <TouchableOpacity
             onPress={handleSync}
@@ -182,7 +180,12 @@ export default function ChannelsScreen() {
           <ChannelCard
             channel={item}
             onToggleSelect={handleToggleSelect}
-            onPressStats={(channel) => setSelectedChannelForStats(channel)}
+            onPressStats={(channel) =>
+              router.push({
+                pathname: '/channels/[id]',
+                params: { id: channel.id },
+              })
+            }
           />
         )}
         contentContainerStyle={styles.listContent}
@@ -195,19 +198,6 @@ export default function ChannelsScreen() {
           />
         }
         ListEmptyComponent={renderEmptyState}
-      />
-
-      {/* Channel Detailed Stats Modal */}
-      <ChannelStatsModal
-        channel={selectedChannelForStats}
-        visible={Boolean(selectedChannelForStats)}
-        onClose={() => setSelectedChannelForStats(null)}
-      />
-
-      {/* Notification Center Modal */}
-      <NotificationCenterModal
-        visible={notificationsVisible}
-        onClose={() => setNotificationsVisible(false)}
       />
     </SafeAreaView>
   );

@@ -86,6 +86,27 @@ export default function RootLayout() {
                     animation: 'slide_from_bottom',
                   }}
                 />
+                <Stack.Screen
+                  name="posts/[id]"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                  }}
+                />
+                <Stack.Screen
+                  name="channels/[id]"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                  }}
+                />
+                <Stack.Screen
+                  name="notifications"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                  }}
+                />
               </Stack>
               <ToastContainer />
             </View>

@@ -103,6 +103,14 @@ export function useToggleChannelSelection() {
   });
 }
 
+export function useChannel(channelId: string | null) {
+  return useQuery({
+    queryKey: ['channel', channelId],
+    queryFn: () => (channelId ? channelService.getChannel(channelId) : Promise.reject('No ID')),
+    enabled: Boolean(channelId),
+  });
+}
+
 export function useChannelStats(channelId: string | null) {
   return useQuery({
     queryKey: ['channel_stats', channelId],

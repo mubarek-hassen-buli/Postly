@@ -6,19 +6,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '../../store/useAuthStore';
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { AnalyticsSection } from '../../components/analytics/AnalyticsSection';
-import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal';
 import { colors } from '../../theme/colors';
 import { layout, spacing } from '../../theme/spacing';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -52,18 +52,12 @@ export default function DashboardScreen() {
         <DashboardHeader
           userName={user?.first_name || user?.username || 'Creator'}
           avatarUrl={user?.avatar_url}
-          onOpenNotifications={() => setNotificationsVisible(true)}
+          onOpenNotifications={() => router.push('/notifications')}
         />
 
         {/* 2. Decoupled Analytics Section (KPI Cards + Visual Charts) */}
         <AnalyticsSection />
       </ScrollView>
-
-      {/* Notification Center Modal */}
-      <NotificationCenterModal
-        visible={notificationsVisible}
-        onClose={() => setNotificationsVisible(false)}
-      />
     </SafeAreaView>
   );
 }

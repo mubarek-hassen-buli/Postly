@@ -22,12 +22,12 @@ import {
 } from '../../hooks/usePosts';
 import { PostItem } from '../../services/posts/postService';
 import { PostCard } from '../../components/posts/PostCard';
+import { NotificationBellButton } from '../../components/notifications/NotificationBellButton';
 import {
   DashboardSearchBar,
   PostFilterTabs,
   PostStatusFilter,
 } from '../../components/posts/PostFilterBar';
-import { PostDetailModal } from '../../components/posts/PostDetailModal';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { colors } from '../../theme/colors';
@@ -40,7 +40,6 @@ export default function PostersScreen() {
 
   const [activeStatus, setActiveStatus] = useState<PostStatusFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPostForDetail, setSelectedPostForDetail] = useState<PostItem | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Backend query status filter mapping
@@ -123,7 +122,6 @@ export default function PostersScreen() {
 
   const handleEditPost = (post: PostItem) => {
     Haptics.selectionAsync().catch(() => {});
-    setSelectedPostForDetail(null);
     router.push({
       pathname: '/compose',
       params: { editPostId: post.id },
@@ -204,6 +202,7 @@ export default function PostersScreen() {
               <Text style={styles.countBadgeText}>{displayPosts.length}</Text>
             </View>
           </View>
+          <NotificationBellButton onPress={() => router.push('/notifications')} />
         </View>
 
         {/* Search Bar directly above the filters */}
@@ -237,7 +236,12 @@ export default function PostersScreen() {
           return (
             <PostCard
               post={item}
-              onPress={(p) => setSelectedPostForDetail(p)}
+              onPress={(p) =>
+                router.push({
+                  pathname: '/posts/[id]',
+                  params: { id: p.id },
+                })
+              }
               onEdit={handleEditPost}
               onPublishNow={handlePublishNow}
               onCancelSchedule={handleCancelSchedule}
@@ -257,17 +261,6 @@ export default function PostersScreen() {
             colors={[colors.primary.DEFAULT]}
           />
         }
-      />
-
-      {/* Post Detail Modal */}
-      <PostDetailModal
-        post={selectedPostForDetail}
-        visible={Boolean(selectedPostForDetail)}
-        onClose={() => setSelectedPostForDetail(null)}
-        onEdit={handleEditPost}
-        onPublishNow={handlePublishNow}
-        onCancelSchedule={handleCancelSchedule}
-        onDelete={handleDeletePost}
       />
     </SafeAreaView>
   );
