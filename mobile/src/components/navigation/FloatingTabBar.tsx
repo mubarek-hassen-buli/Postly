@@ -140,7 +140,7 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
         accessibilityRole="button"
         accessibilityLabel="Create post"
       >
-        <Plus size={26} color="#12151B" strokeWidth={2.6} />
+        <Plus size={26} color="#FFFFFF" strokeWidth={2.6} />
       </TouchableOpacity>
     </View>
   );
@@ -204,19 +204,19 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: '#FFB765',
+    backgroundColor: '#0088CC',
     alignItems: 'center',
     justifyContent: 'center',
-    // Golden glow shadow
+    // Postly Signature Cyan/Blue Glow
     ...Platform.select({
       ios: {
-        shadowColor: '#FFB765',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.45,
-        shadowRadius: 12,
+        shadowColor: '#0088CC',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
       },
       android: {
-        elevation: 8,
+        elevation: 6,
       },
     }),
   },

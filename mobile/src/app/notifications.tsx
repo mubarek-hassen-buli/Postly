@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 24,
   },
   filterBar: {
     flexDirection: 'row',

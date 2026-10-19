@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing.lg,
+    paddingTop: 24,
     paddingBottom: layout.tabBarClearance + 24,
   },
   profileCard: {

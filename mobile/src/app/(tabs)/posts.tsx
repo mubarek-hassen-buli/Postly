@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing.md,
+    paddingTop: 24,
     paddingBottom: layout.tabBarClearance + 20,
   },
   headerSection: {

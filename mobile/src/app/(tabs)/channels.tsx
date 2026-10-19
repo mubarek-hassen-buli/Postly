@@ -150,31 +150,34 @@ export default function ChannelsScreen() {
       />
 
       <CurvedSheet>
-        {/* Selected Summary Banner */}
-        {selectedCount > 0 && (
-          <View style={styles.summaryBanner}>
-            <Sparkles size={16} color={colors.primary.DEFAULT} style={styles.sparkleIcon} />
-            <Text style={styles.summaryText}>
-              <Text style={styles.summaryHighlight}>{selectedCount}</Text> channel
-              {selectedCount > 1 ? 's' : ''} selected for quick publishing
-            </Text>
-          </View>
-        )}
-
-        {/* Search & Filter Bar */}
-        <ChannelFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          filterMode={filterMode}
-          onFilterModeChange={setFilterMode}
-          selectedCount={selectedCount}
-          totalCount={totalCount}
-        />
-
         {/* Channels List */}
         <FlatList
           data={channels}
           keyExtractor={(item) => item.id}
+          ListHeaderComponent={
+            <View style={styles.sheetHeader}>
+              {/* Selected Summary Banner */}
+              {selectedCount > 0 && (
+                <View style={styles.summaryBanner}>
+                  <Sparkles size={16} color={colors.primary.DEFAULT} style={styles.sparkleIcon} />
+                  <Text style={styles.summaryText}>
+                    <Text style={styles.summaryHighlight}>{selectedCount}</Text> channel
+                    {selectedCount > 1 ? 's' : ''} selected for quick publishing
+                  </Text>
+                </View>
+              )}
+
+              {/* Search & Filter Bar */}
+              <ChannelFilterBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                filterMode={filterMode}
+                onFilterModeChange={setFilterMode}
+                selectedCount={selectedCount}
+                totalCount={totalCount}
+              />
+            </View>
+          }
           renderItem={({ item }) => (
             <ChannelCard
               channel={item}
@@ -223,11 +226,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  sheetHeader: {
+    marginBottom: spacing.xs,
+  },
   summaryBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(42, 171, 238, 0.08)',
-    marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
@@ -248,7 +253,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingBottom: layout.tabBarClearance,
+    paddingTop: 24,
+    paddingBottom: layout.tabBarClearance + 20,
   },
   loadingContainer: {
     paddingVertical: spacing.xxxl,

@@ -144,7 +144,6 @@ export const CurvedSheet: React.FC<CurvedSheetProps> = ({ children, style }) => 
 const styles = StyleSheet.create({
   wrapper: {
     backgroundColor: '#0077B6',
-    zIndex: 1,
   },
   gradientBanner: {
     paddingHorizontal: 20,
@@ -152,10 +151,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   standardBanner: {
-    paddingBottom: 42,
+    paddingBottom: 48,
   },
   compactBanner: {
-    paddingBottom: 36,
+    paddingBottom: 42,
   },
   bannerPatternLayer: {
     position: 'absolute',
@@ -269,15 +268,16 @@ const styles = StyleSheet.create({
   },
   curvedSheet: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -26,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    marginTop: -32,
+    zIndex: 2,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 14,
-    elevation: 8,
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 4,
     overflow: 'hidden',
   },
 });

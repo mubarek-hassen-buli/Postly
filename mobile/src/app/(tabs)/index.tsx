@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing.md,
+    paddingTop: 24,
     paddingBottom: layout.tabBarClearance + 20,
   },
 });
