@@ -40,8 +40,8 @@ export default function RootLayout() {
           >
             <StatusBar
               barStyle="dark-content"
-              backgroundColor={colors.background.base}
-              translucent={false}
+              backgroundColor="transparent"
+              translucent={true}
             />
             {Platform.OS === 'android' && <NavigationBar style="light" />}
             <View style={styles.container}>

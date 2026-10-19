@@ -41,7 +41,7 @@ export const Button: React.FC<ButtonProps> = ({
   rightIcon,
   style,
   textStyle,
-  haptic = true,
+  haptic = false,
 }) => {
   const handlePress = () => {
     if (disabled || loading) return;
@@ -61,8 +61,7 @@ export const Button: React.FC<ButtonProps> = ({
     if (disabled) {
       base.opacity = 0.5;
     } else if (pressed) {
-      base.opacity = 0.85;
-      base.transform = [{ scale: 0.98 }];
+      base.opacity = 0.78;
     }
 
     return [base, style as ViewStyle];

@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -13,7 +14,6 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
 import { AlertCircle, ChevronDown, ChevronLeft } from 'lucide-react-native';
 
 import { authService } from '../../services/auth/authService';
@@ -32,7 +32,6 @@ export default function LoginScreen() {
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -44,14 +43,12 @@ export default function LoginScreen() {
     const cleanDigits = nationalNumber.replace(/\D/g, '');
     if (!cleanDigits || cleanDigits.length < 6) {
       setApiError('Please enter a valid phone number');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
       return;
     }
 
     const fullPhoneNumber = `${selectedCountry.dialCode}${cleanDigits}`;
     setLoading(true);
     setApiError(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     try {
       const response = await authService.sendCode(fullPhoneNumber);
@@ -72,6 +69,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
       {/* Top Banner (Postly Signature Blue/Teal Gradient matching inspiration layout) */}
       <LinearGradient
         colors={['#0077B6', '#0096C7', '#2AABEE']}
@@ -122,10 +120,7 @@ export default function LoginScreen() {
             <View style={[styles.inputCapsule, apiError ? styles.inputCapsuleError : null]}>
               {/* Country Selection Button */}
               <TouchableOpacity
-                onPress={() => {
-                  Haptics.selectionAsync().catch(() => {});
-                  setPickerVisible(true);
-                }}
+                onPress={() => setPickerVisible(true)}
                 style={styles.countryPickerTrigger}
                 activeOpacity={0.7}
                 accessibilityLabel={`Select country code, currently ${selectedCountry.name} ${selectedCountry.dialCode}`}

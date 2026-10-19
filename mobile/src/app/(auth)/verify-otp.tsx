@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,7 +13,6 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
 import { ChevronLeft, RefreshCw } from 'lucide-react-native';
 
 import { authService } from '../../services/auth/authService';
@@ -65,7 +65,6 @@ export default function VerifyOtpScreen() {
 
     setLoading(true);
     setError(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     try {
       const response = await authService.verifyCode(phoneNumber, phoneCodeHash, codeToVerify);
@@ -99,7 +98,6 @@ export default function VerifyOtpScreen() {
 
     setResending(true);
     setError(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
     try {
       const response = await authService.sendCode(phoneNumber);
@@ -114,12 +112,12 @@ export default function VerifyOtpScreen() {
   };
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     router.back();
   };
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
       {/* Top Banner (Postly Signature Blue Gradient matching inspiration) */}
       <LinearGradient
         colors={['#0077B6', '#0096C7', '#2AABEE']}
