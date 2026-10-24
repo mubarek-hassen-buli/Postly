@@ -18,7 +18,7 @@ import { useDashboardAnalytics } from '../../hooks/useAnalytics';
 import { MetricCard } from './MetricCard';
 import { PostsChart } from './PostsChart';
 import { PlatformChart } from './PlatformChart';
-import { EngagementChart } from './EngagementChart';
+import { ConsistencyCard } from './ConsistencyCard';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { borderRadius, spacing } from '../../theme/spacing';
@@ -163,10 +163,12 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ initialPerio
         totalBroadcasts={summary.total_broadcasts}
       />
 
-      {/* 4. Gifted Curved Area Line Chart: Trajectory Volume */}
-      <EngagementChart
+      {/* 4. Publishing Consistency & Channel Reach Breakdown */}
+      <ConsistencyCard
         data={postsChartData}
         reliabilityScore={engagementMetrics.delivery_reliability_score}
+        averageReach={engagementMetrics.average_reach_per_broadcast}
+        totalTargetsReached={engagementMetrics.total_targets_reached}
       />
     </View>
   );

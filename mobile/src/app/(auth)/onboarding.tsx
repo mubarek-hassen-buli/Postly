@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -57,13 +57,6 @@ export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-
-  // Warm image cache natively on mount
-  useEffect(() => {
-    SLIDES_DATA.forEach((slide) => {
-      Image.prefetch(slide.image);
-    });
-  }, []);
 
   // If session is active, go straight to home
   if (isAuthenticated) {
