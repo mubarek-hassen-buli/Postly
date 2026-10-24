@@ -78,6 +78,8 @@ class PostListSerializer(serializers.ModelSerializer):
             'status',
             'scheduled_for',
             'published_at',
+            'post_to_linkedin',
+            'linkedin_post_urn',
             'targets_count',
             'media_count',
             'media_attachments',
@@ -117,6 +119,8 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'status',
             'scheduled_for',
             'published_at',
+            'post_to_linkedin',
+            'linkedin_post_urn',
             'celery_task_id',
             'targets',
             'media_attachments',
@@ -128,6 +132,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'id',
             'status',
             'published_at',
+            'linkedin_post_urn',
             'celery_task_id',
             'targets',
             'media_attachments',
@@ -192,7 +197,12 @@ class PostCreateSerializer(serializers.Serializer):
         required=False,
         default=None,
         allow_null=True,
-        help_text="If true, immediately dispatches the post to Telegram upon creation."
+        help_text="If true, immediately dispatches the post upon creation."
+    )
+    post_to_linkedin = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text="Whether to publish or schedule this post to LinkedIn."
     )
     media_attachments = MediaAttachmentInputSerializer(many=True, required=False, default=list)
 
@@ -208,16 +218,22 @@ class PostCreateSerializer(serializers.Serializer):
         scheduled_for = attrs.get('scheduled_for')
         publish_now = attrs.get('publish_now')
         target_ids = attrs.get('target_channel_ids', [])
+        post_to_linkedin = attrs.get('post_to_linkedin', False)
 
         # Auto-infer publish_now if not explicitly given
         if publish_now is None:
-            publish_now = bool(not scheduled_for and target_ids)
+            publish_now = bool(not scheduled_for and (target_ids or post_to_linkedin))
             attrs['publish_now'] = publish_now
 
         # A post must contain either text content or at least one media item
         if not text and not media:
             raise serializers.ValidationError(
                 "A post must contain either text content or at least one media attachment."
+            )
+
+        if post_to_linkedin and not text:
+            raise serializers.ValidationError(
+                {"text_content": "LinkedIn posts require text commentary."}
             )
 
         if publish_now and scheduled_for:
@@ -230,9 +246,10 @@ class PostCreateSerializer(serializers.Serializer):
                 {"scheduled_for": "The scheduled datetime must be in the future."}
             )
 
-        if (publish_now or scheduled_for) and not target_ids:
+        # At least one destination (Telegram channels OR LinkedIn) must be selected
+        if (publish_now or scheduled_for) and not target_ids and not post_to_linkedin:
             raise serializers.ValidationError(
-                {"target_channel_ids": "At least one target channel must be selected for scheduled or instant publishing."}
+                "At least one destination (Telegram channel or LinkedIn) must be selected for publishing."
             )
 
         return attrs
@@ -245,6 +262,7 @@ class PostUpdateSerializer(serializers.Serializer):
     formatting_mode = serializers.ChoiceField(choices=Post.FormattingMode.choices, required=False)
     target_channel_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
     channel_ids = serializers.ListField(child=serializers.UUIDField(), required=False, help_text="Alias for target_channel_ids.")
+    post_to_linkedin = serializers.BooleanField(required=False)
     silent = serializers.BooleanField(required=False)
     disable_web_page_preview = serializers.BooleanField(required=False)
     pin_message = serializers.BooleanField(required=False)

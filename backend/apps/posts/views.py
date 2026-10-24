@@ -125,7 +125,8 @@ class PostListCreateView(APIView):
                 disable_web_page_preview=validated_data.get('disable_web_page_preview', False),
                 pin_message=validated_data.get('pin_message', False),
                 status=initial_status,
-                scheduled_for=scheduled_for
+                scheduled_for=scheduled_for,
+                post_to_linkedin=validated_data.get('post_to_linkedin', False)
             )
 
             # Create Channel Targets
@@ -203,6 +204,8 @@ class PostDetailView(APIView):
                 post.disable_web_page_preview = data['disable_web_page_preview']
             if 'pin_message' in data:
                 post.pin_message = data['pin_message']
+            if 'post_to_linkedin' in data and post.status != Post.PostStatus.PUBLISHED:
+                post.post_to_linkedin = data['post_to_linkedin']
 
             # Target channels update (only editable before publication)
             if 'target_channel_ids' in data and post.status != Post.PostStatus.PUBLISHED:

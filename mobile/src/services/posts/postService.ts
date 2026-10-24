@@ -35,6 +35,8 @@ export interface PostItem {
   pin_message: boolean;
   scheduled_for?: string | null;
   published_at?: string | null;
+  post_to_linkedin?: boolean;
+  linkedin_post_urn?: string | null;
   error_summary?: string | null;
   targets: PostChannelTargetItem[];
   media_attachments: PostMediaAttachmentItem[];
@@ -54,6 +56,7 @@ export interface CreatePostPayload {
   text_content?: string;
   channel_ids?: string[];
   target_channel_ids?: string[];
+  post_to_linkedin?: boolean;
   formatting_mode?: 'HTML' | 'MARKDOWN' | 'PLAIN';
   pin_message?: boolean;
   scheduled_for?: string | null;
@@ -71,6 +74,7 @@ export interface UpdatePostPayload {
   text_content?: string;
   channel_ids?: string[];
   target_channel_ids?: string[];
+  post_to_linkedin?: boolean;
   formatting_mode?: 'HTML' | 'MARKDOWN' | 'PLAIN';
   silent?: boolean;
   disable_web_page_preview?: boolean;

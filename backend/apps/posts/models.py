@@ -100,6 +100,11 @@ class Post(models.Model):
         db_index=True,
         help_text="LinkedIn Post URN for tracking and remote API deletion."
     )
+    post_to_linkedin = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether this broadcast targets the user's connected LinkedIn account."
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

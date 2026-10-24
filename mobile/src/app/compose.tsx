@@ -101,6 +101,9 @@ export default function ComposeModalScreen() {
       }
       setPinMessage(Boolean(editingPost.pin_message));
       setScheduledFor(editingPost.scheduled_for || null);
+      if (editingPost.post_to_linkedin !== undefined) {
+        setPostToLinkedIn(Boolean(editingPost.post_to_linkedin));
+      }
       if (editingPost.media_attachments && editingPost.media_attachments.length > 0) {
         setAttachments(
           editingPost.media_attachments.map((m) => ({
@@ -183,6 +186,7 @@ export default function ComposeModalScreen() {
             content: content.trim(),
             target_channel_ids: selectedChannelIds,
             channel_ids: selectedChannelIds,
+            post_to_linkedin: postToLinkedIn,
             formatting_mode: formattingMode,
             pin_message: pinMessage,
             scheduled_for: scheduledFor,
@@ -195,32 +199,19 @@ export default function ComposeModalScreen() {
         return;
       }
 
-      // Create Mode
-      const dispatchPromises: Promise<any>[] = [];
-
-      // 1. Dispatch directly to LinkedIn if enabled
-      if (postToLinkedIn && content.trim()) {
-        dispatchPromises.push(publishLinkedInMutation.mutateAsync(content.trim()));
-      }
-
-      // 2. Dispatch to Telegram if target channels are selected
-      if (selectedChannelIds.length > 0) {
-        dispatchPromises.push(
-          createPostMutation.mutateAsync({
-            text_content: content.trim(),
-            content: content.trim(),
-            target_channel_ids: selectedChannelIds,
-            channel_ids: selectedChannelIds,
-            formatting_mode: formattingMode,
-            pin_message: pinMessage,
-            scheduled_for: scheduledFor,
-            publish_now: !scheduledFor,
-            media_attachments: mediaPayload,
-          })
-        );
-      }
-
-      await Promise.all(dispatchPromises);
+      // Create Mode (Unified multi-platform dispatch & scheduling)
+      await createPostMutation.mutateAsync({
+        text_content: content.trim(),
+        content: content.trim(),
+        target_channel_ids: selectedChannelIds,
+        channel_ids: selectedChannelIds,
+        post_to_linkedin: postToLinkedIn,
+        formatting_mode: formattingMode,
+        pin_message: pinMessage,
+        scheduled_for: scheduledFor,
+        publish_now: !scheduledFor,
+        media_attachments: mediaPayload,
+      });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.back();

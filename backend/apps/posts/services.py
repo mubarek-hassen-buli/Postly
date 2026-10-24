@@ -50,87 +50,100 @@ class TelegramPublishingService:
             post.status = Post.PostStatus.PUBLISHING
             post.save(update_fields=['status', 'updated_at'])
 
-        # Step 2: Fetch targets and session
+        # Step 2: Fetch targets and platform flags
         targets: List[PostChannelTarget] = list(post.targets.select_related('channel').all())
-        if not targets:
+        post_to_linkedin = getattr(post, 'post_to_linkedin', False)
+
+        if not targets and not post_to_linkedin:
             with transaction.atomic():
                 post.status = Post.PostStatus.FAILED
-                post.error_summary = "No target channels selected for this post."
+                post.error_summary = "No target channels or platforms selected for this post."
                 post.save(update_fields=['status', 'error_summary', 'updated_at'])
-            return {'status': 'FAILED', 'message': 'No target channels'}
+            return {'status': 'FAILED', 'message': 'No destinations'}
 
         user = post.user
-        try:
-            telegram_session = user.telegram_session
-        except TelegramSession.DoesNotExist:
-            with transaction.atomic():
-                post.status = Post.PostStatus.FAILED
-                post.error_summary = "User has no connected Telegram session."
-                post.save(update_fields=['status', 'error_summary', 'updated_at'])
-            return {'status': 'FAILED', 'message': 'No Telegram session'}
-
-        if not telegram_session.is_authenticated or not telegram_session.encrypted_session_string:
-            with transaction.atomic():
-                post.status = Post.PostStatus.FAILED
-                post.error_summary = "Telegram session is unauthenticated or revoked."
-                post.save(update_fields=['status', 'error_summary', 'updated_at'])
-            return {'status': 'FAILED', 'message': 'Telegram session not authenticated'}
-
-        # Step 3: Run MTProto async broadcast
-        try:
-            media_items = list(post.media_attachments.all().order_by('order', 'created_at'))
-            dispatch_results = run_async(
-                cls._async_dispatch_to_channels(
-                    session_encrypted=telegram_session.encrypted_session_string,
-                    post=post,
-                    targets=targets,
-                    media_items=media_items
-                )
-            )
-        except Exception as exc:
-            logger.exception(f"Exception during Telegram broadcast for post {post.id}: {str(exc)}")
-            with transaction.atomic():
-                post.status = Post.PostStatus.FAILED
-                post.error_summary = str(exc)
-                post.save(update_fields=['status', 'error_summary', 'updated_at'])
-            return {'status': 'FAILED', 'message': str(exc)}
-
-        # Step 4: Finalize database records based on results
-        now = timezone.now()
+        dispatch_results = {}
+        error_messages = []
         success_count = 0
         failed_count = 0
-        error_messages = []
+        now = timezone.now()
 
+        # Step 3: Run MTProto async broadcast to Telegram (if target channels exist)
+        if targets:
+            try:
+                try:
+                    telegram_session = user.telegram_session
+                except TelegramSession.DoesNotExist:
+                    raise TelegramServiceError("User has no connected Telegram session.")
+
+                if not telegram_session.is_authenticated or not telegram_session.encrypted_session_string:
+                    raise TelegramServiceError("Telegram session is unauthenticated or revoked.")
+
+                media_items = list(post.media_attachments.all().order_by('order', 'created_at'))
+                dispatch_results = run_async(
+                    cls._async_dispatch_to_channels(
+                        session_encrypted=telegram_session.encrypted_session_string,
+                        post=post,
+                        targets=targets,
+                        media_items=media_items
+                    )
+                )
+            except Exception as exc:
+                logger.exception(f"Exception during Telegram broadcast for post {post.id}: {str(exc)}")
+                for target in targets:
+                    dispatch_results[str(target.id)] = {'status': 'FAILED', 'error': str(exc)}
+
+            with transaction.atomic():
+                for target in targets:
+                    res = dispatch_results.get(str(target.id), {'status': 'FAILED', 'error': 'Unknown error'})
+                    if res.get('status') == 'SUCCESS':
+                        target.status = PostChannelTarget.TargetStatus.SUCCESS
+                        target.telegram_message_id = res.get('message_id')
+                        target.sent_at = now
+                        target.error_message = None
+                        success_count += 1
+                    else:
+                        target.status = PostChannelTarget.TargetStatus.FAILED
+                        target.error_message = res.get('error', 'Dispatch failed')
+                        failed_count += 1
+                        error_messages.append(f"[{target.channel.title}]: {target.error_message}")
+                    target.save(update_fields=['status', 'telegram_message_id', 'sent_at', 'error_message', 'updated_at'])
+
+        # Step 4: Dispatch to LinkedIn (if post_to_linkedin is True)
+        if post_to_linkedin:
+            from apps.integrations.linkedin.publishing import LinkedInPublishingService, LinkedInPublishingError
+            try:
+                li_res = LinkedInPublishingService.publish_text_post(
+                    user=user,
+                    text_content=post.text_content
+                )
+                post.linkedin_post_urn = li_res.get('post_urn')
+                success_count += 1
+                logger.info(f"Post {post.id} successfully published to LinkedIn (URN: {post.linkedin_post_urn})")
+            except Exception as li_exc:
+                failed_count += 1
+                li_err_msg = getattr(li_exc, 'message', str(li_exc))
+                error_messages.append(f"[LinkedIn]: {li_err_msg}")
+                logger.warning(f"Failed to publish post {post.id} to LinkedIn: {li_err_msg}")
+
+        # Step 5: Finalize database records based on results
         with transaction.atomic():
-            for target in targets:
-                res = dispatch_results.get(str(target.id), {'status': 'FAILED', 'error': 'Unknown error'})
-                if res['status'] == 'SUCCESS':
-                    target.status = PostChannelTarget.TargetStatus.SUCCESS
-                    target.telegram_message_id = res.get('message_id')
-                    target.sent_at = now
-                    target.error_message = None
-                    success_count += 1
-                else:
-                    target.status = PostChannelTarget.TargetStatus.FAILED
-                    target.error_message = res.get('error', 'Dispatch failed')
-                    failed_count += 1
-                    error_messages.append(f"[{target.channel.title}]: {target.error_message}")
-                target.save(update_fields=['status', 'telegram_message_id', 'sent_at', 'error_message', 'updated_at'])
-
             if success_count > 0:
                 post.status = Post.PostStatus.PUBLISHED
                 post.published_at = now
                 post.error_summary = "; ".join(error_messages) if error_messages else None
             else:
                 post.status = Post.PostStatus.FAILED
-            post.save(update_fields=['status', 'published_at', 'error_summary', 'updated_at'])
+                post.error_summary = "; ".join(error_messages) if error_messages else "Broadcasting failed for all destinations."
 
-        # Step 5: Dispatch push notification alert to user
+            post.save(update_fields=['status', 'published_at', 'linkedin_post_urn', 'error_summary', 'updated_at'])
+
+        # Step 6: Dispatch push notification alert to user
         try:
             from apps.notifications.services import ExpoPushService
             if post.status == Post.PostStatus.PUBLISHED:
                 title = "Post Published!"
-                body = f"Your post was successfully broadcast to {success_count} channel(s)."
+                body = f"Your post was successfully broadcast to {success_count} destination(s)."
                 event_type = "POST_PUBLISHED"
             else:
                 title = "Post Publishing Failed"

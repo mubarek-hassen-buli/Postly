@@ -392,4 +392,41 @@ class PostApiTests(TestCase):
         self.assertEqual(result['edited_count'], 1)
         mock_async_edit.assert_called_once()
 
+    @patch('apps.posts.views.schedule_post_celery_task')
+    def test_schedule_post_with_linkedin_only(self, mock_schedule_task):
+        """Verify scheduling a post targeting only LinkedIn succeeds without requiring Telegram channels."""
+        mock_schedule_task.return_value = 'fake-celery-task-li-123'
+        future_time = (timezone.now() + timedelta(hours=4)).isoformat()
+        payload = {
+            'text_content': 'Scheduled exclusively for LinkedIn professionals.',
+            'post_to_linkedin': True,
+            'scheduled_for': future_time,
+        }
+
+        response = self.client.post('/api/v1/posts/', data=payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.json()
+        self.assertEqual(data['status'], 'SCHEDULED')
+        self.assertTrue(data['post_to_linkedin'])
+        self.assertEqual(data['celery_task_id'], 'fake-celery-task-li-123')
+
+    @patch('apps.integrations.linkedin.publishing.LinkedInPublishingService.publish_text_post')
+    def test_publish_post_dispatches_to_linkedin(self, mock_li_publish):
+        """Verify publish_post executes LinkedIn publishing when post_to_linkedin is True."""
+        mock_li_publish.return_value = {'post_urn': 'urn:li:share:987654321', 'status': 'SUCCESS'}
+
+        post = Post.objects.create(
+            user=self.user,
+            text_content='Multi-platform broadcast content.',
+            status=Post.PostStatus.SCHEDULED,
+            post_to_linkedin=True
+        )
+
+        result = TelegramPublishingService.publish_post(str(post.id))
+        self.assertEqual(result['status'], 'PUBLISHED')
+        post.refresh_from_db()
+        self.assertEqual(post.status, Post.PostStatus.PUBLISHED)
+        self.assertEqual(post.linkedin_post_urn, 'urn:li:share:987654321')
+        mock_li_publish.assert_called_once_with(user=self.user, text_content='Multi-platform broadcast content.')
+
 

@@ -219,11 +219,14 @@ export default function PostDetailScreen() {
   const badge = getStatusBadge(post.status);
   const mediaList = post.media_attachments || [];
   const targets = post.targets || [];
+  const totalDestinations = targets.length + (post.post_to_linkedin ? 1 : 0);
 
   // Filtered targets for the variant channel chips
   const displayedTargets =
     selectedChannelFilter === 'ALL'
       ? targets
+      : selectedChannelFilter === 'LINKEDIN'
+      ? []
       : targets.filter(
           (t) =>
             t.channel_id === selectedChannelFilter ||
@@ -369,7 +372,7 @@ export default function PostDetailScreen() {
             <View style={styles.metaRow}>
               <Zap size={14} color="#0088CC" />
               <Text style={styles.metaText}>
-                {targets.length} Target Channel{targets.length !== 1 ? 's' : ''}
+                {totalDestinations} Destination{totalDestinations !== 1 ? 's' : ''}
               </Text>
               <Text style={styles.metaDivider}>•</Text>
               <Clock size={13} color="#64748B" />
@@ -377,8 +380,8 @@ export default function PostDetailScreen() {
             </View>
           </View>
 
-          {/* C. Channel Variant Pills (Matching 30ml, 100ml, 150ml) */}
-          {targets.length > 0 && (
+          {/* C. Channel Variant Pills */}
+          {totalDestinations > 0 && (
             <View style={styles.channelPillsSection}>
               <ScrollView
                 horizontal
@@ -399,9 +402,29 @@ export default function PostDetailScreen() {
                       selectedChannelFilter === 'ALL' && styles.channelPillTextActive,
                     ]}
                   >
-                    All Channels ({targets.length})
+                    All Destinations ({totalDestinations})
                   </Text>
                 </TouchableOpacity>
+
+                {post.post_to_linkedin && (
+                  <TouchableOpacity
+                    onPress={() => setSelectedChannelFilter('LINKEDIN')}
+                    style={[
+                      styles.channelPill,
+                      selectedChannelFilter === 'LINKEDIN' && styles.channelPillActive,
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.channelPillText,
+                        selectedChannelFilter === 'LINKEDIN' && styles.channelPillTextActive,
+                      ]}
+                    >
+                      LinkedIn Feed
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
                 {targets.map((t, index) => {
                   const isSelected = selectedChannelFilter === t.channel_id;
@@ -481,64 +504,113 @@ export default function PostDetailScreen() {
 
             {expandedSection === 'delivery' && (
               <View style={styles.accordionBody}>
-                {displayedTargets.length === 0 ? (
+                {displayedTargets.length === 0 && (!post.post_to_linkedin || selectedChannelFilter !== 'ALL' && selectedChannelFilter !== 'LINKEDIN') ? (
                   <Text style={styles.emptyAccordionText}>
-                    No target channels found for this selection.
+                    No target destinations found for this selection.
                   </Text>
                 ) : (
-                  displayedTargets.map((target, idx) => {
-                    const isSuccess = target.status === 'SUCCESS';
-                    const isFailed = target.status === 'FAILED';
-                    return (
-                      <View key={target.channel_id || target.id || idx} style={styles.targetRow}>
+                  <>
+                    {(selectedChannelFilter === 'ALL' || selectedChannelFilter === 'LINKEDIN') && post.post_to_linkedin && (
+                      <View style={styles.targetRow}>
                         <View style={styles.targetLeft}>
                           <View
                             style={[
                               styles.targetStatusDot,
-                              isSuccess && { backgroundColor: '#34C759' },
-                              isFailed && { backgroundColor: '#FF3B30' },
+                              post.linkedin_post_urn
+                                ? { backgroundColor: '#34C759' }
+                                : post.status === 'PUBLISHED'
+                                ? { backgroundColor: '#FF3B30' }
+                                : { backgroundColor: '#0A66C2' },
                             ]}
                           />
                           <View>
-                            <Text style={styles.targetChannelTitle}>
-                              {target.channel_title || 'Target Channel'}
+                            <Text style={styles.targetChannelTitle}>LinkedIn Member Feed</Text>
+                            <Text style={styles.targetSubText}>
+                              {post.linkedin_post_urn
+                                ? 'Published to LinkedIn'
+                                : post.status === 'SCHEDULED'
+                                ? 'Scheduled for dispatch'
+                                : post.error_summary && post.error_summary.includes('LinkedIn')
+                                ? post.error_summary
+                                : 'Pending dispatch'}
                             </Text>
-                            {target.error_message ? (
-                              <Text style={styles.targetErrorText} numberOfLines={2}>
-                                {target.error_message}
-                              </Text>
-                            ) : (
-                              <Text style={styles.targetSubText}>
-                                {isSuccess
-                                  ? 'Delivered to Telegram'
-                                  : target.status === 'PENDING'
-                                  ? 'Pending dispatch'
-                                  : 'Queued'}
-                              </Text>
-                            )}
                           </View>
                         </View>
 
                         <View
                           style={[
                             styles.targetStatusBadge,
-                            isSuccess && styles.targetBadgeSuccess,
-                            isFailed && styles.targetBadgeFailed,
+                            post.linkedin_post_urn && styles.targetBadgeSuccess,
+                            !post.linkedin_post_urn && post.status === 'PUBLISHED' && styles.targetBadgeFailed,
                           ]}
                         >
                           <Text
                             style={[
                               styles.targetStatusBadgeText,
-                              isSuccess && { color: '#34C759' },
-                              isFailed && { color: '#FF3B30' },
+                              post.linkedin_post_urn && { color: '#34C759' },
+                              !post.linkedin_post_urn && post.status === 'PUBLISHED' && { color: '#FF3B30' },
                             ]}
                           >
-                            {target.status}
+                            {post.linkedin_post_urn ? 'SUCCESS' : post.status === 'PUBLISHED' ? 'FAILED' : 'PENDING'}
                           </Text>
                         </View>
                       </View>
-                    );
-                  })
+                    )}
+
+                    {displayedTargets.map((target, idx) => {
+                      const isSuccess = target.status === 'SUCCESS';
+                      const isFailed = target.status === 'FAILED';
+                      return (
+                        <View key={target.channel_id || target.id || idx} style={styles.targetRow}>
+                          <View style={styles.targetLeft}>
+                            <View
+                              style={[
+                                styles.targetStatusDot,
+                                isSuccess && { backgroundColor: '#34C759' },
+                                isFailed && { backgroundColor: '#FF3B30' },
+                              ]}
+                            />
+                            <View>
+                              <Text style={styles.targetChannelTitle}>
+                                {target.channel_title || 'Target Channel'}
+                              </Text>
+                              {target.error_message ? (
+                                <Text style={styles.targetErrorText} numberOfLines={2}>
+                                  {target.error_message}
+                                </Text>
+                              ) : (
+                                <Text style={styles.targetSubText}>
+                                  {isSuccess
+                                    ? 'Delivered to Telegram'
+                                    : target.status === 'PENDING'
+                                    ? 'Pending dispatch'
+                                    : 'Queued'}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+
+                          <View
+                            style={[
+                              styles.targetStatusBadge,
+                              isSuccess && styles.targetBadgeSuccess,
+                              isFailed && styles.targetBadgeFailed,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.targetStatusBadgeText,
+                                isSuccess && { color: '#34C759' },
+                                isFailed && { color: '#FF3B30' },
+                              ]}
+                            >
+                              {target.status}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </>
                 )}
               </View>
             )}
