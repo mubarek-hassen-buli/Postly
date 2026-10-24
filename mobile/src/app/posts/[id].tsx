@@ -243,6 +243,12 @@ export default function PostDetailScreen() {
   const titleExcerpt =
     post.content?.split('\n')[0]?.slice(0, 60) || 'Broadcast Message';
 
+  const isDeliveryExpanded = expandedSection === 'delivery';
+  const isScheduleExpanded = expandedSection === 'schedule';
+  const isMediaExpanded = expandedSection === 'media';
+  const isPostScheduled = post.status === 'SCHEDULED';
+  const isPostDraft = post.status === 'DRAFT';
+
   return (
     <View style={styles.container}>
       {/* 1. Signature Header Banner with Frosted Nav Actions */}
@@ -495,14 +501,14 @@ export default function PostDetailScreen() {
                 <Radio size={18} color="#0088CC" />
                 <Text style={styles.accordionTitle}>Delivery & Channel Logs</Text>
               </View>
-              {expandedSection === 'delivery' ? (
+              {isDeliveryExpanded ? (
                 <ChevronDown size={18} color="#94A3B8" />
               ) : (
                 <ChevronRight size={18} color="#94A3B8" />
               )}
             </TouchableOpacity>
 
-            {expandedSection === 'delivery' && (
+            {isDeliveryExpanded && (
               <View style={styles.accordionBody}>
                 {displayedTargets.length === 0 && (!post.post_to_linkedin || selectedChannelFilter !== 'ALL' && selectedChannelFilter !== 'LINKEDIN') ? (
                   <Text style={styles.emptyAccordionText}>
@@ -627,14 +633,14 @@ export default function PostDetailScreen() {
                 <Clock size={18} color="#0088CC" />
                 <Text style={styles.accordionTitle}>Schedule & Timing</Text>
               </View>
-              {expandedSection === 'schedule' ? (
+              {isScheduleExpanded ? (
                 <ChevronDown size={18} color="#94A3B8" />
               ) : (
                 <ChevronRight size={18} color="#94A3B8" />
               )}
             </TouchableOpacity>
 
-            {expandedSection === 'schedule' && (
+            {isScheduleExpanded && (
               <View style={styles.accordionBody}>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoKey}>Created At</Text>
@@ -675,14 +681,14 @@ export default function PostDetailScreen() {
                   Media Attachments ({mediaList.length})
                 </Text>
               </View>
-              {expandedSection === 'media' ? (
+              {isMediaExpanded ? (
                 <ChevronDown size={18} color="#94A3B8" />
               ) : (
                 <ChevronRight size={18} color="#94A3B8" />
               )}
             </TouchableOpacity>
 
-            {expandedSection === 'media' && (
+            {isMediaExpanded && (
               <View style={styles.accordionBody}>
                 {mediaList.length === 0 ? (
                   <Text style={styles.emptyAccordionText}>
@@ -722,7 +728,7 @@ export default function PostDetailScreen() {
           </TouchableOpacity>
 
           {/* Primary Action Button */}
-          {post.status === 'SCHEDULED' ? (
+          {isPostScheduled ? (
             <TouchableOpacity
               onPress={handlePublishNow}
               disabled={publishMutation.isPending}
@@ -741,7 +747,7 @@ export default function PostDetailScreen() {
                 </>
               )}
             </TouchableOpacity>
-          ) : post.status === 'DRAFT' ? (
+          ) : isPostDraft ? (
             <TouchableOpacity
               onPress={handlePublishNow}
               disabled={publishMutation.isPending}

@@ -1,4 +1,5 @@
 import uuid
+from typing import TYPE_CHECKING, Any, Optional
 from django.conf import settings
 from django.db import models
 
@@ -8,6 +9,10 @@ class Channel(models.Model):
     Represents a Telegram Channel or Broadcast Supergroup managed by a Postly user.
     Stores cached metadata, administrative permissions, and user selection preferences.
     """
+    if TYPE_CHECKING:
+        objects: Any
+        DoesNotExist: Any
+        user_id: Any
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,

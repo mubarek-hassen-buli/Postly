@@ -1,4 +1,5 @@
 import uuid
+from typing import TYPE_CHECKING, Any, Optional
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -34,6 +35,11 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom User model for Postly application."""
+    if TYPE_CHECKING:
+        objects: Any
+        DoesNotExist: Any
+        telegram_session: Any
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -81,6 +87,10 @@ class TelegramSession(models.Model):
     Stores Telegram MTProto authorization session state.
     Session strings are encrypted at rest using Fernet (AES-CBC + HMAC-SHA256).
     """
+    if TYPE_CHECKING:
+        objects: Any
+        DoesNotExist: Any
+
     class AuthState(models.TextChoices):
         IDLE = 'IDLE', _('Idle')
         PENDING_CODE = 'PENDING_CODE', _('Pending Code Verification')

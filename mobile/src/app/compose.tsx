@@ -71,6 +71,7 @@ export default function ComposeModalScreen() {
     : [];
 
   const { data: editingPost } = usePost(editPostId || null);
+  const isEditingPublished = isEditing && editingPost?.status === 'PUBLISHED';
   const createPostMutation = useCreatePost();
   const updatePostMutation = useUpdatePost();
   const { data: linkedinData } = useLinkedInStatus();
@@ -252,7 +253,7 @@ export default function ComposeModalScreen() {
           <Button
             title={
               isEditing
-                ? editingPost?.status === 'PUBLISHED'
+                ? isEditingPublished
                   ? 'Update Telegram'
                   : 'Save Changes'
                 : scheduledFor
@@ -279,7 +280,7 @@ export default function ComposeModalScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {/* Published Edit Notice */}
-          {editingPost?.status === 'PUBLISHED' && (
+          {isEditingPublished && (
             <View style={styles.publishedEditBanner}>
               <Info size={16} color={colors.primary.DEFAULT} style={styles.bannerIcon} />
               <Text style={styles.publishedEditText}>

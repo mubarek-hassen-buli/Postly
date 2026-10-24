@@ -1,4 +1,5 @@
 import uuid
+from typing import TYPE_CHECKING, Any, Optional
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +12,13 @@ class Post(models.Model):
     Represents a Telegram post created in Postly.
     Supports drafts, immediate broadcasts, and high-concurrency Celery scheduling.
     """
+    if TYPE_CHECKING:
+        objects: Any
+        DoesNotExist: Any
+        user_id: Any
+        targets: Any
+        media_attachments: Any
+
     class PostStatus(models.TextChoices):
         DRAFT = 'DRAFT', _('Draft')
         SCHEDULED = 'SCHEDULED', _('Scheduled')
@@ -120,7 +128,8 @@ class Post(models.Model):
         ]
 
     def __str__(self) -> str:
-        snippet = (self.text_content[:30] + '...') if len(self.text_content) > 30 else self.text_content
+        text = str(self.text_content or '')
+        snippet = (text[:30] + '...') if len(text) > 30 else text
         return f"Post({self.id}, status={self.status}, snippet='{snippet}')"
 
 
@@ -129,6 +138,12 @@ class PostChannelTarget(models.Model):
     Bridge table associating a Post with one or more target Channels.
     Tracks individual delivery results, Telegram message IDs, and error logs per channel.
     """
+    if TYPE_CHECKING:
+        objects: Any
+        DoesNotExist: Any
+        post_id: Any
+        channel_id: Any
+
     class TargetStatus(models.TextChoices):
         PENDING = 'PENDING', _('Pending')
         SUCCESS = 'SUCCESS', _('Success')
@@ -190,6 +205,11 @@ class PostMediaAttachment(models.Model):
     """
     Media attachments (Images, Videos, Documents) linked to a Post.
     """
+    if TYPE_CHECKING:
+        objects: Any
+        DoesNotExist: Any
+        post_id: Any
+
     class MediaType(models.TextChoices):
         IMAGE = 'IMAGE', _('Image')
         VIDEO = 'VIDEO', _('Video')

@@ -20,6 +20,13 @@ export interface ConsistencyCardProps {
   totalTargetsReached: number;
 }
 
+function getWeekdayInitial(label: string): string {
+  if (label === 'Today') {
+    return 'T';
+  }
+  return label.charAt(0);
+}
+
 export const ConsistencyCard: React.FC<ConsistencyCardProps> = ({
   data,
   reliabilityScore,
@@ -107,7 +114,7 @@ export const ConsistencyCard: React.FC<ConsistencyCardProps> = ({
               const isScheduled = scheduled > 0 && !isActive;
 
               // Extract clean 1-letter weekday or 'T' for Today
-              const dayLetter = item.label === 'Today' ? 'T' : item.label.charAt(0);
+              const dayLetter = getWeekdayInitial(item.label);
 
               return (
                 <View key={`${item.date}-${index}`} style={styles.pulseItem}>
