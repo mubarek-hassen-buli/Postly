@@ -67,8 +67,6 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
   }
 
   const handleTabPress = (routeName: string, routeKey: string) => {
-    Haptics.selectionAsync().catch(() => {});
-
     if (Platform.OS !== 'web') {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }
