@@ -261,9 +261,11 @@ class PostDetailView(APIView):
 
             post.save()
 
-        # If post was already PUBLISHED, propagate text edits to remote Telegram messages
+        # If post was already PUBLISHED, propagate text edits or pin changes to remote Telegram messages
         edit_result = None
-        if post.status == Post.PostStatus.PUBLISHED and ('text_content' in data or 'formatting_mode' in data):
+        if post.status == Post.PostStatus.PUBLISHED and (
+            'text_content' in data or 'formatting_mode' in data or 'pin_message' in data
+        ):
             try:
                 edit_result = TelegramPublishingService.edit_remote_telegram_messages(post)
             except Exception as exc:

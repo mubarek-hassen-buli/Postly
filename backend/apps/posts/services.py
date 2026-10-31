@@ -247,13 +247,23 @@ class TelegramPublishingService:
                     # Handle message pinning if requested
                     if post.pin_message and sent_msg is not None:
                         try:
-                            await client.pin_message(
-                                peer,
-                                message=sent_msg,
-                                notify=not post.silent
-                            )
+                            if hasattr(sent_msg, 'pin') and callable(getattr(sent_msg, 'pin')):
+                                await sent_msg.pin(notify=not post.silent)
+                            else:
+                                await client.pin_message(
+                                    peer,
+                                    message=msg_id or sent_msg,
+                                    notify=not post.silent
+                                )
+                            logger.info(f"Successfully pinned message {msg_id} in channel {channel.title}.")
                         except Exception as pin_exc:
                             logger.warning(f"Could not pin message in channel {channel.title}: {str(pin_exc)}")
+                            try:
+                                if msg_id:
+                                    await client.pin_message(peer, message=msg_id, notify=not post.silent)
+                                    logger.info(f"Successfully pinned message {msg_id} via direct ID fallback in channel {channel.title}.")
+                            except Exception as pin_err2:
+                                logger.warning(f"Secondary pin fallback attempt failed in channel {channel.title}: {str(pin_err2)}")
 
                     results[target_key] = {
                         'status': 'SUCCESS',
@@ -457,13 +467,22 @@ class TelegramPublishingService:
                         peer = channel.telegram_channel_id
 
                     logger.info(f"Editing message {msg_id} in channel {channel.title} ({channel.telegram_channel_id})...")
-                    await client.edit_message(
+                    edited_msg = await client.edit_message(
                         peer,
                         message=msg_id,
                         text=post.text_content or "",
                         parse_mode=parse_mode,
                         link_preview=not post.disable_web_page_preview
                     )
+                    if post.pin_message:
+                        try:
+                            if hasattr(edited_msg, 'pin') and callable(getattr(edited_msg, 'pin')):
+                                await edited_msg.pin(notify=not post.silent)
+                            else:
+                                await client.pin_message(peer, message=msg_id, notify=not post.silent)
+                            logger.info(f"Successfully pinned edited message {msg_id} in channel {channel.title}.")
+                        except Exception as pin_exc:
+                            logger.warning(f"Could not pin edited message {msg_id} in channel {channel.title}: {pin_exc}")
                     edited_count += 1
                     logger.info(f"Successfully edited message {msg_id} in channel {channel.title}.")
                 except Exception as exc:

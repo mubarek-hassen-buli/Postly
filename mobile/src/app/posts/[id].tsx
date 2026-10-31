@@ -28,6 +28,7 @@ import {
   FileText,
   Layers,
   MessageSquare,
+  Pin,
   Radio,
   Send,
   Share2,
@@ -384,6 +385,15 @@ export default function PostDetailScreen() {
               <Text style={styles.metaDivider}>•</Text>
               <Clock size={13} color="#64748B" />
               <Text style={styles.metaText}>{formattedDate}</Text>
+              {Boolean(post.pin_message) && (
+                <>
+                  <Text style={styles.metaDivider}>•</Text>
+                  <Pin size={13} color="#FF9500" />
+                  <Text style={[styles.metaText, { color: '#FF9500', fontWeight: '600' }]}>
+                    Pinned
+                  </Text>
+                </>
+              )}
             </View>
           </View>
 

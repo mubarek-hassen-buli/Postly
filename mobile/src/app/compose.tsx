@@ -29,7 +29,6 @@ import { useChannels } from '../hooks/useChannels';
 import { ChannelItem } from '../services/channels/channelService';
 import { useCreatePost, usePost, useUpdatePost } from '../hooks/usePosts';
 import { useLinkedInStatus, usePublishLinkedInPost } from '../hooks/useLinkedIn';
-import { FormattingToolbar, FormattingMode } from '../components/composer/FormattingToolbar';
 import { ChannelSelectorPills } from '../components/composer/ChannelSelectorPills';
 import { MediaPickerSection, LocalMediaAttachment } from '../components/composer/MediaPickerSection';
 import { SchedulePickerModal } from '../components/composer/SchedulePickerModal';
@@ -51,7 +50,6 @@ export default function ComposeModalScreen() {
 
   // Form State
   const [content, setContent] = useState('');
-  const [formattingMode, setFormattingMode] = useState<FormattingMode>('HTML');
   const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
   const [pinMessage, setPinMessage] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null);
@@ -72,6 +70,7 @@ export default function ComposeModalScreen() {
 
   const { data: editingPost } = usePost(editPostId || null);
   const isEditingPublished = isEditing && editingPost?.status === 'PUBLISHED';
+  const formattingMode = (editingPost?.formatting_mode as any) || 'HTML';
   const createPostMutation = useCreatePost();
   const updatePostMutation = useUpdatePost();
   const { data: linkedinData } = useLinkedInStatus();
@@ -89,9 +88,6 @@ export default function ComposeModalScreen() {
     if (editingPost && !hasPopulatedEditPost.current) {
       hasPopulatedEditPost.current = true;
       setContent(editingPost.text_content || editingPost.content || '');
-      if (editingPost.formatting_mode) {
-        setFormattingMode(editingPost.formatting_mode as FormattingMode);
-      }
       if (editingPost.targets && editingPost.targets.length > 0) {
         const targetChannelIds = editingPost.targets
           .map((t) => t.channel_id || t.channel?.id)
@@ -138,10 +134,6 @@ export default function ComposeModalScreen() {
     setSelectedChannelIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
-  };
-
-  const handleInsertTag = (startTag: string, endTag: string) => {
-    setContent((prev) => `${prev}${startTag}${endTag}`);
   };
 
   const handleSubmit = async () => {
@@ -323,13 +315,6 @@ export default function ComposeModalScreen() {
               />
             </Card>
           )}
-
-          {/* Formatting Toolbar */}
-          <FormattingToolbar
-            mode={formattingMode}
-            onModeChange={setFormattingMode}
-            onInsertTag={handleInsertTag}
-          />
 
           {/* Text Area */}
           <Card style={styles.textCard}>
