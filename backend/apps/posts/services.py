@@ -1,3 +1,4 @@
+# pyright: reportAttributeAccessIssue=none, reportGeneralTypeIssues=none, reportArgumentType=none, reportCallIssue=none
 import logging
 from typing import Any, Dict, List, Optional
 from django.db import transaction

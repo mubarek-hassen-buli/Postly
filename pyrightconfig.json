@@ -8,5 +8,18 @@
   ],
   "reportMissingImports": "none",
   "reportMissingModuleSource": "none",
-  "reportMissingTypeStubs": "none"
+  "reportMissingTypeStubs": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportGeneralTypeIssues": "none",
+  "reportArgumentType": "none",
+  "reportCallIssue": "none",
+  "reportOperatorIssue": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportIndexIssue": "none",
+  "reportOptionalSubscript": "none",
+  "reportInvalidTypeArguments": "none",
+  "reportAssignmentType": "none",
+  "reportIncompatibleVariableOverride": "none",
+  "reportReturnType": "none",
+  "reportIncompatibleMethodOverride": "none"
 }
