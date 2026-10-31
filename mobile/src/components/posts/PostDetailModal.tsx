@@ -30,11 +30,11 @@ import {
   MessageSquare,
   Pin,
   Send,
-  Share2,
   Trash2,
   XCircle,
   Zap,
 } from 'lucide-react-native';
+import { TelegramIcon } from '../common/BrandIcons';
 import { PostItem } from '../../services/posts/postService';
 import { useDetailModalStore } from '../../store/useDetailModalStore';
 import { colors } from '../../theme/colors';
@@ -316,7 +316,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
               <View style={styles.textHeroCard}>
                 <View style={styles.textHeroBadgeRow}>
                   <View style={styles.channelChip}>
-                    <Send size={12} color={colors.primary.DEFAULT} />
+                    <TelegramIcon size={13} color={colors.primary.DEFAULT} />
                     <Text style={styles.channelChipText}>Telegram Broadcast</Text>
                   </View>
                   {targetPost.pin_message && (

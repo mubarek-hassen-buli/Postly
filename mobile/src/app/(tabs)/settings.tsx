@@ -14,11 +14,10 @@ import {
   ChevronRight,
   Link2,
   LogOut,
-  Share2,
-  Shield,
   Unlink,
   User as UserIcon,
 } from 'lucide-react-native';
+import { TelegramIcon, LinkedInIcon } from '../../components/common/BrandIcons';
 import * as Haptics from 'expo-haptics';
 
 import { useAuthStore } from '../../store/useAuthStore';
@@ -175,7 +174,9 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Telegram MTProto Connection</Text>
         <Card style={styles.settingsGroup}>
           <View style={styles.sessionRow}>
-            <Shield size={20} color={colors.status.success} style={styles.sessionIcon} />
+            <View style={styles.telegramPlatformBadge}>
+              <TelegramIcon size={20} color="#FFFFFF" />
+            </View>
             <View style={styles.sessionDetails}>
               <Text style={styles.sessionTitle}>Active Telegram Session</Text>
               <Text style={styles.sessionStatus}>
@@ -202,7 +203,7 @@ export default function SettingsScreen() {
         <Card style={styles.settingsGroup}>
           <View style={styles.sessionRow}>
             <View style={styles.platformBadge}>
-              <Share2 size={16} color="#FFFFFF" />
+              <LinkedInIcon size={20} color="#FFFFFF" />
             </View>
             <View style={styles.sessionDetails}>
               <Text style={styles.sessionTitle}>
@@ -400,6 +401,15 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 10,
     backgroundColor: '#0A66C2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  telegramPlatformBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#2AABEE',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

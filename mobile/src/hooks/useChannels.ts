@@ -97,9 +97,6 @@ export function useToggleChannelSelection() {
         );
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: CHANNELS_QUERY_KEY });
-    },
   });
 }
 

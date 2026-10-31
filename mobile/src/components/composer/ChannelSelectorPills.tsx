@@ -9,6 +9,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Check, Plus } from 'lucide-react-native';
 import { ChannelItem } from '../../services/channels/channelService';
+import { TelegramIcon } from '../common/BrandIcons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { borderRadius, spacing } from '../../theme/spacing';
@@ -82,6 +83,11 @@ export const ChannelSelectorPills: React.FC<ChannelSelectorPillsProps> = ({
                   <Plus size={10} color={colors.text.muted} />
                 )}
               </View>
+              <TelegramIcon
+                size={12}
+                color={isSelected ? colors.primary.DEFAULT : '#2AABEE'}
+                style={{ marginHorizontal: 2 }}
+              />
               <Text style={[styles.channelTitle, isSelected && styles.selectedTitle]} numberOfLines={1}>
                 {channel.title}
               </Text>

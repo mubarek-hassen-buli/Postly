@@ -19,7 +19,6 @@ import {
   Info,
   Pin,
   Send,
-  Share2,
   Sparkles,
   X,
 } from 'lucide-react-native';
@@ -35,6 +34,7 @@ import { ChannelSelectorPills } from '../components/composer/ChannelSelectorPill
 import { MediaPickerSection, LocalMediaAttachment } from '../components/composer/MediaPickerSection';
 import { SchedulePickerModal } from '../components/composer/SchedulePickerModal';
 import { PostPreviewModal } from '../components/composer/PostPreviewModal';
+import { LinkedInIcon } from '../components/common/BrandIcons';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { colors } from '../theme/colors';
@@ -303,7 +303,7 @@ export default function ComposeModalScreen() {
             <Card style={styles.linkedinTargetCard}>
               <View style={styles.linkedinTargetLeft}>
                 <View style={styles.linkedinBadgeIcon}>
-                  <Share2 size={16} color="#FFFFFF" />
+                  <LinkedInIcon size={18} color="#FFFFFF" />
                 </View>
                 <View style={styles.linkedinTargetText}>
                   <Text style={styles.linkedinTargetTitle}>Post to LinkedIn</Text>

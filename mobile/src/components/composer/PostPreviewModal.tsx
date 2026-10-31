@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { format } from 'date-fns';
 import { Eye, Pin, Send, X } from 'lucide-react-native';
+import { TelegramIcon } from '../common/BrandIcons';
 import { LocalMediaAttachment } from './MediaPickerSection';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -66,7 +67,7 @@ export const PostPreviewModal: React.FC<PostPreviewModalProps> = ({
             {/* Telegram Channel Header */}
             <View style={styles.tgHeader}>
               <View style={styles.tgAvatar}>
-                <Send size={16} color="#FFFFFF" />
+                <TelegramIcon size={16} color="#FFFFFF" />
               </View>
               <View style={styles.tgHeaderInfo}>
                 <Text style={styles.tgChannelName} numberOfLines={1}>

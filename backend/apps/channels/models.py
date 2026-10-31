@@ -103,7 +103,7 @@ class Channel(models.Model):
         verbose_name = 'Channel'
         verbose_name_plural = 'Channels'
         unique_together = ('user', 'telegram_channel_id')
-        ordering = ['-is_selected_by_user', 'title']
+        ordering = ['title']
         indexes = [
             models.Index(fields=['user', 'is_selected_by_user']),
             models.Index(fields=['user', 'can_post_messages']),

@@ -3,10 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import {
   CheckCircle2,
   Clock,
-  Radio,
   Share2,
   TrendingUp,
 } from 'lucide-react-native';
+import { TelegramIcon } from '../common/BrandIcons';
 
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -103,7 +103,7 @@ export const DashboardMetricsGrid: React.FC<DashboardMetricsProps> = ({
           value={totalBroadcasts}
           trendText="Active"
           trendType="info"
-          icon={<Radio size={13} color="#2AABEE" strokeWidth={2.5} />}
+          icon={<TelegramIcon size={14} color="#2AABEE" />}
           badgeBg="rgba(42, 171, 238, 0.12)"
           badgeTextColor="#54C0F8"
         />

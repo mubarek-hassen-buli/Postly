@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react-native';
 import { ChannelItem } from '../../services/channels/channelService';
+import { TelegramIcon } from '../common/BrandIcons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { borderRadius, spacing } from '../../theme/spacing';
@@ -70,6 +71,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       {/* Channel Info Center */}
       <Pressable onPress={handleStats} style={styles.centerInfo}>
         <View style={styles.titleRow}>
+          <TelegramIcon size={15} color="#2AABEE" />
           <Text style={styles.title} numberOfLines={1}>
             {channel.title}
           </Text>

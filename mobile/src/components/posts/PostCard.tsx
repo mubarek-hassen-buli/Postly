@@ -26,8 +26,8 @@ import {
   Paperclip,
   Pin,
   Send,
-  Share2,
 } from 'lucide-react-native';
+import { TelegramIcon, LinkedInIcon } from '../common/BrandIcons';
 
 import { PostItem } from '../../services/posts/postService';
 import { colors } from '../../theme/colors';
@@ -283,9 +283,9 @@ export const PostCard: React.FC<PostCardProps> = ({
               ]}
             >
               {isLinkedIn ? (
-                <Share2 size={12} color="#FFFFFF" strokeWidth={2.5} />
+                <LinkedInIcon size={12} color="#FFFFFF" />
               ) : (
-                <Send size={12} color="#FFFFFF" strokeWidth={2.5} style={styles.airplaneIcon} />
+                <TelegramIcon size={13} color="#FFFFFF" />
               )}
             </View>
 
@@ -392,9 +392,9 @@ export const PostCard: React.FC<PostCardProps> = ({
             ]}
           >
             {isLinkedIn ? (
-              <Share2 size={12} color="#FFFFFF" strokeWidth={2.5} />
+              <LinkedInIcon size={12} color="#FFFFFF" />
             ) : (
-              <Send size={12} color="#FFFFFF" strokeWidth={2.5} style={styles.airplaneIcon} />
+              <TelegramIcon size={13} color="#FFFFFF" />
             )}
           </View>
 

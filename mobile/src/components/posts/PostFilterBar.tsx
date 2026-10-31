@@ -13,10 +13,9 @@ import {
   Clock,
   Layers,
   Search,
-  Send,
-  Share2,
   X,
 } from 'lucide-react-native';
+import { TelegramIcon, LinkedInIcon } from '../common/BrandIcons';
 import { Input } from '../ui/Input';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -109,10 +108,9 @@ export const PostFilterTabs: React.FC<PostFilterTabsProps> = ({
       key: 'TELEGRAM',
       label: 'Telegram',
       icon: (isActive) => (
-        <Send
-          size={13}
+        <TelegramIcon
+          size={14}
           color={isActive ? '#FFFFFF' : '#2AABEE'}
-          strokeWidth={2.5}
         />
       ),
     },
@@ -120,10 +118,9 @@ export const PostFilterTabs: React.FC<PostFilterTabsProps> = ({
       key: 'LINKEDIN',
       label: 'LinkedIn',
       icon: (isActive) => (
-        <Share2
-          size={13}
+        <LinkedInIcon
+          size={14}
           color={isActive ? '#FFFFFF' : '#0A66C2'}
-          strokeWidth={2.5}
         />
       ),
     },

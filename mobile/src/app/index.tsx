@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Send } from 'lucide-react-native';
+import { TelegramIcon } from '../components/common/BrandIcons';
 import { useAuthStore } from '../store/useAuthStore';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -20,7 +20,7 @@ export default function Index() {
         />
         <View style={styles.centerContent}>
           <View style={styles.iconContainer}>
-            <Send size={44} color={colors.primary.DEFAULT} style={styles.icon} />
+            <TelegramIcon size={46} color={colors.primary.DEFAULT} style={styles.icon} />
           </View>
           <Text style={styles.brandTitle}>Postly</Text>
           <Text style={styles.tagline}>Telegram Channel Management</Text>

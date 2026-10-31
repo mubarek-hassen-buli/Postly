@@ -27,7 +27,7 @@ class ChannelListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs) -> Response:
-        queryset = Channel.objects.filter(user=request.user)
+        queryset = Channel.objects.filter(user=request.user).order_by('title')
 
         # Filter by selected_only
         selected_only = request.query_params.get('selected_only')

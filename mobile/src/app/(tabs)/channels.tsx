@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { RefreshCw, Radio, Sparkles } from 'lucide-react-native';
+import { RefreshCw, Radio } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import { useChannels, useSyncChannels, useToggleChannelSelection } from '../../hooks/useChannels';
@@ -156,17 +156,6 @@ export default function ChannelsScreen() {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <View style={styles.sheetHeader}>
-              {/* Selected Summary Banner */}
-              {selectedCount > 0 && (
-                <View style={styles.summaryBanner}>
-                  <Sparkles size={16} color={colors.primary.DEFAULT} style={styles.sparkleIcon} />
-                  <Text style={styles.summaryText}>
-                    <Text style={styles.summaryHighlight}>{selectedCount}</Text> channel
-                    {selectedCount > 1 ? 's' : ''} selected for quick publishing
-                  </Text>
-                </View>
-              )}
-
               {/* Search & Filter Bar */}
               <ChannelFilterBar
                 searchQuery={searchQuery}
@@ -228,28 +217,6 @@ const styles = StyleSheet.create({
   },
   sheetHeader: {
     marginBottom: spacing.xs,
-  },
-  summaryBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(42, 171, 238, 0.08)',
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.primary.subtleBorder,
-  },
-  sparkleIcon: {
-    marginRight: spacing.xs,
-  },
-  summaryText: {
-    ...typography.presets.caption,
-    color: colors.text.secondary,
-  },
-  summaryHighlight: {
-    color: colors.primary.DEFAULT,
-    fontWeight: '700',
   },
   listContent: {
     paddingHorizontal: layout.screenPadding,

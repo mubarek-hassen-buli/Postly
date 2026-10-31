@@ -43,6 +43,7 @@ import {
   usePost,
   usePublishPostNow,
 } from '../../hooks/usePosts';
+import { TelegramIcon, LinkedInIcon } from '../../components/common/BrandIcons';
 import { PostChannelTargetItem, PostItem } from '../../services/posts/postService';
 import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { colors } from '../../theme/colors';
@@ -421,6 +422,10 @@ export default function PostDetailScreen() {
                     ]}
                     activeOpacity={0.7}
                   >
+                    <LinkedInIcon
+                      size={14}
+                      color={selectedChannelFilter === 'LINKEDIN' ? '#FFFFFF' : '#0A66C2'}
+                    />
                     <Text
                       style={[
                         styles.channelPillText,
@@ -444,6 +449,10 @@ export default function PostDetailScreen() {
                       ]}
                       activeOpacity={0.7}
                     >
+                      <TelegramIcon
+                        size={14}
+                        color={isSelected ? '#FFFFFF' : '#0088CC'}
+                      />
                       <Text
                         style={[
                           styles.channelPillText,
@@ -530,7 +539,10 @@ export default function PostDetailScreen() {
                             ]}
                           />
                           <View>
-                            <Text style={styles.targetChannelTitle}>LinkedIn Member Feed</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <LinkedInIcon size={14} color="#0A66C2" />
+                              <Text style={styles.targetChannelTitle}>LinkedIn Member Feed</Text>
+                            </View>
                             <Text style={styles.targetSubText}>
                               {post.linkedin_post_urn
                                 ? 'Published to LinkedIn'
@@ -577,9 +589,12 @@ export default function PostDetailScreen() {
                               ]}
                             />
                             <View>
-                              <Text style={styles.targetChannelTitle}>
-                                {target.channel_title || 'Target Channel'}
-                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <TelegramIcon size={14} color="#2AABEE" />
+                                <Text style={styles.targetChannelTitle}>
+                                  {target.channel_title || 'Target Channel'}
+                                </Text>
+                              </View>
                               {target.error_message ? (
                                 <Text style={styles.targetErrorText} numberOfLines={2}>
                                   {target.error_message}
@@ -975,6 +990,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   channelPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 20,
