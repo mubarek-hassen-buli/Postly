@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 
 export interface ActionMenuItem {
   id: string;
@@ -107,12 +106,11 @@ export const ActionMenuModal: React.FC<ActionMenuModalProps> = ({
 
   const handleItemPress = (item: ActionMenuItem) => {
     if (item.disabled) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     onClose();
     // Allow modal to dismiss cleanly before invoking the action
     setTimeout(() => {
       item.onPress();
-    }, 80);
+    }, 60);
   };
 
   return (

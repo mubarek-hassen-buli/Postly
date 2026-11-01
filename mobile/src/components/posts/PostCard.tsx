@@ -218,7 +218,6 @@ export const PostCard: React.FC<PostCardProps> = ({
     e: any
   ) => {
     e.stopPropagation?.();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const { pageX, pageY } = e?.nativeEvent || {};
 
     if (buttonRef.current && typeof buttonRef.current.measureInWindow === 'function') {

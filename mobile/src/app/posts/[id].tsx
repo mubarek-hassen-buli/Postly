@@ -265,7 +265,6 @@ export default function PostDetailScreen() {
   const moreButtonRef = useRef<View>(null);
 
   const openActionMenu = (e: any) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const { pageX, pageY } = e?.nativeEvent || {};
 
     if (moreButtonRef.current && typeof moreButtonRef.current.measureInWindow === 'function') {
