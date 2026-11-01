@@ -71,6 +71,16 @@ export default function PostDetailScreen() {
   const [expandedSection, setExpandedSection] = useState<string | null>('delivery');
   const [copied, setCopied] = useState(false);
 
+  // Context Action Menu State & Anchoring (declared at top before early returns)
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<{
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  } | null>(null);
+  const moreButtonRef = useRef<View>(null);
+
   const publishMutation = usePublishPostNow();
   const cancelMutation = useCancelScheduledPost();
   const deleteMutation = useDeletePost();
@@ -253,16 +263,6 @@ export default function PostDetailScreen() {
   const isMediaExpanded = expandedSection === 'media';
   const isPostScheduled = post.status === 'SCHEDULED';
   const isPostDraft = post.status === 'DRAFT';
-
-  // Context Action Menu State & Anchoring
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [anchorPosition, setAnchorPosition] = useState<{
-    x: number;
-    y: number;
-    width?: number;
-    height?: number;
-  } | null>(null);
-  const moreButtonRef = useRef<View>(null);
 
   const openActionMenu = (e: any) => {
     const { pageX, pageY } = e?.nativeEvent || {};
