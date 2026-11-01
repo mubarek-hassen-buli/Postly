@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  ActionSheetIOS,
   Alert,
   Image,
   Platform,
@@ -20,14 +19,21 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  Edit3,
+  Eye,
   FileText,
   Image as ImageIcon,
   MoreVertical,
   Paperclip,
   Pin,
+  RefreshCw,
   Send,
+  Trash2,
+  XCircle,
+  Zap,
 } from 'lucide-react-native';
 import { TelegramIcon, LinkedInIcon } from '../common/BrandIcons';
+import { ActionMenuModal, ActionMenuItem, ActionMenuSection } from '../common/ActionMenuModal';
 
 import { PostItem } from '../../services/posts/postService';
 import { colors } from '../../theme/colors';
@@ -196,58 +202,124 @@ export const PostCard: React.FC<PostCardProps> = ({
     );
   };
 
-  // 3-dot context menu
-  const handleOpenActionMenu = () => {
+  // Context Action Menu State & Anchoring
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<{
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  } | null>(null);
+  const mediaMoreButtonRef = useRef<View>(null);
+  const textMoreButtonRef = useRef<View>(null);
+
+  const openActionMenu = (
+    buttonRef: React.RefObject<View | null>,
+    e: any
+  ) => {
+    e.stopPropagation?.();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    const { pageX, pageY } = e?.nativeEvent || {};
 
-    const options: string[] = ['View Details'];
-    const actions: Array<() => void> = [() => onPress(post)];
-
-    if (onEdit) {
-      options.push('Edit Broadcast');
-      actions.push(() => onEdit(post));
-    }
-
-    if (post.status === 'SCHEDULED') {
-      options.push('Publish Now');
-      actions.push(handlePublishNow);
-      options.push('Cancel Schedule');
-      actions.push(handleCancelSchedule);
-    } else if (post.status === 'FAILED' && onPublishNow) {
-      options.push('Retry Broadcast');
-      actions.push(() => onPublishNow(post.id));
-    }
-
-    options.push('Delete');
-    actions.push(handleDelete);
-    options.push('Cancel');
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: options.length - 1,
-          destructiveButtonIndex: options.indexOf('Delete'),
-          title: 'Broadcast Actions',
-        },
-        (buttonIndex) => {
-          if (buttonIndex < actions.length) {
-            actions[buttonIndex]();
-          }
+    if (buttonRef.current && typeof buttonRef.current.measureInWindow === 'function') {
+      buttonRef.current.measureInWindow((x, y, width, height) => {
+        if (width && height) {
+          setAnchorPosition({ x, y, width, height });
+        } else if (pageX !== undefined && pageY !== undefined) {
+          setAnchorPosition({ x: pageX, y: pageY, width: 24, height: 24 });
+        } else {
+          setAnchorPosition(null);
         }
-      );
+        setMenuVisible(true);
+      });
+    } else if (pageX !== undefined && pageY !== undefined) {
+      setAnchorPosition({ x: pageX, y: pageY, width: 24, height: 24 });
+      setMenuVisible(true);
     } else {
-      Alert.alert(
-        'Broadcast Actions',
-        titleSnippet,
-        options.map((opt, idx) => ({
-          text: opt,
-          style: opt === 'Delete' ? 'destructive' : opt === 'Cancel' ? 'cancel' : 'default',
-          onPress: idx < actions.length ? actions[idx] : undefined,
-        }))
-      );
+      setAnchorPosition(null);
+      setMenuVisible(true);
     }
   };
+
+  // Build Action Menu Sections (Matching Inspiration: "Status" and "Record actions")
+  const menuSections: ActionMenuSection[] = [];
+
+  // 1. Status Section
+  const statusItems: ActionMenuItem[] = [];
+  if (post.status === 'SCHEDULED') {
+    statusItems.push({
+      id: 'publish-now',
+      label: 'Publish now',
+      icon: <Zap size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: handlePublishNow,
+    });
+    statusItems.push({
+      id: 'cancel-schedule',
+      label: 'Cancel schedule',
+      icon: <XCircle size={16} color="#E11D48" strokeWidth={2} />,
+      variant: 'danger',
+      onPress: handleCancelSchedule,
+    });
+  } else if (post.status === 'FAILED' && onPublishNow) {
+    statusItems.push({
+      id: 'retry-broadcast',
+      label: 'Retry broadcast',
+      icon: <RefreshCw size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: () => onPublishNow(post.id),
+    });
+  } else if (post.status === 'DRAFT' && onPublishNow) {
+    statusItems.push({
+      id: 'publish-draft',
+      label: 'Publish now',
+      icon: <Send size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: handlePublishNow,
+    });
+  }
+
+  if (statusItems.length > 0) {
+    menuSections.push({
+      title: 'Status',
+      items: statusItems,
+    });
+  }
+
+  // 2. Record Actions Section (matches "Record actions" from design inspiration)
+  const recordItems: ActionMenuItem[] = [
+    {
+      id: 'view-post',
+      label: 'View',
+      icon: <Eye size={16} color="#64748B" strokeWidth={2} />,
+      onPress: () => onPress(post),
+    },
+  ];
+
+  if (onEdit) {
+    recordItems.push({
+      id: 'edit-post',
+      label: 'Edit',
+      icon: <Edit3 size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: () => onEdit(post),
+    });
+  }
+
+  if (onDelete) {
+    recordItems.push({
+      id: 'delete-post',
+      label: 'Delete',
+      icon: <Trash2 size={16} color="#E11D48" strokeWidth={2} />,
+      variant: 'danger',
+      onPress: handleDelete,
+    });
+  }
+
+  menuSections.push({
+    title: 'Record actions',
+    items: recordItems,
+  });
 
   // =========================================================================
   // Render: Full-Bleed Media Card (Image Takes Up the Whole Card)
@@ -307,7 +379,8 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           {/* 3-Dot Context Action Button */}
           <TouchableOpacity
-            onPress={handleOpenActionMenu}
+            ref={mediaMoreButtonRef}
+            onPress={(e) => openActionMenu(mediaMoreButtonRef, e)}
             style={styles.mediaMoreButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityLabel="Broadcast options"
@@ -370,6 +443,14 @@ export const PostCard: React.FC<PostCardProps> = ({
             </View>
           )}
         </View>
+
+        {/* Custom Action Menu Dropdown */}
+        <ActionMenuModal
+          visible={menuVisible}
+          onClose={() => setMenuVisible(false)}
+          sections={menuSections}
+          anchorPosition={anchorPosition}
+        />
       </Pressable>
     );
   }
@@ -406,7 +487,8 @@ export const PostCard: React.FC<PostCardProps> = ({
         </View>
 
         <TouchableOpacity
-          onPress={handleOpenActionMenu}
+          ref={textMoreButtonRef}
+          onPress={(e) => openActionMenu(textMoreButtonRef, e)}
           style={styles.textMoreButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityLabel="Broadcast options"
@@ -470,6 +552,14 @@ export const PostCard: React.FC<PostCardProps> = ({
           </Text>
         </View>
       )}
+
+      {/* Custom Action Menu Dropdown */}
+      <ActionMenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        sections={menuSections}
+        anchorPosition={anchorPosition}
+      />
     </Pressable>
   );
 };

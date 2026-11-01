@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,9 +25,11 @@ import {
   ChevronRight,
   Clock,
   Copy,
+  Edit3,
   FileText,
   Layers,
   MessageSquare,
+  MoreVertical,
   Pin,
   Radio,
   Send,
@@ -45,6 +47,7 @@ import {
   usePublishPostNow,
 } from '../../hooks/usePosts';
 import { TelegramIcon, LinkedInIcon } from '../../components/common/BrandIcons';
+import { ActionMenuModal, ActionMenuItem, ActionMenuSection } from '../../components/common/ActionMenuModal';
 import { PostChannelTargetItem, PostItem } from '../../services/posts/postService';
 import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { colors } from '../../theme/colors';
@@ -251,6 +254,113 @@ export default function PostDetailScreen() {
   const isPostScheduled = post.status === 'SCHEDULED';
   const isPostDraft = post.status === 'DRAFT';
 
+  // Context Action Menu State & Anchoring
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<{
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  } | null>(null);
+  const moreButtonRef = useRef<View>(null);
+
+  const openActionMenu = (e: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    const { pageX, pageY } = e?.nativeEvent || {};
+
+    if (moreButtonRef.current && typeof moreButtonRef.current.measureInWindow === 'function') {
+      moreButtonRef.current.measureInWindow((x, y, width, height) => {
+        if (width && height) {
+          setAnchorPosition({ x, y, width, height });
+        } else if (pageX !== undefined && pageY !== undefined) {
+          setAnchorPosition({ x: pageX, y: pageY, width: 24, height: 24 });
+        } else {
+          setAnchorPosition(null);
+        }
+        setMenuVisible(true);
+      });
+    } else if (pageX !== undefined && pageY !== undefined) {
+      setAnchorPosition({ x: pageX, y: pageY, width: 24, height: 24 });
+      setMenuVisible(true);
+    } else {
+      setAnchorPosition(null);
+      setMenuVisible(true);
+    }
+  };
+
+  const menuSections: ActionMenuSection[] = [];
+
+  // 1. Status Section (matching inspiration screenshot)
+  const statusItems: ActionMenuItem[] = [];
+  if (post?.status === 'SCHEDULED') {
+    statusItems.push({
+      id: 'publish-now',
+      label: 'Publish now',
+      icon: <Zap size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: handlePublishNow,
+    });
+    statusItems.push({
+      id: 'cancel-schedule',
+      label: 'Cancel schedule',
+      icon: <XCircle size={16} color="#E11D48" strokeWidth={2} />,
+      variant: 'danger',
+      onPress: handleCancelSchedule,
+    });
+  } else if (post?.status === 'FAILED') {
+    statusItems.push({
+      id: 'retry-broadcast',
+      label: 'Retry broadcast',
+      icon: <Zap size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: handlePublishNow,
+    });
+  } else if (post?.status === 'DRAFT') {
+    statusItems.push({
+      id: 'publish-draft',
+      label: 'Publish now',
+      icon: <Send size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: handlePublishNow,
+    });
+  }
+
+  if (statusItems.length > 0) {
+    menuSections.push({
+      title: 'Status',
+      items: statusItems,
+    });
+  }
+
+  // 2. Record Actions Section (matching inspiration screenshot)
+  const recordItems: ActionMenuItem[] = [
+    {
+      id: 'edit-post',
+      label: 'Edit',
+      icon: <Edit3 size={16} color="#0D9488" strokeWidth={2} />,
+      variant: 'primary',
+      onPress: () => router.push({ pathname: '/compose', params: { editPostId: post.id } }),
+    },
+    {
+      id: 'copy-text',
+      label: 'Copy text',
+      icon: <Copy size={16} color="#64748B" strokeWidth={2} />,
+      onPress: handleCopyContent,
+    },
+    {
+      id: 'delete-post',
+      label: 'Delete',
+      icon: <Trash2 size={16} color="#E11D48" strokeWidth={2} />,
+      variant: 'danger',
+      onPress: handleDelete,
+    },
+  ];
+
+  menuSections.push({
+    title: 'Record actions',
+    items: recordItems,
+  });
+
   return (
     <View style={styles.container}>
       {/* 1. Signature Header Banner with Frosted Nav Actions */}
@@ -260,12 +370,13 @@ export default function PostDetailScreen() {
         title="Post Details"
         rightActions={
           <TouchableOpacity
-            onPress={handleDelete}
+            ref={moreButtonRef}
+            onPress={(e) => openActionMenu(e)}
             style={styles.frostedRightButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Delete post"
+            accessibilityLabel="Broadcast options"
           >
-            <Trash2 size={18} color="#FFFFFF" />
+            <MoreVertical size={18} color="#FFFFFF" />
           </TouchableOpacity>
         }
       />
@@ -803,6 +914,14 @@ export default function PostDetailScreen() {
           )}
         </View>
       </CurvedSheet>
+
+      {/* Custom Action Menu Dropdown */}
+      <ActionMenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        sections={menuSections}
+        anchorPosition={anchorPosition}
+      />
     </View>
   );
 }
