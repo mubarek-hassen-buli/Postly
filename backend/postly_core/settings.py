@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import sys
 import dj_database_url
+from django.urls import reverse_lazy
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -62,6 +63,7 @@ CORS_ALLOW_HEADERS = [
 
 # Application definition
 DJANGO_APPS = [
+    'unfold',  # Modern admin interface, must precede django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -108,7 +110,7 @@ ROOT_URLCONF = 'postly_core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -383,3 +385,112 @@ if SENTRY_DSN:
         traces_sample_rate=float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '0.1')),
         send_default_pii=False,
     )
+
+# ==============================================================================
+# Django Unfold Super Admin Portal Configuration
+# ==============================================================================
+UNFOLD = {
+    'SITE_TITLE': 'Postly Super Admin',
+    'SITE_HEADER': 'Postly Control Center',
+    'SITE_SUBHEADER': 'Broadcast Operations & Multi-Channel Observability',
+    'SITE_URL': '/admin/',
+    'SITE_SYMBOL': 'broadcast_on_personal',
+    'SHOW_HISTORY': True,
+    'DASHBOARD_CALLBACK': 'apps.analytics.dashboard.dashboard_callback',
+    'COLORS': {
+        'primary': {
+            '50': '238 248 255',
+            '100': '217 241 254',
+            '200': '186 230 253',
+            '300': '125 211 252',
+            '400': '56 189 248',
+            '500': '14 165 233',
+            '600': '2 132 199',  # Postly Cyan/Sky Primary
+            '700': '3 105 161',
+            '800': '7 89 133',
+            '900': '12 74 110',
+            '950': '8 47 73',
+        },
+    },
+    'SIDEBAR': {
+        'show_search': True,
+        'show_all_applications': True,
+        'navigation': [
+            {
+                'title': 'Broadcasts & Content',
+                'separator': True,
+                'items': [
+                    {
+                        'title': 'Broadcast Posts',
+                        'icon': 'send',
+                        'link': reverse_lazy('admin:posts_post_changelist'),
+                    },
+                    {
+                        'title': 'Channel Target Logs',
+                        'icon': 'hub',
+                        'link': reverse_lazy('admin:posts_postchanneltarget_changelist'),
+                    },
+                    {
+                        'title': 'Media Attachments',
+                        'icon': 'perm_media',
+                        'link': reverse_lazy('admin:media_uploadedmedia_changelist'),
+                    },
+                ],
+            },
+            {
+                'title': 'Destinations & Networks',
+                'separator': True,
+                'items': [
+                    {
+                        'title': 'Telegram Channels',
+                        'icon': 'forum',
+                        'link': reverse_lazy('admin:channels_channel_changelist'),
+                    },
+                    {
+                        'title': 'LinkedIn Integrations',
+                        'icon': 'share',
+                        'link': reverse_lazy('admin:integrations_linkedinaccount_changelist'),
+                    },
+                ],
+            },
+            {
+                'title': 'Users & Sessions',
+                'separator': True,
+                'items': [
+                    {
+                        'title': 'User Accounts',
+                        'icon': 'group',
+                        'link': reverse_lazy('admin:accounts_user_changelist'),
+                    },
+                    {
+                        'title': 'Telegram MTProto Sessions',
+                        'icon': 'key',
+                        'link': reverse_lazy('admin:accounts_telegramsession_changelist'),
+                    },
+                    {
+                        'title': 'Registered Mobile Devices',
+                        'icon': 'smartphone',
+                        'link': reverse_lazy('admin:notifications_device_changelist'),
+                    },
+                ],
+            },
+            {
+                'title': 'Security & System Logs',
+                'separator': True,
+                'items': [
+                    {
+                        'title': 'Admin Audit Trail',
+                        'icon': 'receipt_long',
+                        'link': reverse_lazy('admin:admin_logentry_changelist'),
+                    },
+                    {
+                        'title': 'Push Notification Logs',
+                        'icon': 'notifications',
+                        'link': reverse_lazy('admin:notifications_notificationlog_changelist'),
+                    },
+                ],
+            },
+        ],
+    },
+}
+

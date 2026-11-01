@@ -1,0 +1,147 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-6 mb-8">
+    <!-- Top System Health & Latency Bar -->
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-lg p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <span class="flex h-3 w-3 relative">
+                {% if kpi.diagnostics.db_healthy and kpi.diagnostics.cache_healthy %}
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                {% else %}
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                {% endif %}
+            </span>
+            <span class="text-sm font-semibold text-important">
+                {% if kpi.diagnostics.db_healthy and kpi.diagnostics.cache_healthy %}
+                    All Core Subsystems Operational
+                {% else %}
+                    Subsystem Warning / Partial Degradation
+                {% endif %}
+            </span>
+            <span class="text-xs text-subtle bg-base-100 dark:bg-base-800 px-2 py-0.5 rounded font-mono">
+                Engine: {{ kpi.diagnostics.db_vendor|upper }} ({{ kpi.diagnostics.db_latency_ms }} ms)
+            </span>
+            <span class="text-xs text-subtle bg-base-100 dark:bg-base-800 px-2 py-0.5 rounded font-mono">
+                Cache: {% if kpi.diagnostics.cache_healthy %}READY ({{ kpi.diagnostics.cache_latency_ms }} ms){% else %}OFFLINE{% endif %}
+            </span>
+        </div>
+
+        <div class="flex items-center gap-4 text-xs text-subtle">
+            <div>
+                Broadcast Success Rate:
+                <span class="font-bold {% if kpi.broadcasts.success_rate >= 90 %}text-emerald-600 dark:text-emerald-400{% else %}text-amber-500{% endif %}">
+                    {{ kpi.broadcasts.success_rate }}%
+                </span>
+            </div>
+            <div class="hidden sm:block text-base-300 dark:text-base-700">|</div>
+            <div class="hidden sm:block">
+                Queued Scheduled: <span class="font-bold text-important">{{ kpi.broadcasts.scheduled }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Core Metric KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Users & Sessions -->
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-lg p-5 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-subtle">Platform Users</span>
+                <span class="material-symbols-outlined text-primary-600 bg-primary-50 dark:bg-primary-900/30 p-1.5 rounded-md text-xl">
+                    group
+                </span>
+            </div>
+            <div class="mt-4">
+                <div class="text-2xl font-bold text-important">{{ kpi.users.total }}</div>
+                <div class="text-xs text-subtle mt-1 flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>{{ kpi.users.sessions_authenticated }} MTProto Sessions active</span>
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-base-100 dark:border-base-800 text-[11px] text-subtle flex justify-between">
+                <span>{{ kpi.users.linkedin_connected }} LinkedIn Linked</span>
+                <span>{{ kpi.users.active_7d }} Active 7d</span>
+            </div>
+        </div>
+
+        <!-- Card 2: Broadcast Observability -->
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-lg p-5 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-subtle">Broadcasts Dispatched</span>
+                <span class="material-symbols-outlined text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 p-1.5 rounded-md text-xl">
+                    send
+                </span>
+            </div>
+            <div class="mt-4">
+                <div class="text-2xl font-bold text-important">{{ kpi.broadcasts.published }}</div>
+                <div class="text-xs text-subtle mt-1 flex items-center gap-1.5">
+                    <span>{{ kpi.broadcasts.total }} total posts created</span>
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-base-100 dark:border-base-800 text-[11px] text-subtle flex justify-between">
+                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ kpi.broadcasts.success_rate }}% Success</span>
+                <span class="text-amber-500">{{ kpi.broadcasts.failed }} Failed</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Channel Reach -->
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-lg p-5 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-subtle">Network Reach</span>
+                <span class="material-symbols-outlined text-blue-600 bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-md text-xl">
+                    hub
+                </span>
+            </div>
+            <div class="mt-4">
+                <div class="text-2xl font-bold text-important">{{ kpi.channels.reach }}</div>
+                <div class="text-xs text-subtle mt-1 flex items-center gap-1.5">
+                    <span>Total subscribers in network</span>
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-base-100 dark:border-base-800 text-[11px] text-subtle flex justify-between">
+                <span>{{ kpi.channels.total }} Channels</span>
+                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ kpi.channels.can_post }} Writable</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Queue & Background Worker Status -->
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-lg p-5 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-subtle">Celery / Beat Queue</span>
+                <span class="material-symbols-outlined text-purple-600 bg-purple-50 dark:bg-purple-900/30 p-1.5 rounded-md text-xl">
+                    schedule
+                </span>
+            </div>
+            <div class="mt-4">
+                <div class="text-2xl font-bold text-important">{{ kpi.broadcasts.scheduled }}</div>
+                <div class="text-xs text-subtle mt-1 flex items-center gap-1.5">
+                    {% if kpi.broadcasts.publishing > 0 %}
+                        <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        <span class="text-blue-600 font-medium">{{ kpi.broadcasts.publishing }} Publishing Now</span>
+                    {% else %}
+                        <span>Scheduled broadcasts pending</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-base-100 dark:border-base-800 text-[11px] text-subtle flex justify-between">
+                <span>{{ kpi.broadcasts.total_deliveries }} Deliveries</span>
+                <span class="{% if kpi.broadcasts.failed_deliveries > 0 %}text-red-500 font-semibold{% else %}text-emerald-600{% endif %}">
+                    {{ kpi.broadcasts.failed_deliveries }} Target Err
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main App & Model Directory + Recent Audit Activity -->
+{% include "unfold/helpers/dashboard_default.html" %}
+{% endblock %}
+
