@@ -42,7 +42,7 @@ export default function RootLayout({
         geistHeading.variable
       )}
     >
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
