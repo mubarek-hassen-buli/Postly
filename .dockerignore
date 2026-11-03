@@ -1,0 +1,26 @@
+.git
+.gitignore
+Frontend/
+mobile/
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+db.sqlite3
+/backend/staticfiles/
+.env
+*.log
+.DS_Store
+
+# Exclude uploaded media folder only, NEVER apps/media
+/backend/media/
+/media/
+!backend/apps/media/
+!backend/apps/media/**
+!apps/media/
+!apps/media/**
+

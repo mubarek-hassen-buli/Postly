@@ -9,9 +9,12 @@ __pycache__
 *.pyd
 .pytest_cache
 db.sqlite3
-media
-staticfiles
+/staticfiles/
 .env
 *.log
 .DS_Store
 
+# User upload folder only (never exclude apps/media)
+/media/
+!apps/media/
+!apps/media/**
