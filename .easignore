@@ -29,8 +29,14 @@ mobile/ios/
 **/__pycache__/
 *.sqlite3
 db.sqlite3
-media/
-staticfiles/
+/media/
+/backend/media/
+/staticfiles/
+/backend/staticfiles/
+
+# CRITICAL: Always preserve mobile media service
+!mobile/src/services/media/
+!mobile/src/services/media/**
 
 # Git & Logs
 .git/
@@ -38,4 +44,3 @@ staticfiles/
 *.log
 .DS_Store
 Thumbs.db
-

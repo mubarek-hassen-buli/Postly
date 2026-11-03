@@ -74,6 +74,8 @@ staticfiles/
 /backend/media/
 !backend/apps/media/
 !backend/apps/media/**
+!mobile/src/services/media/
+!mobile/src/services/media/**
 
 # IDE & Editor Files
 .idea/

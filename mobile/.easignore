@@ -18,3 +18,6 @@ yarn-error.*
 .DS_Store
 Thumbs.db
 
+# Explicitly preserve services
+!src/services/media/
+!src/services/media/**
