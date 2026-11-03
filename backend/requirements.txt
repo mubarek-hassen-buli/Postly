@@ -4,6 +4,8 @@ djangorestframework>=3.15.0
 django-rest-knox>=5.0.2
 django-cors-headers>=4.4.0
 python-dotenv>=1.0.1
+whitenoise>=6.7.0
+gunicorn>=23.0.0
 
 # Database & Connection Management
 dj-database-url>=2.2.0

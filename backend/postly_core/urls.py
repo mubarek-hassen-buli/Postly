@@ -7,8 +7,13 @@ All API endpoints are versioned under `/api/v1/`.
 
 from django.contrib import admin
 from django.urls import include, path
+from apps.common.views import HealthCheckView
 
 urlpatterns = [
+    # Health check endpoints for Render and external ping services (keep-alive)
+    path('health/', HealthCheckView.as_view(), name='root_health_check'),
+    path('api/health/', HealthCheckView.as_view(), name='api_health_check'),
+
     # Django Admin Interface
     path('admin/', admin.site.urls),
 
