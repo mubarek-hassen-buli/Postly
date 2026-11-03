@@ -1,0 +1,41 @@
+# EAS Build Ignore for Postly Mobile
+# Prevents uploading backend and frontend monorepo folders (shrinks archive from 311MB to ~5MB)
+
+# Backend
+backend/
+backend/**
+
+# Frontend (Next.js)
+Frontend/
+Frontend/**
+.next/
+**/.next/
+
+# Dependencies & Build artifacts
+node_modules/
+**/node_modules/
+.expo/
+**/.expo/
+dist/
+web-build/
+
+# Native folders (CNG will generate clean native code on EAS)
+mobile/android/
+mobile/ios/
+
+# Virtual Environments & Databases
+.venv/
+**/venv/
+**/__pycache__/
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Git & Logs
+.git/
+.github/
+*.log
+.DS_Store
+Thumbs.db
+
