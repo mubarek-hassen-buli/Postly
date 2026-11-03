@@ -10,9 +10,11 @@ from django.urls import include, path
 from apps.common.views import HealthCheckView
 
 urlpatterns = [
-    # Health check endpoints for Render and external ping services (keep-alive)
+    # Health check endpoints for Render, Kubernetes, and external ping services
     path('health/', HealthCheckView.as_view(), name='root_health_check'),
     path('api/health/', HealthCheckView.as_view(), name='api_health_check'),
+    path('healthz', HealthCheckView.as_view(), name='k8s_healthz_no_slash'),
+    path('healthz/', HealthCheckView.as_view(), name='k8s_healthz'),
 
     # Django Admin Interface
     path('admin/', admin.site.urls),
