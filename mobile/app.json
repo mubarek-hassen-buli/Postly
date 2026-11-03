@@ -21,6 +21,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.postly.app",
       "adaptiveIcon": {
         "backgroundColor": "#5fc2fd",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -46,6 +47,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5ec89a17-7c04-4769-8b8e-d5c2c9db654a"
+      }
     }
   }
 }

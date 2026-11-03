@@ -1,0 +1,45 @@
+{
+  "cli": {
+    "version": ">= 27.2.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://postly-p7sx.onrender.com/api/v1",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dmn3yl8h3",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "postly_mobile_unsigned"
+      }
+    },
+    "apk": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://postly-p7sx.onrender.com/api/v1",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dmn3yl8h3",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "postly_mobile_unsigned"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://postly-p7sx.onrender.com/api/v1",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dmn3yl8h3",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "postly_mobile_unsigned"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
