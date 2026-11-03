@@ -70,7 +70,10 @@ celerybeat.pid
 *.log
 logs/
 staticfiles/
-media/
+/media/
+/backend/media/
+!backend/apps/media/
+!backend/apps/media/**
 
 # IDE & Editor Files
 .idea/

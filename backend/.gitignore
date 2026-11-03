@@ -51,8 +51,10 @@ db.sqlite3-journal
 logs/
 
 # Static / Media Files
-staticfiles/
-media/
+/staticfiles/
+/media/
+!apps/media/
+!apps/media/**
 
 # IDE / Editor Files
 .idea/
