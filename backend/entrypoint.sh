@@ -4,8 +4,10 @@ set -e
 echo "=== Postly Container Initializing ==="
 export PORT="${PORT:-10000}"
 
-# Clean up stale celery beat pid file if present
-rm -f /tmp/celerybeat.pid
+# Clean up stale celery beat pid and schedule files if present
+rm -f /tmp/celerybeat*
+rm -f /app/celerybeat*
+rm -f celerybeat-schedule*
 
 # Run database migrations
 echo "--> Running database migrations..."

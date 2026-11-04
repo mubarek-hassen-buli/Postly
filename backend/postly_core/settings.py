@@ -302,6 +302,20 @@ if CELERY_BROKER_URL.startswith('rediss://'):
     CELERY_BROKER_USE_SSL = {'ssl_cert_reqs': ssl.CERT_NONE}
     CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': ssl.CERT_NONE}
 
+# Transport options optimized for cloud brokers
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 86400,  # 24 hours
+}
+
+# Automated Periodic Schedule (Celery Beat)
+# Automatically sweeps the database every 60 seconds for scheduled posts due to be published
+CELERY_BEAT_SCHEDULE = {
+    'reconcile-scheduled-posts-every-minute': {
+        'task': 'apps.posts.tasks.reconcile_scheduled_posts',
+        'schedule': 60.0,
+    },
+}
+
 # Redis Cache Backend
 REDIS_CACHE_URL = os.getenv('REDIS_URL', CELERY_BROKER_URL)
 CACHES = {
