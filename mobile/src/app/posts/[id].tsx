@@ -48,6 +48,7 @@ import {
 } from '../../hooks/usePosts';
 import { TelegramIcon, LinkedInIcon } from '../../components/common/BrandIcons';
 import { ActionMenuModal, ActionMenuItem, ActionMenuSection } from '../../components/common/ActionMenuModal';
+import { SuccessModal } from '../../components/common/SuccessModal';
 import { PostChannelTargetItem, PostItem } from '../../services/posts/postService';
 import { ScreenHeaderBanner, CurvedSheet } from '../../components/common/ScreenHeaderBanner';
 import { colors } from '../../theme/colors';
@@ -70,6 +71,7 @@ export default function PostDetailScreen() {
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<string>('ALL');
   const [expandedSection, setExpandedSection] = useState<string | null>('delivery');
   const [copied, setCopied] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   // Context Action Menu State & Anchoring (declared at top before early returns)
   const [menuVisible, setMenuVisible] = useState(false);
@@ -86,9 +88,10 @@ export default function PostDetailScreen() {
   const deleteMutation = useDeletePost();
 
   const handleCopyContent = () => {
-    if (!post?.content) return;
+    const textToCopy = post?.content || post?.text_content;
+    if (!textToCopy) return;
     Haptics.selectionAsync().catch(() => {});
-    Clipboard.setString(post.content);
+    Clipboard.setString(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -98,8 +101,8 @@ export default function PostDetailScreen() {
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       await publishMutation.mutateAsync(postId);
-      Alert.alert('Broadcast Sent', 'Your post has been published to targeted channels.');
       refetch();
+      setSuccessModalVisible(true);
     } catch (err: any) {
       Alert.alert('Publish Failed', err?.message || 'Could not publish post immediately.');
     }
@@ -255,8 +258,9 @@ export default function PostDetailScreen() {
     : format(new Date(post.created_at), 'MMM d, yyyy • h:mm a');
 
   // Extract a clean heading from post content or default
+  const postBodyContent = post.content || post.text_content || '';
   const titleExcerpt =
-    post.content?.split('\n')[0]?.slice(0, 60) || 'Broadcast Message';
+    postBodyContent.split('\n')[0]?.slice(0, 60) || 'Broadcast Message';
 
   const isDeliveryExpanded = expandedSection === 'delivery';
   const isScheduleExpanded = expandedSection === 'schedule';
@@ -453,7 +457,7 @@ export default function PostDetailScreen() {
                 <Text style={styles.heroQuoteBadgeText}>Broadcast Preview</Text>
               </View>
               <Text style={styles.heroQuoteText} numberOfLines={3}>
-                "{post.content?.trim() || 'No message content'}"
+                "{postBodyContent.trim() || 'No message content'}"
               </Text>
             </View>
           )}
@@ -614,7 +618,7 @@ export default function PostDetailScreen() {
             </View>
 
             <Text style={styles.postBodyText} selectable={true}>
-              {post.content || 'No text content in this broadcast.'}
+              {postBodyContent || 'No text content in this broadcast.'}
             </Text>
           </View>
 
@@ -920,6 +924,15 @@ export default function PostDetailScreen() {
         onClose={() => setMenuVisible(false)}
         sections={menuSections}
         anchorPosition={anchorPosition}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={successModalVisible}
+        onClose={() => setSuccessModalVisible(false)}
+        title="Successful"
+        message="Your post has been successfully broadcasted."
+        buttonLabel="Done"
       />
     </View>
   );

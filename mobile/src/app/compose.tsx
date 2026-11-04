@@ -33,6 +33,7 @@ import { ChannelSelectorPills } from '../components/composer/ChannelSelectorPill
 import { MediaPickerSection, LocalMediaAttachment } from '../components/composer/MediaPickerSection';
 import { SchedulePickerModal } from '../components/composer/SchedulePickerModal';
 import { PostPreviewModal } from '../components/composer/PostPreviewModal';
+import { SuccessModal } from '../components/common/SuccessModal';
 import { LinkedInIcon } from '../components/common/BrandIcons';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -59,6 +60,16 @@ export default function ComposeModalScreen() {
   // Modals
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [successModalConfig, setSuccessModalConfig] = useState({
+    title: 'Successful',
+    message: 'Your broadcast has been successfully created.',
+  });
+
+  const handleSuccessDone = () => {
+    setSuccessModalVisible(false);
+    router.back();
+  };
 
   // Queries & Mutations
   const { data: channelsData } = useChannels({ can_post_only: true });
@@ -188,7 +199,13 @@ export default function ComposeModalScreen() {
         });
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-        router.back();
+        setSuccessModalConfig({
+          title: 'Successful',
+          message: isEditingPublished
+            ? 'Your broadcast was successfully updated on Telegram.'
+            : 'Your changes have been successfully saved.',
+        });
+        setSuccessModalVisible(true);
         return;
       }
 
@@ -207,7 +224,13 @@ export default function ComposeModalScreen() {
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      router.back();
+      setSuccessModalConfig({
+        title: 'Successful',
+        message: scheduledFor
+          ? `Your post is scheduled for ${format(new Date(scheduledFor), 'MMM d @ h:mm a')}.`
+          : 'Your broadcast was successfully published.',
+      });
+      setSuccessModalVisible(true);
     } catch (error: any) {
       Alert.alert('Publishing Error', error.message || 'Failed to submit post.');
     }
@@ -411,6 +434,15 @@ export default function ComposeModalScreen() {
         pinMessage={pinMessage}
         attachments={attachments}
         channelNames={selectedChannelNames}
+      />
+
+      {/* Modern Success Modal */}
+      <SuccessModal
+        visible={successModalVisible}
+        onClose={handleSuccessDone}
+        title={successModalConfig.title}
+        message={successModalConfig.message}
+        buttonLabel="Done"
       />
     </SafeAreaView>
   );

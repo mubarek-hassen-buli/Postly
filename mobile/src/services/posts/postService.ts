@@ -97,6 +97,16 @@ export interface PostQueryParams {
   page_size?: number;
 }
 
+function normalizePostItem(post: any): PostItem {
+  if (!post || typeof post !== 'object') return post;
+  const resolvedContent = post.text_content ?? post.content ?? '';
+  return {
+    ...post,
+    content: resolvedContent,
+    text_content: resolvedContent,
+  };
+}
+
 export const postService = {
   async getPosts(params?: PostQueryParams): Promise<PaginatedPostsResponse> {
     const response = await apiClient.get<any>('/posts/', { params });
@@ -105,44 +115,51 @@ export const postService = {
         count: response.data.length,
         next: null,
         previous: null,
-        results: response.data,
+        results: response.data.map(normalizePostItem),
       };
     }
+    const rawResults = response.data?.results || [];
     return {
-      count: response.data?.count ?? (response.data?.results?.length || 0),
+      count: response.data?.count ?? rawResults.length,
       next: response.data?.next || null,
       previous: response.data?.previous || null,
-      results: response.data?.results || [],
+      results: rawResults.map(normalizePostItem),
     };
   },
 
   async getPost(id: string): Promise<PostItem> {
-    const response = await apiClient.get<PostItem>(`/posts/${id}/`);
-    return response.data;
+    const response = await apiClient.get<any>(`/posts/${id}/`);
+    return normalizePostItem(response.data);
   },
 
   async createPost(payload: CreatePostPayload): Promise<PostItem> {
-    const response = await apiClient.post<PostItem>('/posts/', payload);
-    return response.data;
+    const response = await apiClient.post<any>('/posts/', payload);
+    return normalizePostItem(response.data);
   },
 
   async updatePost(id: string, payload: UpdatePostPayload): Promise<PostItem> {
-    const response = await apiClient.patch<PostItem>(`/posts/${id}/`, payload);
-    return response.data;
+    const response = await apiClient.patch<any>(`/posts/${id}/`, payload);
+    return normalizePostItem(response.data);
   },
 
   async publishPostNow(id: string): Promise<{ message: string; post: PostItem; result: any }> {
-    const response = await apiClient.post<{ message: string; post: PostItem; result: any }>(
+    const response = await apiClient.post<{ message: string; post: any; result: any }>(
       `/posts/${id}/publish-now/`
     );
-    return response.data;
+    return {
+      ...response.data,
+      post: normalizePostItem(response.data?.post),
+    };
   },
 
   async cancelScheduledPost(id: string): Promise<{ message: string; post: PostItem }> {
-    const response = await apiClient.post<{ message: string; post: PostItem }>(
+    const response = await apiClient.post<{ message: string; post: any }>(
       `/posts/${id}/cancel-schedule/`
     );
-    return response.data;
+    return {
+      ...response.data,
+      post: normalizePostItem(response.data?.post),
+    };
   },
 
   async deletePost(id: string): Promise<void> {

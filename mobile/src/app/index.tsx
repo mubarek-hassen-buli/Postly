@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, Text, ActivityIndicator, Image } from 'react-native';
 import { Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TelegramIcon } from '../components/common/BrandIcons';
 import { useAuthStore } from '../store/useAuthStore';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -20,10 +19,13 @@ export default function Index() {
         />
         <View style={styles.centerContent}>
           <View style={styles.iconContainer}>
-            <TelegramIcon size={46} color={colors.primary.DEFAULT} style={styles.icon} />
+            <Image
+              source={require('../../assets/images/icon.png')}
+              style={styles.appIcon}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.brandTitle}>Postly</Text>
-          <Text style={styles.tagline}>Telegram Channel Management</Text>
           <ActivityIndicator size="small" color={colors.primary.DEFAULT} style={styles.loader} />
         </View>
       </View>
@@ -50,31 +52,34 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   iconContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: colors.primary.subtle,
-    borderWidth: 1.5,
-    borderColor: colors.primary.subtleBorder,
+    width: 88,
+    height: 88,
+    borderRadius: 24,
+    backgroundColor: colors.background.surface,
+    shadowColor: colors.primary.DEFAULT,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.lg,
+    overflow: 'hidden',
   },
-  icon: {
-    marginLeft: -3,
+  appIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 24,
   },
   brandTitle: {
-    ...typography.presets.hero,
+    fontFamily: typography.fonts.display,
+    fontSize: 34,
+    lineHeight: 42,
     color: colors.text.primary,
-    fontWeight: '800',
+    letterSpacing: -0.5,
     marginBottom: spacing.xs,
   },
-  tagline: {
-    ...typography.presets.subhead,
-    color: colors.text.secondary,
-    marginBottom: spacing.xxl,
-  },
   loader: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
 });
