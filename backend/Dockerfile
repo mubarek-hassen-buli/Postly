@@ -4,6 +4,7 @@ FROM python:3.12-slim
 # Prevent Python from writing .pyc files & buffer outputs for real-time Render logs
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    C_FORCE_ROOT=1 \
     PORT=10000
 
 # Set working directory
