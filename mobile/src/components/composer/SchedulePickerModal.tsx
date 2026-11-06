@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
+  Alert,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { format, addMinutes, addHours, addDays, setHours, setMinutes } from 'date-fns';
-import { Calendar, Check, Clock, Send, X } from 'lucide-react-native';
+import {
+  addDays,
+  addHours,
+  addMinutes,
+  format,
+  isBefore,
+  setHours,
+  setMinutes,
+} from 'date-fns';
+import {
+  AlertCircle,
+  Calendar as CalendarIcon,
+  Check,
+  Clock,
+  Send,
+  Sparkles,
+  X,
+} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { CalendarDatePicker } from './CalendarDatePicker';
+import { TimePickerSection } from './TimePickerSection';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { colors } from '../../theme/colors';
@@ -23,20 +43,43 @@ export interface SchedulePickerModalProps {
   onSelectSchedule: (isoString: string | null) => void;
 }
 
+type TabMode = 'shortcuts' | 'custom';
+
 export const SchedulePickerModal: React.FC<SchedulePickerModalProps> = ({
   visible,
   onClose,
   scheduledFor,
   onSelectSchedule,
 }) => {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(
-    scheduledFor ? new Date(scheduledFor) : null
-  );
+  const [activeTab, setActiveTab] = useState<TabMode>('shortcuts');
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    if (scheduledFor) {
+      const parsed = new Date(scheduledFor);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return addHours(new Date(), 1);
+  });
+
+  // Sync state when modal becomes visible or scheduledFor changes
+  useEffect(() => {
+    if (visible) {
+      if (scheduledFor) {
+        const parsed = new Date(scheduledFor);
+        if (!isNaN(parsed.getTime())) {
+          setSelectedDate(parsed);
+          setActiveTab('custom');
+          return;
+        }
+      }
+      setSelectedDate(addHours(new Date(), 1));
+    }
+  }, [visible, scheduledFor]);
 
   const getQuickPresets = () => {
     const now = new Date();
     const tonight = setMinutes(setHours(now, 20), 0);
     const tomorrowMorning = setMinutes(setHours(addDays(now, 1), 9), 0);
+    const inTwoDays = setMinutes(setHours(addDays(now, 2), 10), 0);
 
     return [
       {
@@ -55,6 +98,10 @@ export const SchedulePickerModal: React.FC<SchedulePickerModalProps> = ({
         label: 'Tomorrow at 9:00 AM',
         date: tomorrowMorning,
       },
+      {
+        label: 'In 2 Days at 10:00 AM',
+        date: inTwoDays,
+      },
     ];
   };
 
@@ -63,9 +110,33 @@ export const SchedulePickerModal: React.FC<SchedulePickerModalProps> = ({
     setSelectedDate(date);
   };
 
+  const handleCustomDateSelect = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const handleCustomTimeChange = (hours: number, minutes: number) => {
+    const updated = new Date(selectedDate);
+    updated.setHours(hours);
+    updated.setMinutes(minutes);
+    updated.setSeconds(0);
+    updated.setMilliseconds(0);
+    setSelectedDate(updated);
+  };
+
+  // Validation: Must be at least 2 minutes in the future
+  const minimumAllowed = addMinutes(new Date(), 2);
+  const isPastOrTooClose = isBefore(selectedDate, minimumAllowed);
+
   const handleApply = () => {
+    if (isPastOrTooClose) {
+      Alert.alert(
+        'Invalid Schedule Time',
+        'Please select a time at least 2 minutes in the future.'
+      );
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    onSelectSchedule(selectedDate ? selectedDate.toISOString() : null);
+    onSelectSchedule(selectedDate.toISOString());
     onClose();
   };
 
@@ -83,58 +154,171 @@ export const SchedulePickerModal: React.FC<SchedulePickerModalProps> = ({
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.sheetContainer} onPress={(e) => e.stopPropagation()}>
+        <Pressable
+          style={styles.sheetContainer}
+          onPress={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={styles.titleArea}>
               <Text style={styles.title}>Schedule Publishing</Text>
-              <Text style={styles.subtitle}>Choose when to broadcast this post</Text>
+              <Text style={styles.subtitle}>
+                Choose when to broadcast this post
+              </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.closeButton}
+              accessibilityLabel="Close schedule modal"
+            >
               <X size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
-          {/* Quick Presets */}
-          <Text style={styles.sectionHeader}>Quick Shortcuts</Text>
-          <View style={styles.presetsContainer}>
-            {getQuickPresets().map((preset, index) => {
-              const isSelected =
-                selectedDate &&
-                Math.abs(selectedDate.getTime() - preset.date.getTime()) < 60000;
+          {/* Segmented View Mode */}
+          <View style={styles.segmentContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setActiveTab('shortcuts');
+              }}
+              style={[
+                styles.segmentTab,
+                activeTab === 'shortcuts' && styles.segmentTabActive,
+              ]}
+            >
+              <Sparkles
+                size={16}
+                color={
+                  activeTab === 'shortcuts'
+                    ? colors.primary.DEFAULT
+                    : colors.text.muted
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  activeTab === 'shortcuts' && styles.segmentTextActive,
+                ]}
+              >
+                Quick Shortcuts
+              </Text>
+            </TouchableOpacity>
 
-              return (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => handlePresetSelect(preset.date)}
-                  style={[styles.presetRow, isSelected && styles.selectedPresetRow]}
-                >
-                  <View style={styles.presetLeft}>
-                    <Clock size={16} color={isSelected ? colors.primary.DEFAULT : colors.text.muted} />
-                    <Text style={[styles.presetLabel, isSelected && styles.selectedPresetLabel]}>
-                      {preset.label}
-                    </Text>
-                  </View>
-                  <Text style={styles.presetTime}>
-                    {format(preset.date, 'EEE, h:mm a')}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setActiveTab('custom');
+              }}
+              style={[
+                styles.segmentTab,
+                activeTab === 'custom' && styles.segmentTabActive,
+              ]}
+            >
+              <CalendarIcon
+                size={16}
+                color={
+                  activeTab === 'custom'
+                    ? colors.primary.DEFAULT
+                    : colors.text.muted
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  activeTab === 'custom' && styles.segmentTextActive,
+                ]}
+              >
+                Custom Date & Time
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Selected Schedule Banner */}
-          {selectedDate && (
+          {/* Scrollable Content */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {activeTab === 'shortcuts' ? (
+              <View style={styles.presetsContainer}>
+                {getQuickPresets().map((preset, index) => {
+                  const isSelected =
+                    Math.abs(selectedDate.getTime() - preset.date.getTime()) <
+                    60000;
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handlePresetSelect(preset.date)}
+                      style={[
+                        styles.presetRow,
+                        isSelected && styles.selectedPresetRow,
+                      ]}
+                    >
+                      <View style={styles.presetLeft}>
+                        <Clock
+                          size={16}
+                          color={
+                            isSelected
+                              ? colors.primary.DEFAULT
+                              : colors.text.muted
+                          }
+                        />
+                        <Text
+                          style={[
+                            styles.presetLabel,
+                            isSelected && styles.selectedPresetLabel,
+                          ]}
+                        >
+                          {preset.label}
+                        </Text>
+                      </View>
+                      <Text style={styles.presetTime}>
+                        {format(preset.date, 'EEE, h:mm a')}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={styles.customContainer}>
+                <CalendarDatePicker
+                  selectedDate={selectedDate}
+                  onSelectDate={handleCustomDateSelect}
+                  minDate={new Date()}
+                />
+                <TimePickerSection
+                  selectedDate={selectedDate}
+                  onChangeTime={handleCustomTimeChange}
+                />
+              </View>
+            )}
+
+            {/* Validation Notice if date is in the past */}
+            {isPastOrTooClose && (
+              <View style={styles.warningBanner}>
+                <AlertCircle size={16} color={colors.status.error} />
+                <Text style={styles.warningText}>
+                  Scheduled time must be at least 2 minutes in the future.
+                </Text>
+              </View>
+            )}
+
+            {/* Selected Schedule Banner */}
             <Card style={styles.selectedBanner}>
-              <Calendar size={18} color={colors.primary.DEFAULT} style={styles.bannerIcon} />
+              <CalendarIcon
+                size={18}
+                color={colors.primary.DEFAULT}
+                style={styles.bannerIcon}
+              />
               <View style={styles.bannerTextContainer}>
                 <Text style={styles.bannerTitle}>Scheduled Time</Text>
                 <Text style={styles.bannerValue}>
-                  {format(selectedDate, 'MMMM d, yyyy @ h:mm a')}
+                  {format(selectedDate, 'EEEE, MMMM d, yyyy @ h:mm a')}
                 </Text>
               </View>
             </Card>
-          )}
+          </ScrollView>
 
           {/* Actions */}
           <View style={styles.actionsRow}>
@@ -152,7 +336,7 @@ export const SchedulePickerModal: React.FC<SchedulePickerModalProps> = ({
               variant="primary"
               size="md"
               onPress={handleApply}
-              disabled={!selectedDate}
+              disabled={isPastOrTooClose}
               leftIcon={<Check size={16} color="#FFFFFF" />}
               style={styles.actionBtn}
             />
@@ -173,8 +357,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.surface,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
-    padding: spacing.xl,
+    padding: spacing.lg,
     paddingBottom: spacing.massive,
+    maxHeight: '92%',
     borderTopWidth: 1.5,
     borderColor: colors.border.subtle,
     ...shadows.floating,
@@ -183,7 +368,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   titleArea: {
     flex: 1,
@@ -206,15 +391,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sectionHeader: {
-    ...typography.presets.subheadMedium,
+  segmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.background.highlight,
+    borderRadius: borderRadius.lg,
+    padding: 4,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+  },
+  segmentTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+    borderRadius: borderRadius.md,
+  },
+  segmentTabActive: {
+    backgroundColor: colors.background.surface,
+    ...shadows.card,
+  },
+  segmentText: {
+    ...typography.presets.caption,
     color: colors.text.secondary,
-    marginBottom: spacing.xs,
+    fontWeight: '600',
+  },
+  segmentTextActive: {
+    color: colors.primary.DEFAULT,
+    fontWeight: '700',
+  },
+  scrollContent: {
+    paddingBottom: spacing.sm,
   },
   presetsContainer: {
     backgroundColor: colors.background.elevated,
     borderRadius: borderRadius.md,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
     marginBottom: spacing.md,
   },
   presetRow: {
@@ -227,7 +443,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border.subtle,
   },
   selectedPresetRow: {
-    backgroundColor: 'rgba(42, 171, 238, 0.15)',
+    backgroundColor: 'rgba(42, 171, 238, 0.12)',
   },
   presetLeft: {
     flexDirection: 'row',
@@ -246,12 +462,32 @@ const styles = StyleSheet.create({
     ...typography.presets.caption,
     color: colors.text.secondary,
   },
+  customContainer: {
+    marginBottom: spacing.md,
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.status.errorBg,
+    borderColor: colors.status.errorBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  warningText: {
+    ...typography.presets.caption,
+    color: colors.status.error,
+    fontWeight: '600',
+    flex: 1,
+  },
   selectedBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(42, 171, 238, 0.1)',
-    borderColor: 'rgba(42, 171, 238, 0.3)',
-    marginBottom: spacing.lg,
+    backgroundColor: 'rgba(42, 171, 238, 0.08)',
+    borderColor: 'rgba(42, 171, 238, 0.25)',
+    marginBottom: spacing.md,
     padding: spacing.md,
   },
   bannerIcon: {
@@ -274,6 +510,7 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+    paddingTop: spacing.xs,
   },
   actionBtn: {
     flex: 1,
