@@ -103,9 +103,16 @@ export default function PostersScreen() {
 
   const handlePublishNow = async (postId: string) => {
     try {
+      const res = await publishNowMutation.mutateAsync(postId);
+      refetchPosts();
+      if (res?.status === 'FAILED') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        Alert.alert('Publish Failed', res.error_summary || 'Failed to dispatch post immediately.');
+        return;
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      await publishNowMutation.mutateAsync(postId);
     } catch (error: any) {
+      refetchPosts();
       console.warn('Publish now failed:', error);
       Alert.alert('Publish Failed', error?.message || 'Failed to dispatch post immediately.');
     }

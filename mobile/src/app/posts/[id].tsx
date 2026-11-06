@@ -99,11 +99,20 @@ export default function PostDetailScreen() {
   const handlePublishNow = async () => {
     if (!postId) return;
     try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      await publishMutation.mutateAsync(postId);
+      const updatedPost = await publishMutation.mutateAsync(postId);
       refetch();
+      if (updatedPost?.status === 'FAILED') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        Alert.alert(
+          'Publish Failed',
+          updatedPost.error_summary || 'The broadcast failed to reach target channels.'
+        );
+        return;
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setSuccessModalVisible(true);
     } catch (err: any) {
+      refetch();
       Alert.alert('Publish Failed', err?.message || 'Could not publish post immediately.');
     }
   };

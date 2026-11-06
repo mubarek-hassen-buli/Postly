@@ -1,5 +1,7 @@
+# pyright: reportGeneralTypeIssues=none, reportAttributeAccessIssue=none, reportCallIssue=none
 import concurrent.futures
 import logging
+from typing import Any, cast
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -116,7 +118,7 @@ class PostListCreateView(APIView):
         else:
             initial_status = Post.PostStatus.DRAFT
 
-        with transaction.atomic():
+        with cast(Any, transaction.atomic()):
             post = Post.objects.create(
                 user=user,
                 text_content=validated_data.get('text_content', ''),
@@ -148,6 +150,17 @@ class PostListCreateView(APIView):
         if publish_now:
             TelegramPublishingService.publish_post(str(post.id))
             post.refresh_from_db()
+            if post.status == Post.PostStatus.FAILED:
+                return Response(
+                    {
+                        'error': {
+                            'code': 'PUBLISH_FAILED',
+                            'message': post.error_summary or 'Failed to broadcast post to selected channels.',
+                            'details': PostDetailSerializer(post).data,
+                        }
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         elif scheduled_for:
             try:
                 task_id = schedule_post_celery_task(post)
@@ -193,7 +206,7 @@ class PostDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        with transaction.atomic():
+        with cast(Any, transaction.atomic()):
             if 'text_content' in data:
                 post.text_content = data['text_content']
             if 'formatting_mode' in data:
@@ -341,6 +354,18 @@ class PostPublishNowView(APIView):
         # Publish immediately
         TelegramPublishingService.publish_post(str(post.id))
         post.refresh_from_db()
+
+        if post.status == Post.PostStatus.FAILED:
+            return Response(
+                {
+                    'error': {
+                        'code': 'PUBLISH_FAILED',
+                        'message': post.error_summary or 'Failed to broadcast post to selected channels.',
+                        'details': PostDetailSerializer(post).data,
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(PostDetailSerializer(post).data, status=status.HTTP_200_OK)
 

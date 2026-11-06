@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { Search, X } from 'lucide-react-native';
 import { Input } from '../ui/Input';
 import { colors } from '../../theme/colors';
@@ -33,7 +32,6 @@ export const ChannelFilterBar: React.FC<ChannelFilterBarProps> = ({
   totalCount = 0,
 }) => {
   const handleChipPress = (mode: ChannelFilterMode) => {
-    Haptics.selectionAsync().catch(() => {});
     onFilterModeChange(mode);
   };
 

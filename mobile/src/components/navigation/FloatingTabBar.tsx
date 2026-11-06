@@ -17,7 +17,6 @@ import {
   Radio,
   Settings as SettingsIcon,
 } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
 import { useDetailModalStore } from '../../store/useDetailModalStore';
 
 export type FloatingTabBarProps = BottomTabBarProps;
@@ -83,7 +82,6 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
   };
 
   const handleComposePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     router.push('/compose');
   };
 

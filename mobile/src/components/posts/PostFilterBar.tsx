@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import {
   AlertCircle,
   CheckCircle2,
@@ -73,7 +72,6 @@ export const PostFilterTabs: React.FC<PostFilterTabsProps> = ({
   onStatusChange,
 }) => {
   const handleTabPress = (status: PostStatusFilter) => {
-    Haptics.selectionAsync().catch(() => {});
     onStatusChange(status);
   };
 

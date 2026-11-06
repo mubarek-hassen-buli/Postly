@@ -1,6 +1,6 @@
 # pyright: reportAttributeAccessIssue=none, reportGeneralTypeIssues=none, reportArgumentType=none, reportCallIssue=none
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 from django.db import transaction
 from django.utils import timezone
 from telethon.errors import (
@@ -36,7 +36,7 @@ class TelegramPublishingService:
         Safely acquires optimistic lock, transitions status to PUBLISHING, and broadcasts.
         """
         # Step 1: Atomic state transition & validation
-        with transaction.atomic():
+        with cast(Any, transaction.atomic()):
             try:
                 post = Post.objects.select_for_update(nowait=False).get(id=post_id)
             except Post.DoesNotExist:
@@ -56,7 +56,7 @@ class TelegramPublishingService:
         post_to_linkedin = getattr(post, 'post_to_linkedin', False)
 
         if not targets and not post_to_linkedin:
-            with transaction.atomic():
+            with cast(Any, transaction.atomic()):
                 post.status = Post.PostStatus.FAILED
                 post.error_summary = "No target channels or platforms selected for this post."
                 post.save(update_fields=['status', 'error_summary', 'updated_at'])
@@ -94,7 +94,7 @@ class TelegramPublishingService:
                 for target in targets:
                     dispatch_results[str(target.id)] = {'status': 'FAILED', 'error': str(exc)}
 
-            with transaction.atomic():
+            with cast(Any, transaction.atomic()):
                 for target in targets:
                     res = dispatch_results.get(str(target.id), {'status': 'FAILED', 'error': 'Unknown error'})
                     if res.get('status') == 'SUCCESS':
@@ -128,7 +128,7 @@ class TelegramPublishingService:
                 logger.warning(f"Failed to publish post {post.id} to LinkedIn: {li_err_msg}")
 
         # Step 5: Finalize database records based on results
-        with transaction.atomic():
+        with cast(Any, transaction.atomic()):
             if success_count > 0:
                 post.status = Post.PostStatus.PUBLISHED
                 post.published_at = now

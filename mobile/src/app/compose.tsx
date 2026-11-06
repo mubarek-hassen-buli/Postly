@@ -210,7 +210,7 @@ export default function ComposeModalScreen() {
       }
 
       // Create Mode (Unified multi-platform dispatch & scheduling)
-      await createPostMutation.mutateAsync({
+      const createdPost = await createPostMutation.mutateAsync({
         text_content: content.trim(),
         content: content.trim(),
         target_channel_ids: selectedChannelIds,
@@ -222,6 +222,15 @@ export default function ComposeModalScreen() {
         publish_now: !scheduledFor,
         media_attachments: mediaPayload,
       });
+
+      if (createdPost && (createdPost as any).status === 'FAILED') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        Alert.alert(
+          'Publishing Failed',
+          (createdPost as any).error_summary || 'Your post could not be broadcast to the selected channels.'
+        );
+        return;
+      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setSuccessModalConfig({
