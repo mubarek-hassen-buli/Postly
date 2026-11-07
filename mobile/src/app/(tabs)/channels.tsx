@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { RefreshCw, Radio } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
 
 import { useChannels, useSyncChannels, useToggleChannelSelection } from '../../hooks/useChannels';
 import { ChannelItem } from '../../services/channels/channelService';
@@ -57,7 +56,6 @@ export default function ChannelsScreen() {
   }, [channels]);
 
   const handleSync = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     try {
       await syncMutation.mutateAsync();
     } catch (error) {

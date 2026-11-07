@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import {
   BarChart2,
   Check,
@@ -32,12 +31,10 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
   onPressStats,
 }) => {
   const handleToggle = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     onToggleSelect(channel.id);
   };
 
   const handleStats = () => {
-    Haptics.selectionAsync().catch(() => {});
     onPressStats?.(channel);
   };
 

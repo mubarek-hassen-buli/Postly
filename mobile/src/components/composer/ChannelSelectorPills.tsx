@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { Check, Plus } from 'lucide-react-native';
 import { ChannelItem } from '../../services/channels/channelService';
 import { TelegramIcon } from '../common/BrandIcons';
@@ -30,7 +29,6 @@ export const ChannelSelectorPills: React.FC<ChannelSelectorPillsProps> = ({
   onClearAll,
 }) => {
   const handleToggle = (id: string) => {
-    Haptics.selectionAsync().catch(() => {});
     onToggleChannel(id);
   };
 
@@ -45,7 +43,6 @@ export const ChannelSelectorPills: React.FC<ChannelSelectorPillsProps> = ({
         {channels.length > 1 && (
           <TouchableOpacity
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
               if (isAllSelected) {
                 onClearAll?.();
               } else {
