@@ -50,7 +50,7 @@ export function Navbar() {
         </Link>
 
         {/* Center Navigation Links (Desktop) */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <Link
             href="/#features"
             className="hover:text-foreground transition-colors duration-150"
@@ -102,10 +102,10 @@ export function Navbar() {
             )}
           </button>
 
-          {/* Launch App Capsule Button */}
+          {/* Launch App Capsule Button (Desktop) */}
           <Link
             href="/#sandbox"
-            className="px-4 sm:px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-full bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-all duration-200 active:scale-95"
+            className="hidden lg:inline-flex px-4 sm:px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-full bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-all duration-200 active:scale-95"
           >
             Launch App
           </Link>
@@ -113,8 +113,9 @@ export function Navbar() {
           {/* Mobile Menu Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground cursor-pointer"
+            className="lg:hidden w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground cursor-pointer"
             aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
@@ -123,7 +124,7 @@ export function Navbar() {
 
       {/* Floating Mobile Dropdown Card */}
       {mobileMenuOpen && (
-        <div className="md:hidden mt-2 bg-background/95 dark:bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
+        <div className="lg:hidden mt-2 bg-background/95 dark:bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
           <Link
             href="/#features"
             onClick={() => setMobileMenuOpen(false)}
