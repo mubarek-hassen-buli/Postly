@@ -1,36 +1,36 @@
 "use client"
 
 import React from "react"
-import { ShieldCheck, Lock, Key, Server, Database, CheckCircle2 } from "lucide-react"
+import { ShieldCheck, Lock, Smartphone, UserCheck, CheckCircle2, Sparkles } from "lucide-react"
 
 const SECURITY_PILLARS = [
   {
     icon: Lock,
-    title: "AES-256 Fernet Session Encryption",
+    title: "Encrypted Account Connections",
     description:
-      "Telegram MTProto session strings and stored platform credentials are encrypted at rest using AES-256 in CBC mode with HMAC-SHA256 signatures before database persistence.",
-    tech: "Fernet Crypto Engine",
+      "Your connected Telegram and social accounts are locked with strong encryption, so your private login details always stay completely hidden and protected.",
+    badge: "Private & Encrypted",
   },
   {
-    icon: Key,
-    title: "Hardware-Backed Device Keystores",
+    icon: Smartphone,
+    title: "Protected on Your Phone",
     description:
-      "Authentication tokens on iOS and Android devices are stored exclusively in hardware-isolated iOS Keychain and Android Keystore via Expo SecureStore.",
-    tech: "iOS Keychain / Keystore",
+      "Your login stays safely stored inside your phone's built-in security vault on iPhone and Android—protected by your device passcode, Face ID, or fingerprint.",
+    badge: "Device Security",
   },
   {
-    icon: Server,
-    title: "OAuth 2.0 & Knox Token Authentication",
+    icon: UserCheck,
+    title: "You Stay in Full Control",
     description:
-      "Official OAuth 2.0 flows for LinkedIn and Instagram with cryptographically signed Knox session tokens ensuring all API routes require strict authentication.",
-    tech: "OAuth 2.0 & DRF Knox",
+      "Connect your accounts safely through official sign-in flows. You can view your connected channels or disconnect your account with a single tap at any time.",
+    badge: "100% In Control",
   },
   {
-    icon: Database,
-    title: "Optimistic Concurrency & Safe Workers",
+    icon: Sparkles,
+    title: "Safe & Reliable Publishing",
     description:
-      "Atomic database row locking and Celery worker synchronization prevent race conditions, duplicate dispatches, or stale post updates.",
-    tech: "PostgreSQL Concurrency",
+      "Every scheduled post is automatically checked before it goes out, making sure your messages are never sent twice or posted to the wrong channel.",
+    badge: "No Duplicate Posts",
   },
 ]
 
@@ -42,13 +42,13 @@ export function SecuritySection() {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-secondary/50 text-xs font-medium text-muted-foreground mb-4">
             <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-            <span>Privacy-First Architecture</span>
+            <span>Your Privacy Comes First</span>
           </div>
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-            Built with Strict Security Standards
+            Your Accounts Are Safe With Us
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Your connected social credentials, OAuth tokens, and publishing queues are protected with end-to-end encryption standards.
+            We protect your connected accounts, private channels, and scheduled posts at every step—so you can broadcast with complete peace of mind.
           </p>
         </div>
 
@@ -63,11 +63,11 @@ export function SecuritySection() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
                       <Icon className="w-6 h-6" />
                     </div>
-                    <span className="text-[11px] font-mono font-semibold px-3 py-1 rounded-full bg-secondary text-primary border border-border">
-                      {pillar.tech}
+                    <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-secondary text-primary border border-border">
+                      {pillar.badge}
                     </span>
                   </div>
 
@@ -81,7 +81,7 @@ export function SecuritySection() {
 
                 <div className="mt-8 pt-4 border-t border-border/60 flex items-center text-xs font-medium text-emerald-500">
                   <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                  <span>Enforced Across All Services</span>
+                  <span>Always Active &amp; Protected</span>
                 </div>
               </div>
             )
