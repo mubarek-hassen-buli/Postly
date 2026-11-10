@@ -103,12 +103,13 @@ export function Navbar() {
           </button>
 
           {/* Launch App Capsule Button (Desktop) */}
-          <Link
-            href="/#sandbox"
+          <a
+            href="/apk/Postly.apk"
+            download="Postly.apk"
             className="hidden lg:inline-flex px-4 sm:px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-full bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-all duration-200 active:scale-95"
           >
             Launch App
-          </Link>
+          </a>
 
           {/* Mobile Menu Hamburger Toggle */}
           <button
@@ -160,13 +161,14 @@ export function Navbar() {
           >
             FAQ
           </Link>
-          <Link
-            href="/#sandbox"
+          <a
+            href="/apk/Postly.apk"
+            download="Postly.apk"
             onClick={() => setMobileMenuOpen(false)}
             className="w-full py-2.5 rounded-full bg-primary text-primary-foreground font-bold text-center text-xs uppercase tracking-wider mt-1"
           >
             Launch App
-          </Link>
+          </a>
         </div>
       )}
     </header>

@@ -86,3 +86,7 @@ staticfiles/
 # OS Generated
 .DS_Store
 Thumbs.db
+
+# APK Binaries
+*.apk
+Frontend/public/apk/
