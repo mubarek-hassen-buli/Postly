@@ -1,12 +1,10 @@
 import fs from "node:fs"
 import path from "node:path"
-import { Readable } from "node:stream"
-import { NextResponse } from "next/server"
 
-export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
 
-function resolveApkPath(): string | null {
+function getApkPath(): string | null {
   const candidates = [
     path.join(process.cwd(), "public", "apk", "Postly.apk"),
     path.join(process.cwd(), "Frontend", "public", "apk", "Postly.apk"),
@@ -17,61 +15,73 @@ function resolveApkPath(): string | null {
       return candidate
     }
   }
+
   return null
 }
 
-export async function HEAD(): Promise<NextResponse> {
-  const apkPath = resolveApkPath()
+export async function HEAD(): Promise<Response> {
+  const apkPath = getApkPath()
   if (!apkPath) {
-    return NextResponse.json(
-      { error: "NotFound", message: "Postly.apk file not found on server." },
-      { status: 404 }
-    )
+    return new Response(JSON.stringify({ error: "APK file not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    })
   }
 
   const stat = await fs.promises.stat(apkPath)
 
-  return new NextResponse(null, {
+  return new Response(null, {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.android.package-archive",
       "Content-Disposition": 'attachment; filename="Postly.apk"',
-      "Content-Length": stat.size.toString(),
+      "Content-Length": String(stat.size),
       "Accept-Ranges": "bytes",
-      "Cache-Control": "no-store",
+      "Cache-Control": "public, max-age=3600",
     },
   })
 }
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(): Promise<Response> {
   try {
-    const apkPath = resolveApkPath()
+    const apkPath = getApkPath()
+
     if (!apkPath) {
-      return NextResponse.json(
-        { error: "NotFound", message: "Postly.apk file not found on server." },
-        { status: 404 }
+      return new Response(
+        JSON.stringify({
+          error: "NotFound",
+          message: "Postly.apk file was not found on the server filesystem.",
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
       )
     }
 
-    const stat = await fs.promises.stat(apkPath)
-    const nodeStream = fs.createReadStream(apkPath)
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>
+    const blob = await fs.openAsBlob(apkPath)
 
-    return new NextResponse(webStream, {
+    return new Response(blob, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.android.package-archive",
         "Content-Disposition": 'attachment; filename="Postly.apk"',
-        "Content-Length": stat.size.toString(),
+        "Content-Length": String(blob.size),
         "Accept-Ranges": "bytes",
-        "Cache-Control": "no-store",
+        "Cache-Control": "public, max-age=3600",
       },
     })
-  } catch {
-    return NextResponse.json(
-      { error: "InternalServerError", message: "Failed to stream APK installer." },
-      { status: 500 }
+  } catch (error) {
+    console.error("APK download error:", error)
+    return new Response(
+      JSON.stringify({
+        error: "InternalServerError",
+        message: error instanceof Error ? error.message : "Failed to serve APK file.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     )
   }
 }
-
