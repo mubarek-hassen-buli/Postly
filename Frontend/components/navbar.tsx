@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { Sun, Moon, Menu, X } from "lucide-react"
+import { APK_DOWNLOAD_URL } from "@/lib/constants"
 
 export function Navbar() {
   const { theme, setTheme } = useTheme()
@@ -104,8 +105,7 @@ export function Navbar() {
 
           {/* Launch App Capsule Button (Desktop) */}
           <a
-            href="/api/download"
-            download="Postly.apk"
+            href={APK_DOWNLOAD_URL}
             className="hidden lg:inline-flex px-4 sm:px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-full bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-all duration-200 active:scale-95"
           >
             Launch App
@@ -162,8 +162,7 @@ export function Navbar() {
             FAQ
           </Link>
           <a
-            href="/api/download"
-            download="Postly.apk"
+            href={APK_DOWNLOAD_URL}
             onClick={() => setMobileMenuOpen(false)}
             className="w-full py-2.5 rounded-full bg-primary text-primary-foreground font-bold text-center text-xs uppercase tracking-wider mt-1"
           >

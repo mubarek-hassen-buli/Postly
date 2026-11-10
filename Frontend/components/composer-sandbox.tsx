@@ -12,6 +12,7 @@ import {
   Sparkles,
   CheckCircle2,
 } from "lucide-react"
+import { APK_DOWNLOAD_URL } from "@/lib/constants"
 
 const FEATURES = [
   {
@@ -64,8 +65,7 @@ export function ComposerSandbox() {
           </div>
 
           <a
-            href="/api/download"
-            download="Postly.apk"
+            href={APK_DOWNLOAD_URL}
             className="inline-flex items-center justify-center px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:opacity-95 transition-all duration-200 active:scale-95 shrink-0 self-start md:self-auto cursor-pointer"
           >
             Download the App

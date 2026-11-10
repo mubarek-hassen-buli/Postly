@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Sun, Moon, Menu, X } from "lucide-react"
+import { APK_DOWNLOAD_URL } from "@/lib/constants"
 
 export function HeroSection() {
   const { theme, setTheme } = useTheme()
@@ -91,8 +92,7 @@ export function HeroSection() {
               </button>
 
               <a
-                href="/api/download"
-                download="Postly.apk"
+                href={APK_DOWNLOAD_URL}
                 className="hidden lg:inline-flex px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-sm active:scale-95"
               >
                 Launch App
@@ -149,8 +149,7 @@ export function HeroSection() {
                 FAQ
               </Link>
               <a
-                href="/api/download"
-                download="Postly.apk"
+                href={APK_DOWNLOAD_URL}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-2.5 mt-1 rounded-full bg-white text-sky-600 font-bold text-center text-xs uppercase tracking-wider shadow-md hover:bg-white/95 transition-colors"
               >
