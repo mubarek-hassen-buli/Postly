@@ -1,8 +1,32 @@
 "use client"
 
 import React from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { Send } from "lucide-react"
+
+function LinkedInIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+    </svg>
+  )
+}
+
+function XIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
+
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
+    </svg>
+  )
+}
 
 function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -18,124 +42,226 @@ function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/80 bg-background/50 backdrop-blur-md pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-          {/* Col 1: Brand */}
-          <div className="flex flex-col items-start">
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center shadow-xs">
-                <Send className="w-4 h-4 -translate-x-0.5 translate-y-0.5" />
-              </div>
-              <span className="font-heading font-bold text-xl tracking-tight text-foreground">
-                Postly
-              </span>
-            </Link>
-            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mb-6">
-              The multi-platform content creation, scheduling, and publishing platform for Telegram, LinkedIn, and Instagram.
-            </p>
-            <div className="flex items-center gap-3">
-              <Link
-                href="https://github.com/mubarek-hassen-buli/Postly"
-                target="_blank"
-                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                aria-label="GitHub Repository"
-              >
-                <GitHubIcon className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
+    <footer className="relative overflow-hidden isolate pt-16 sm:pt-20 pb-0 text-white">
+      {/* Same Texture Background Used in the Second Section */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <Image
+          src="/images/Gemini_Generated_Image_souoy4souoy4souo.jpg"
+          alt="Footer Texture Background"
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        {/* Subtle depth tint so white typography stays crisp over the blue texture */}
+        <div className="absolute inset-0 bg-[#1274C8]/25 dark:bg-slate-950/55" />
+      </div>
 
-          {/* Col 2: Navigation */}
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 relative z-10">
+        {/* Top 5-Column Link Grid (Matching Reference Layout) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-10 sm:gap-8 pb-12 sm:pb-16">
+          {/* Col 1: Company */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-foreground mb-4">
-              Platform
+            <h4 className="font-heading font-semibold text-base sm:text-lg text-white mb-5">
+              Company
             </h4>
-            <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
+            <ul className="flex flex-col gap-3.5 text-sm text-white/85">
               <li>
-                <Link href="/#features" className="hover:text-foreground transition-colors">
-                  Features & Capabilities
+                <Link href="/#features" className="hover:text-white transition-colors">
+                  About us
                 </Link>
               </li>
               <li>
-                <Link href="/#sandbox" className="hover:text-foreground transition-colors">
-                  Live Multi-Platform Sandbox
-                </Link>
-              </li>
-              <li>
-                <Link href="/#comparison" className="hover:text-foreground transition-colors">
+                <Link href="/#comparison" className="hover:text-white transition-colors">
                   Why Postly
                 </Link>
               </li>
               <li>
-                <Link href="/#security" className="hover:text-foreground transition-colors">
-                  Security Architecture
+                <Link href="/#faq" className="hover:text-white transition-colors">
+                  FAQs
                 </Link>
               </li>
               <li>
-                <Link href="/#faq" className="hover:text-foreground transition-colors">
-                  Frequently Asked Questions
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  Contact
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Legal & Privacy */}
+          {/* Col 2: Products */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-foreground mb-4">
-              Legal & Support
+            <h4 className="font-heading font-semibold text-base sm:text-lg text-white mb-5">
+              Products
             </h4>
-            <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
+            <ul className="flex flex-col gap-3.5 text-sm text-white/85">
               <li>
-                <Link href="/privacy" className="hover:text-foreground transition-colors">
-                  Privacy Policy
+                <Link href="/#features" className="hover:text-white transition-colors">
+                  Telegram Broadcasts
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-foreground transition-colors">
-                  Terms of Service
+                <Link href="/#sandbox" className="hover:text-white transition-colors">
+                  Channel Queues
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-foreground transition-colors">
-                  Contact & Support Desk
+                <Link href="/#features" className="hover:text-white transition-colors">
+                  Rich Formatting
                 </Link>
               </li>
               <li>
-                <Link href="/privacy#deletion" className="hover:text-foreground transition-colors">
-                  Data Erasure & Deletion
+                <Link href="/#sandbox" className="hover:text-white transition-colors">
+                  Analytics &amp; Reach
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Tech Stack */}
+          {/* Col 3: Resources */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-foreground mb-4">
-              Open Architecture
+            <h4 className="font-heading font-semibold text-base sm:text-lg text-white mb-5">
+              Resources
             </h4>
-            <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground font-mono text-xs">
-              <li>React Native & Expo SDK 57</li>
-              <li>Django 5.x REST Framework</li>
-              <li>Telethon MTProto Client</li>
-              <li>LinkedIn OAuth 2.0 API</li>
-              <li>Celery & Redis Workers</li>
-              <li>PostgreSQL & NeonDB</li>
+            <ul className="flex flex-col gap-3.5 text-sm text-white/85">
+              <li>
+                <Link href="/#sandbox" className="hover:text-white transition-colors">
+                  Live Sandbox
+                </Link>
+              </li>
+              <li>
+                <Link href="/#security" className="hover:text-white transition-colors">
+                  Architecture
+                </Link>
+              </li>
+              <li>
+                <Link href="/#features" className="hover:text-white transition-colors">
+                  MTProto Engine
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://github.com/mubarek-hassen-buli/Postly"
+                  target="_blank"
+                  className="hover:text-white transition-colors"
+                >
+                  GitHub Repo
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Legal */}
+          <div>
+            <h4 className="font-heading font-semibold text-base sm:text-lg text-white mb-5">
+              Legal
+            </h4>
+            <ul className="flex flex-col gap-3.5 text-sm text-white/85">
+              <li>
+                <Link href="/privacy" className="hover:text-white transition-colors">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link href="/#security" className="hover:text-white transition-colors">
+                  Security
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-white transition-colors">
+                  Terms of use
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy#deletion" className="hover:text-white transition-colors">
+                  Data deletion
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 5: Contact */}
+          <div>
+            <h4 className="font-heading font-semibold text-base sm:text-lg text-white mb-5">
+              Contact
+            </h4>
+            <ul className="flex flex-col gap-3.5 text-sm text-white/85">
+              <li>
+                <a href="mailto:support@postly.app" className="hover:text-white transition-colors">
+                  support@postly.app
+                </a>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  @postly_support
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  Support Desk
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Copyright */}
-        <div className="pt-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-4">
-            <span>© {new Date().getFullYear()} Postly. All rights reserved.</span>
-            <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/terms" className="hover:underline">Terms</Link>
-            <Link href="/contact" className="hover:underline">Support</Link>
+        {/* Horizontal Divider Line */}
+        <div className="border-t border-white/30" />
+
+        {/* Middle Info & Social Row */}
+        <div className="py-8 sm:py-10 flex flex-col sm:flex-row items-start sm:items-start justify-between gap-6">
+          <div className="space-y-4 text-sm sm:text-base text-white/95 max-w-md leading-relaxed">
+            <p>
+              Postly — Unified Telegram &amp; Multi-Channel Broadcasting Platform.
+            </p>
+            <p className="font-medium">
+              © {new Date().getFullYear()} Postly. All rights reserved.
+            </p>
           </div>
-          <div className="flex items-center gap-1">
-            <span>Built for Creators, Power Admins, and Social Teams.</span>
+
+          {/* Solid White Circular Social Icons */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="https://linkedin.com"
+              target="_blank"
+              aria-label="LinkedIn"
+              className="w-9 h-9 rounded-full bg-white text-[#1C7ED6] hover:bg-white/90 hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+            >
+              <LinkedInIcon className="w-4 h-4" />
+            </Link>
+            <Link
+              href="https://x.com"
+              target="_blank"
+              aria-label="X"
+              className="w-9 h-9 rounded-full bg-white text-[#1C7ED6] hover:bg-white/90 hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+            >
+              <XIcon className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href="https://instagram.com"
+              target="_blank"
+              aria-label="Instagram"
+              className="w-9 h-9 rounded-full bg-white text-[#1C7ED6] hover:bg-white/90 hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+            >
+              <InstagramIcon className="w-4 h-4" />
+            </Link>
+            <Link
+              href="https://github.com/mubarek-hassen-buli/Postly"
+              target="_blank"
+              aria-label="GitHub"
+              className="w-9 h-9 rounded-full bg-white text-[#1C7ED6] hover:bg-white/90 hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+            >
+              <GitHubIcon className="w-4 h-4" />
+            </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Giant Bottom Watermark Wordmark */}
+      <div className="w-full overflow-hidden select-none pointer-events-none pt-2">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <span className="block font-heading font-extrabold text-[23vw] sm:text-[20vw] lg:text-[240px] leading-[0.76] tracking-tight bg-gradient-to-b from-white/25 via-white/15 to-white/5 bg-clip-text text-transparent translate-y-2 sm:translate-y-3">
+            Postly
+          </span>
         </div>
       </div>
     </footer>
