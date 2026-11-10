@@ -64,7 +64,7 @@ export function ComposerSandbox() {
           </div>
 
           <a
-            href="/apk/Postly.apk"
+            href="/api/download"
             download="Postly.apk"
             className="inline-flex items-center justify-center px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:opacity-95 transition-all duration-200 active:scale-95 shrink-0 self-start md:self-auto cursor-pointer"
           >

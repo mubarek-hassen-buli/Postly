@@ -91,7 +91,7 @@ export function HeroSection() {
               </button>
 
               <a
-                href="/apk/Postly.apk"
+                href="/api/download"
                 download="Postly.apk"
                 className="hidden lg:inline-flex px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-sm active:scale-95"
               >
@@ -149,7 +149,7 @@ export function HeroSection() {
                 FAQ
               </Link>
               <a
-                href="/apk/Postly.apk"
+                href="/api/download"
                 download="Postly.apk"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-2.5 mt-1 rounded-full bg-white text-sky-600 font-bold text-center text-xs uppercase tracking-wider shadow-md hover:bg-white/95 transition-colors"

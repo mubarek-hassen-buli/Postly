@@ -104,7 +104,7 @@ export function Navbar() {
 
           {/* Launch App Capsule Button (Desktop) */}
           <a
-            href="/apk/Postly.apk"
+            href="/api/download"
             download="Postly.apk"
             className="hidden lg:inline-flex px-4 sm:px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-full bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-all duration-200 active:scale-95"
           >
@@ -162,7 +162,7 @@ export function Navbar() {
             FAQ
           </Link>
           <a
-            href="/apk/Postly.apk"
+            href="/api/download"
             download="Postly.apk"
             onClick={() => setMobileMenuOpen(false)}
             className="w-full py-2.5 rounded-full bg-primary text-primary-foreground font-bold text-center text-xs uppercase tracking-wider mt-1"
