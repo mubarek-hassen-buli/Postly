@@ -233,7 +233,7 @@ export default function PrivacyPolicyPage() {
                     3. Account Closure & Complete Data Erasure
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Upon account deletion or a valid deletion request, Postly will delete all associated user data, connected platform information, member identifiers, and OAuth tokens stored by Postly, subject only to applicable legal retention requirements. To request full erasure, use the in-app &quot;Delete Account&quot; option or email <a href="mailto:privacy@postly.app" className="text-primary underline">privacy@postly.app</a>.
+                    Upon account deletion or a valid deletion request, Postly will delete all associated user data, connected platform information, member identifiers, and OAuth tokens stored by Postly, subject only to applicable legal retention requirements. To request full erasure, use the in-app &quot;Delete Account&quot; option or message us on Telegram at <a href="https://t.me/mubarek_h" target="_blank" rel="noopener noreferrer" className="text-primary underline">@mubarek_h</a>.
                   </p>
                 </div>
               </div>
@@ -272,8 +272,8 @@ export default function PrivacyPolicyPage() {
                 If you have questions, privacy inquiries, or wish to exercise your data deletion rights, please contact our team:
               </p>
               <div className="p-4 rounded-2xl bg-secondary/40 border border-border/60 text-sm">
-                <div><strong>Email:</strong> <a href="mailto:privacy@postly.app" className="text-primary hover:underline">privacy@postly.app</a></div>
-                <div className="mt-1"><strong>Support Desk:</strong> <Link href="/contact" className="text-primary hover:underline">postly.app/contact</Link></div>
+                <div><strong>Telegram:</strong> <a href="https://t.me/mubarek_h" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@mubarek_h</a></div>
+                <div className="mt-1"><strong>Support Desk:</strong> <Link href="/contact" className="text-primary hover:underline">Contact &amp; Support</Link></div>
               </div>
             </section>
           </div>

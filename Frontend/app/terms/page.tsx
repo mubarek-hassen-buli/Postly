@@ -166,8 +166,8 @@ export default function TermsOfServicePage() {
                 For questions regarding these Terms of Service, please contact:
               </p>
               <div className="p-4 rounded-2xl bg-secondary/40 border border-border/60 text-sm">
-                <div><strong>Email:</strong> <a href="mailto:legal@postly.app" className="text-primary hover:underline">legal@postly.app</a></div>
-                <div className="mt-1"><strong>Support Desk:</strong> <Link href="/contact" className="text-primary hover:underline">postly.app/contact</Link></div>
+                <div><strong>Telegram:</strong> <a href="https://t.me/mubarek_h" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@mubarek_h</a></div>
+                <div className="mt-1"><strong>Support Desk:</strong> <Link href="/contact" className="text-primary hover:underline">Contact &amp; Support</Link></div>
               </div>
             </section>
           </div>

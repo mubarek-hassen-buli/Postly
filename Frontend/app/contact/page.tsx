@@ -189,15 +189,17 @@ export default function ContactPage() {
 
                 <div className="space-y-4">
                   <a
-                    href="mailto:support@postly.app"
+                    href="https://t.me/mubarek_h"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="p-4 rounded-2xl bg-secondary/40 border border-border/60 flex items-center gap-3.5 hover:bg-secondary/70 transition-colors group"
                   >
                     <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Mail className="w-5 h-5" />
+                      <Send className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-muted-foreground">Email Support</div>
-                      <div className="text-sm font-semibold text-foreground truncate">support@postly.app</div>
+                      <div className="text-xs text-muted-foreground">Telegram Support</div>
+                      <div className="text-sm font-semibold text-foreground truncate">@mubarek_h</div>
                     </div>
                     <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
                   </a>
