@@ -20,15 +20,25 @@ export function CtaSection() {
   return (
     <section id="download" className="py-20 md:py-28 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl bg-slate-950 text-white overflow-hidden p-8 sm:p-12 md:p-16 border border-slate-800 shadow-2xl">
-          {/* Subtle Ambient Glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/15 rounded-full blur-3xl pointer-events-none -z-0" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none -z-0" />
+        <div
+          className="relative rounded-3xl sm:rounded-[36px] text-white overflow-hidden p-8 sm:p-12 md:p-16 border border-white/25 shadow-2xl"
+          style={{
+            background: "linear-gradient(180deg, #259DF8 0%, #38BDF8 38%, #60A5FA 72%, #3B82F6 100%)",
+          }}
+        >
+          {/* Soft Radial Ambient Lighting Core (Matching Hero Section) */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.12) 42%, transparent 72%)",
+            }}
+          />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left Content */}
             <div className="lg:col-span-8 flex flex-col items-start">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-700 bg-slate-900/80 text-xs font-medium text-sky-400 mb-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/30 bg-white/15 backdrop-blur-md text-xs font-semibold text-white mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Multi-Platform Social Media Scheduler</span>
               </div>
@@ -37,7 +47,7 @@ export function CtaSection() {
                 Create Once. Publish Everywhere with Postly.
               </h2>
 
-              <p className="text-slate-300 text-base sm:text-lg max-w-xl mb-8 leading-relaxed">
+              <p className="text-white/90 text-base sm:text-lg max-w-xl mb-8 leading-relaxed">
                 Connect your Telegram, LinkedIn, and Instagram accounts in minutes. Enjoy multi-channel scheduling, rich media albums, and live WYSIWYG previews.
               </p>
 
@@ -46,7 +56,7 @@ export function CtaSection() {
                 <Link
                   href="https://github.com/mubarek-hassen-buli/Postly"
                   target="_blank"
-                  className="px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-xs uppercase tracking-wider shadow-lg shadow-primary/25 hover:opacity-95 transition-all flex items-center gap-2"
+                  className="px-6 py-3 rounded-full bg-white text-[#1C7ED6] font-bold text-xs uppercase tracking-wider shadow-lg hover:bg-white/95 transition-all flex items-center gap-2"
                 >
                   <GitHubIcon className="w-4 h-4" />
                   <span>View on GitHub</span>
@@ -55,9 +65,9 @@ export function CtaSection() {
 
                 <Link
                   href="#sandbox"
-                  className="px-6 py-3 rounded-full bg-slate-900 border border-slate-700 text-white font-semibold text-xs uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-2"
+                  className="px-6 py-3 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2"
                 >
-                  <Send className="w-3.5 h-3.5 text-primary" />
+                  <Send className="w-3.5 h-3.5 text-white" />
                   <span>Try Live Sandbox</span>
                 </Link>
               </div>
@@ -65,17 +75,17 @@ export function CtaSection() {
 
             {/* Right QR / Quick Access Card */}
             <div className="lg:col-span-4 flex justify-center lg:justify-end">
-              <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 flex flex-col items-center text-center shadow-xl max-w-xs w-full">
-                <div className="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center mb-4">
+              <div className="bg-white/20 border border-white/35 backdrop-blur-xl rounded-3xl p-6 flex flex-col items-center text-center shadow-2xl max-w-xs w-full">
+                <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 text-white flex items-center justify-center mb-4">
                   <QrCode className="w-8 h-8" />
                 </div>
                 <div className="font-heading font-bold text-base text-white mb-1">
                   Cross-Platform App
                 </div>
-                <p className="text-xs text-slate-400 mb-4">
-                  Built with React Native & Expo SDK 57 for iOS, Android, and Web.
+                <p className="text-xs text-white/85 mb-4">
+                  Built with React Native &amp; Expo SDK 57 for iOS, Android, and Web.
                 </p>
-                <div className="w-full py-2 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-300">
+                <div className="w-full py-2 rounded-xl bg-white/15 border border-white/25 text-[11px] font-mono text-white">
                   postly://expo-dev
                 </div>
               </div>

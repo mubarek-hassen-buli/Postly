@@ -59,7 +59,7 @@ export function HeroSection() {
                 Features
               </Link>
               <Link href="#sandbox" className="hover:text-white transition-colors">
-                Live Sandbox
+                How It Works
               </Link>
               <Link href="#comparison" className="hover:text-white transition-colors">
                 Why Postly
@@ -124,7 +124,7 @@ export function HeroSection() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold py-2 px-3 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors"
               >
-                Live Sandbox
+                How It Works
               </Link>
               <Link
                 href="#comparison"

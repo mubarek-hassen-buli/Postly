@@ -6,7 +6,6 @@ import { ComposerSandbox } from "@/components/composer-sandbox"
 import { ComparisonMatrix } from "@/components/comparison-matrix"
 import { SecuritySection } from "@/components/security-section"
 import { FaqSection } from "@/components/faq-section"
-import { CtaSection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
 
 export default function LandingPage() {
@@ -20,7 +19,6 @@ export default function LandingPage() {
         <ComparisonMatrix />
         <SecuritySection />
         <FaqSection />
-        <CtaSection />
       </main>
       <Footer />
     </div>

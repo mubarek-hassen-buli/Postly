@@ -125,7 +125,7 @@ export function Footer() {
             <ul className="flex flex-col gap-3.5 text-sm text-white/85">
               <li>
                 <Link href="/#sandbox" className="hover:text-white transition-colors">
-                  Live Sandbox
+                  How It Works
                 </Link>
               </li>
               <li>

@@ -61,7 +61,7 @@ export function Navbar() {
             href="/#sandbox"
             className="hover:text-foreground transition-colors duration-150"
           >
-            Live Sandbox
+            How It Works
           </Link>
           <Link
             href="/#comparison"
@@ -137,7 +137,7 @@ export function Navbar() {
             onClick={() => setMobileMenuOpen(false)}
             className="text-sm font-medium py-1.5 text-foreground hover:text-primary transition-colors"
           >
-            Live Sandbox
+            How It Works
           </Link>
           <Link
             href="/#comparison"
