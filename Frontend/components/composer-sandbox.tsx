@@ -117,12 +117,12 @@ export function ComposerSandbox() {
             })}
           </div>
 
-          {/* Right Column: Large Showcase Stage with Architectural Grid & section-3.png */}
+          {/* Right Column: Single Showcase Box with section-3.png */}
           <div className="lg:col-span-7">
-            <div className="rounded-[32px] sm:rounded-[40px] bg-slate-50/80 dark:bg-card/40 border border-slate-200/80 dark:border-border/60 p-4 sm:p-8 relative overflow-hidden shadow-xs flex items-center justify-center min-h-[460px] sm:min-h-[520px]">
+            <div className="rounded-[32px] sm:rounded-[40px] bg-slate-50/70 dark:bg-white border border-slate-200/80 dark:border-border/60 p-4 sm:p-6 relative overflow-hidden shadow-sm flex items-center justify-center min-h-[420px] sm:min-h-[480px]">
               {/* Subtle Architectural Grid Lines */}
               <div
-                className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
+                className="absolute inset-0 pointer-events-none opacity-45"
                 style={{
                   backgroundImage:
                     "linear-gradient(to right, #8080801a 1px, transparent 1px), linear-gradient(to bottom, #8080801a 1px, transparent 1px)",
@@ -130,15 +130,15 @@ export function ComposerSandbox() {
                 }}
               />
 
-              {/* Showcase Image (section-3.png) */}
-              <div className="relative z-10 w-full max-w-[540px] transition-transform duration-500 hover:scale-[1.01]">
+              {/* Showcase Image (section-3.png) directly inside the single box */}
+              <div className="relative z-10 w-full max-w-[560px] transition-transform duration-500 hover:scale-[1.01]">
                 <Image
                   src="/images/section-3.png"
                   alt="Postly Analytics Showcase"
                   width={1200}
                   height={800}
                   priority
-                  className="w-full h-auto object-contain rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200/60 dark:border-zinc-800"
+                  className="w-full h-auto object-contain mix-blend-multiply"
                 />
               </div>
             </div>

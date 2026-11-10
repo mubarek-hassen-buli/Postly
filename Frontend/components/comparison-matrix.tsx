@@ -29,11 +29,6 @@ const COMPARISON_ROWS = [
     postly: "Official personal profile & organization company page publishing",
     traditional: "Manual web logins or fragile browser automations",
   },
-  {
-    capability: "Credential & Token Security",
-    postly: "AES-256 Fernet encryption at rest & mobile Hardware Keystores",
-    traditional: "Unencrypted plaintext API tokens stored in config files",
-  },
 ]
 
 export function ComparisonMatrix() {

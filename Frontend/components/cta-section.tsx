@@ -46,7 +46,7 @@ export function CtaSection() {
                 <Link
                   href="https://github.com/mubarek-hassen-buli/Postly"
                   target="_blank"
-                  className="px-6 py-3 rounded-full bg-white text-slate-950 font-semibold text-xs uppercase tracking-wider shadow-lg hover:bg-slate-100 transition-all flex items-center gap-2"
+                  className="px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-xs uppercase tracking-wider shadow-lg shadow-primary/25 hover:opacity-95 transition-all flex items-center gap-2"
                 >
                   <GitHubIcon className="w-4 h-4" />
                   <span>View on GitHub</span>
@@ -57,7 +57,7 @@ export function CtaSection() {
                   href="#sandbox"
                   className="px-6 py-3 rounded-full bg-slate-900 border border-slate-700 text-white font-semibold text-xs uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-2"
                 >
-                  <Send className="w-3.5 h-3.5 text-sky-400" />
+                  <Send className="w-3.5 h-3.5 text-primary" />
                   <span>Try Live Sandbox</span>
                 </Link>
               </div>
